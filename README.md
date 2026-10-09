@@ -7,10 +7,6 @@
 </p>
 
 <p>
-  Runs as one Go application with an embedded React frontend and SQLite by default. Monitoring is read-only, with English and German support, light and dark themes, and a responsive layout.
-</p>
-
-<p>
   <img src="docs/assets/nodarium-gopher.png" width="560" alt="A blue Go Gopher beside a Bitcoin node dashboard and an orange Bitcoin coin." />
 </p>
 
