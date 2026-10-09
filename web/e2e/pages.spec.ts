@@ -4,7 +4,7 @@ import { navigate, signIn } from './fixtures';
 test('overview stays compact and links to focused mining and node pages', async ({ page }) => {
   const historyRequests: string[] = [];
   page.on('request', (request) => {
-    if (request.url().includes('/api/v1/history')) historyRequests.push(request.url());
+    if (request.url().includes('/api/1.0/history')) historyRequests.push(request.url());
   });
 
   await signIn(page);

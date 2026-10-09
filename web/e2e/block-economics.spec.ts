@@ -7,9 +7,9 @@ test('Core block economics are exported through the existing authenticated block
   page,
   request,
 }) => {
-  expect((await request.get('/api/v1/blocks')).status()).toBe(401);
+  expect((await request.get('/api/1.0/blocks')).status()).toBe(401);
   await signIn(page);
-  const response = await page.request.get('/api/v1/blocks');
+  const response = await page.request.get('/api/1.0/blocks');
   expect(response.ok()).toBe(true);
   const section: Section<Block[]> = await response.json();
   expect(section.data).toHaveLength(10);
@@ -31,7 +31,7 @@ test('block economics preserve exact tables, gaps, zeroes, stale data and locali
   page.on('pageerror', (error) => errors.push(error.message));
   let mode: 'ready' | 'partial' | 'failed' | 'unavailable' | 'empty' = 'ready';
   let syncing = false;
-  await page.route('**/api/v1/blocks', async (route) => {
+  await page.route('**/api/1.0/blocks', async (route) => {
     if (mode === 'failed')
       return route.fulfill({ status: 503, json: { error: 'RPC unavailable' } });
 
@@ -62,7 +62,7 @@ test('block economics preserve exact tables, gaps, zeroes, stale data and locali
     return route.fulfill({ json: section });
   });
 
-  await page.route('**/api/v1/overview', async (route) => {
+  await page.route('**/api/1.0/overview', async (route) => {
     const response = await route.fetch();
     const body: OverviewResponse = await response.json();
     body.overview.data!.blockchain.initialblockdownload = syncing;

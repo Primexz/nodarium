@@ -82,7 +82,7 @@ export const mapFixture: Section<PeerMapData> = {
 };
 
 export async function mockMap(page: Page, section = mapFixture) {
-  await page.route('**/api/v1/peer-map', (route) => route.fulfill({ json: section }));
+  await page.route('**/api/1.0/peer-map', (route) => route.fulfill({ json: section }));
 }
 
 export async function signIn(page: Page) {

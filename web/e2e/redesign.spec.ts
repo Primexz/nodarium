@@ -52,7 +52,7 @@ test('keyboard dialogs restore focus and expired sessions hide node data', async
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(peer).toBeFocused();
-  await page.route('**/api/v1/overview', (route) =>
+  await page.route('**/api/1.0/overview', (route) =>
     route.fulfill({ status: 401, json: { error: 'Authentication required' } }),
   );
 
@@ -89,7 +89,7 @@ test('redesign capture matrix covers themes, routes, German and reduced motion',
   await page.getByLabel('Theme', { exact: true }).selectOption('light');
   await mockMap(page);
   // Synthetic history matches the RPC fixture's order of magnitude and explicitly includes a missing observation.
-  await page.route('**/api/v1/history?**', (route) => {
+  await page.route('**/api/1.0/history?**', (route) => {
     const url = new URL(route.request().url());
     const metric = url.searchParams.get('metric')!;
     const range = url.searchParams.get('range')!;

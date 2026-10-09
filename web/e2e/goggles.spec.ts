@@ -4,7 +4,7 @@ import { signIn } from './fixtures';
 
 const hash = (900123).toString(16).padStart(64, '0');
 const txid = (index: number) => (900123 * 100000 + index).toString(16).padStart(64, '0');
-const endpoint = `/api/v1/blocks/${hash}/transactions`;
+const endpoint = `/api/1.0/blocks/${hash}/transactions`;
 
 test('authenticated local transactions open from mosaic and keyboard table', async ({ page }) => {
   expect((await page.request.get(endpoint)).status()).toBe(401);
@@ -56,7 +56,7 @@ test('authenticated local transactions open from mosaic and keyboard table', asy
   expect(await page.locator('.goggles-table tr[data-index]').count()).toBeLessThan(40);
   await expect(page.getByRole('button', { name: 'Next', exact: true })).toHaveCount(0);
 
-  expect((await page.request.get('/api/v1/blocks/invalid/transactions')).status()).toBe(400);
+  expect((await page.request.get('/api/1.0/blocks/invalid/transactions')).status()).toBe(400);
 });
 
 test('unavailable block retries, stale data is labeled and orphaned mosaic is hidden', async ({

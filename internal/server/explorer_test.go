@@ -47,7 +47,7 @@ func TestAuthenticatedExplorerRoutes(t *testing.T) {
 			nil,
 			nil,
 		)
-		login := httptest.NewRequest("POST", "/api/v1/auth/login", strings.NewReader(`{"key":"secret"}`))
+		login := httptest.NewRequest("POST", "/api/1.0/auth/login", strings.NewReader(`{"key":"secret"}`))
 		login.Header.Set("Content-Type", "application/json")
 		response := httptest.NewRecorder()
 		h.ServeHTTP(response, login)
@@ -58,7 +58,7 @@ func TestAuthenticatedExplorerRoutes(t *testing.T) {
 
 		cookie := response.Result().Cookies()[0]
 
-		for _, path := range []string{"/api/v1/blocks/block/transactions", "/api/v1/blocks/block/transactions/transaction"} {
+		for _, path := range []string{"/api/1.0/blocks/block/transactions", "/api/1.0/blocks/block/transactions/transaction"} {
 			request := httptest.NewRequest("GET", path, nil)
 			request.AddCookie(cookie)
 			response := httptest.NewRecorder()

@@ -14,7 +14,7 @@ test('peer rows stay bounded while scrolling, filtering, sorting, refreshing and
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   let count = 2000;
-  await page.route('**/api/v1/peers', async (route) => {
+  await page.route('**/api/1.0/peers', async (route) => {
     const response = await route.fetch();
     const body: Section<Peer[]> = await response.json();
     const original = body.data![0]!;
@@ -123,7 +123,7 @@ test('long joined history tables expose the full range and preserve missing valu
   page,
 }, info) => {
   const at = Date.now() - 1_000_000;
-  await page.route('**/api/v1/history?**', async (route) => {
+  await page.route('**/api/1.0/history?**', async (route) => {
     const url = new URL(route.request().url());
     const history: History = {
       metric: url.searchParams.get('metric')!,

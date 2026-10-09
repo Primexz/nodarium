@@ -10,7 +10,7 @@ test('unknown and missing pool logos use local theme-aware fallbacks without cha
     if (!request.url().startsWith('http://127.0.0.1:18080/')) outbound.push(request.url());
   });
 
-  await page.route('**/api/v1/mining/pools?**', async (route) => {
+  await page.route('**/api/1.0/mining/pools?**', async (route) => {
     const response = await route.fetch();
     const body: PoolDistribution = await response.json();
     body.status = 'ready';

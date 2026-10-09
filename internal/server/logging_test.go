@@ -46,36 +46,36 @@ func TestRequestLoggingAndSecretProtection(t *testing.T) {
 		level                     zapcore.Level
 	}{
 		{"GET", "/healthz", "", "", 200, zap.DebugLevel},
-		{"GET", "/api/v1/peers?token=private-query", "", "GET /api/", 401, zap.DebugLevel},
+		{"GET", "/api/1.0/peers?token=private-query", "", "GET /api/", 401, zap.DebugLevel},
 		{
 			"POST",
-			"/api/v1/auth/login",
+			"/api/1.0/auth/login",
 			`{"key":"private-wrong-key"}`,
-			"POST /api/v1/auth/login",
+			"POST /api/1.0/auth/login",
 			401,
 			zap.WarnLevel,
 		},
 		{
 			"POST",
-			"/api/v1/auth/login",
+			"/api/1.0/auth/login",
 			`{"key":"private-admin-key"}`,
-			"POST /api/v1/auth/login",
+			"POST /api/1.0/auth/login",
 			200,
 			zap.InfoLevel,
 		},
-		{"GET", "/api/v1/peers?token=private-query", "", "GET /api/v1/peers", 200, zap.DebugLevel},
+		{"GET", "/api/1.0/peers?token=private-query", "", "GET /api/1.0/peers", 200, zap.DebugLevel},
 		{
 			"GET",
-			"/api/v1/history?metric=peers&range=1h",
+			"/api/1.0/history?metric=peers&range=1h",
 			"",
-			"GET /api/v1/history",
+			"GET /api/1.0/history",
 			503,
 			zap.ErrorLevel,
 		},
 		{"GET", "/private-path", "", "GET /", 200, zap.DebugLevel},
 		{"GET", "/private-path.js", "", "GET /", 404, zap.DebugLevel},
 		{"POST", "/private-path", "", "unmatched", 405, zap.DebugLevel},
-		{"POST", "/api/v1/auth/logout", "", "POST /api/v1/auth/logout", 204, zap.InfoLevel},
+		{"POST", "/api/1.0/auth/logout", "", "POST /api/1.0/auth/logout", 204, zap.InfoLevel},
 	} {
 		t.Run(tc.method+tc.path, func(t *testing.T) {
 			r := httptest.NewRequest(tc.method, tc.path, strings.NewReader(tc.body))
@@ -93,7 +93,7 @@ func TestRequestLoggingAndSecretProtection(t *testing.T) {
 				t.Fatalf("got status %d, want %d", w.Code, tc.status)
 			}
 
-			if tc.path == "/api/v1/auth/login" && tc.status == 200 {
+			if tc.path == "/api/1.0/auth/login" && tc.status == 200 {
 				cookie = w.Result().Cookies()[0]
 			}
 

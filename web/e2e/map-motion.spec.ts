@@ -45,7 +45,10 @@ test('peer connection lines animate and stop for reduced motion and stale readin
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await expectMoving();
   await mockMap(page, { ...mapFixture, stale: true });
-  const refreshed = page.waitForResponse((response) => response.url().endsWith('/api/v1/peer-map'));
+  const refreshed = page.waitForResponse((response) =>
+    response.url().endsWith('/api/1.0/peer-map'),
+  );
+
   await page.getByRole('button', { name: 'Refresh node data' }).click();
   await refreshed;
   await expectStill();

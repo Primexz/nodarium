@@ -62,14 +62,14 @@ func New(
 		},
 	)
 
-	mux.HandleFunc("POST /api/v1/auth/login", a.Login)
-	mux.HandleFunc("POST /api/v1/auth/logout", a.Logout)
-	mux.Handle("GET /api/v1/auth/session", a.Require(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("POST /api/1.0/auth/login", a.Login)
+	mux.HandleFunc("POST /api/1.0/auth/logout", a.Logout)
+	mux.Handle("GET /api/1.0/auth/session", a.Require(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		jsonResponse(w, 200, map[string]bool{"authenticated": true})
 	})))
 
 	api := http.NewServeMux()
-	api.HandleFunc("GET /api/v1/overview", func(w http.ResponseWriter, r *http.Request) {
+	api.HandleFunc("GET /api/1.0/overview", func(w http.ResponseWriter, r *http.Request) {
 		s := c.Snapshot()
 		jsonResponse(
 			w,
@@ -84,13 +84,13 @@ func New(
 	})
 
 	api.HandleFunc(
-		"GET /api/v1/peers",
+		"GET /api/1.0/peers",
 		func(w http.ResponseWriter, r *http.Request) {
 			jsonResponse(w, 200, c.Snapshot().Peers)
 		},
 	)
 
-	api.HandleFunc("GET /api/v1/peer-map", func(w http.ResponseWriter, r *http.Request) {
+	api.HandleFunc("GET /api/1.0/peer-map", func(w http.ResponseWriter, r *http.Request) {
 		snapshot := c.Snapshot()
 		peers := []rpc.Peer{}
 
@@ -118,41 +118,41 @@ func New(
 	})
 
 	api.HandleFunc(
-		"GET /api/v1/traffic",
+		"GET /api/1.0/traffic",
 		func(w http.ResponseWriter, r *http.Request) {
 			jsonResponse(w, 200, c.Snapshot().Traffic)
 		},
 	)
 
 	api.HandleFunc(
-		"GET /api/v1/mempool",
+		"GET /api/1.0/mempool",
 		func(w http.ResponseWriter, r *http.Request) {
 			jsonResponse(w, 200, c.Snapshot().Mempool)
 		},
 	)
 
 	api.HandleFunc(
-		"GET /api/v1/blocks",
+		"GET /api/1.0/blocks",
 		func(w http.ResponseWriter, r *http.Request) {
 			jsonResponse(w, 200, c.Snapshot().Blocks)
 		},
 	)
 
 	api.HandleFunc(
-		"GET /api/v1/mining",
+		"GET /api/1.0/mining",
 		func(w http.ResponseWriter, r *http.Request) {
 			jsonResponse(w, 200, c.Snapshot().Mining)
 		},
 	)
 
 	api.HandleFunc(
-		"GET /api/v1/fees",
+		"GET /api/1.0/fees",
 		func(w http.ResponseWriter, r *http.Request) {
 			jsonResponse(w, 200, c.Snapshot().Fees)
 		},
 	)
 
-	api.HandleFunc("GET /api/v1/mining/pools", func(w http.ResponseWriter, r *http.Request) {
+	api.HandleFunc("GET /api/1.0/mining/pools", func(w http.ResponseWriter, r *http.Request) {
 		window := 144
 
 		if value := r.URL.Query().Get("blocks"); value != "" {
@@ -184,7 +184,7 @@ func New(
 		jsonResponse(w, 200, view)
 	})
 
-	api.HandleFunc("GET /api/v1/blocks/{hash}/transactions", func(w http.ResponseWriter, r *http.Request) {
+	api.HandleFunc("GET /api/1.0/blocks/{hash}/transactions", func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), 8*time.Second)
 		defer cancel()
 
@@ -205,7 +205,7 @@ func New(
 		jsonResponse(w, 200, view)
 	})
 
-	api.HandleFunc("GET /api/v1/blocks/{hash}/transactions/{txid}", func(w http.ResponseWriter, r *http.Request) {
+	api.HandleFunc("GET /api/1.0/blocks/{hash}/transactions/{txid}", func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), 8*time.Second)
 		defer cancel()
 
@@ -226,7 +226,7 @@ func New(
 		jsonResponse(w, 200, view)
 	})
 
-	api.HandleFunc("GET /api/v1/history", func(w http.ResponseWriter, r *http.Request) {
+	api.HandleFunc("GET /api/1.0/history", func(w http.ResponseWriter, r *http.Request) {
 		metric, period := r.URL.Query().Get("metric"), r.URL.Query().Get("range")
 
 		if !storage.Metrics[metric] ||

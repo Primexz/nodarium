@@ -11,7 +11,7 @@ import (
 func login(m *Manager, key, origin string) *httptest.ResponseRecorder {
 	r := httptest.NewRequest(
 		"POST",
-		"http://dashboard.test/api/v1/auth/login",
+		"http://dashboard.test/api/1.0/auth/login",
 		strings.NewReader(`{"key":"`+key+`"}`),
 	)
 
@@ -50,7 +50,7 @@ func TestSessionLifecycle(t *testing.T) {
 		t.Fatal("unsafe cookie")
 	}
 
-	r := httptest.NewRequest("GET", "http://dashboard.test/api/v1/overview", nil)
+	r := httptest.NewRequest("GET", "http://dashboard.test/api/1.0/overview", nil)
 	r.AddCookie(cookies[0])
 
 	if !m.Valid(r) {
@@ -64,7 +64,7 @@ func TestSessionLifecycle(t *testing.T) {
 	}
 
 	w = login(m, "private-admin-key", "")
-	r = httptest.NewRequest("POST", "http://dashboard.test/api/v1/auth/logout", nil)
+	r = httptest.NewRequest("POST", "http://dashboard.test/api/1.0/auth/logout", nil)
 	r.AddCookie(w.Result().Cookies()[0])
 	out := httptest.NewRecorder()
 	m.Logout(out, r)
@@ -111,7 +111,7 @@ func TestProtectionAndSecureCookie(t *testing.T) {
 		t.Fatal("secure cookie missing")
 	}
 
-	r := httptest.NewRequest("POST", "http://dashboard.test/api/v1/auth/logout", nil)
+	r := httptest.NewRequest("POST", "http://dashboard.test/api/1.0/auth/logout", nil)
 	r.AddCookie(w.Result().Cookies()[0])
 	r.Header.Set("Origin", "https://attacker.test")
 	out := httptest.NewRecorder()

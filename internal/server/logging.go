@@ -65,13 +65,13 @@ func logRequest(logger *zap.Logger, r *http.Request, response *loggedResponse, s
 	case status >= 500:
 		logger.Error("HTTP request failed", fields...)
 
-	case route == "POST /api/v1/auth/login" && status >= 400:
+	case route == "POST /api/1.0/auth/login" && status >= 400:
 		logger.Warn("Login rejected", fields...)
 
-	case route == "POST /api/v1/auth/login" && status == http.StatusOK:
+	case route == "POST /api/1.0/auth/login" && status == http.StatusOK:
 		logger.Info("Admin session created", fields...)
 
-	case route == "POST /api/v1/auth/logout" && status < 400:
+	case route == "POST /api/1.0/auth/logout" && status < 400:
 		logger.Info("Admin session ended", fields...)
 
 	default:

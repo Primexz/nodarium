@@ -5,7 +5,7 @@ export default async function globalSetup(config: FullConfig) {
   const api = await request.newContext({ baseURL: config.projects[0]!.use.baseURL });
 
   try {
-    const login = await api.post('/api/v1/auth/login', { data: { key: 'e2e-admin-key' } });
+    const login = await api.post('/api/1.0/auth/login', { data: { key: 'e2e-admin-key' } });
     await expect(login).toBeOK();
 
     // /healthz reports process health only. The mock RPC server may start after
@@ -13,7 +13,7 @@ export default async function globalSetup(config: FullConfig) {
     await expect
       .poll(
         async () => {
-          const response = await api.get('/api/v1/overview');
+          const response = await api.get('/api/1.0/overview');
 
           if (!response.ok()) return false;
 
@@ -34,7 +34,7 @@ export default async function globalSetup(config: FullConfig) {
       .toBe(true);
   } finally {
     try {
-      await api.post('/api/v1/auth/logout');
+      await api.post('/api/1.0/auth/logout');
     } finally {
       await api.dispose();
     }

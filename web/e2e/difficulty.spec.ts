@@ -12,7 +12,7 @@ test('difficulty period updates at the boundary and explains syncing, stale and 
   let syncing = false;
   let failed = false;
   let observedAt: string | null = '2026-10-09T12:00:00Z';
-  await page.route('**/api/v1/overview', async (route) => {
+  await page.route('**/api/1.0/overview', async (route) => {
     if (failed) return route.fulfill({ status: 503, body: 'Unavailable' });
 
     const response = await route.fetch();
@@ -127,7 +127,7 @@ test('difficulty period leaves missing readings empty and identifies a failed co
   page,
 }) => {
   const state = { error: undefined as string | undefined };
-  await page.route('**/api/v1/overview', (route) =>
+  await page.route('**/api/1.0/overview', (route) =>
     route.fulfill({
       json: {
         status: 'disconnected',

@@ -37,19 +37,19 @@ func TestRoutesProtected(t *testing.T) {
 	)
 
 	for _, path := range []string{
-		"/api/v1/overview",
-		"/api/v1/peers",
-		"/api/v1/peer-map",
-		"/api/v1/traffic",
-		"/api/v1/mempool",
-		"/api/v1/blocks",
-		"/api/v1/mining",
-		"/api/v1/fees",
-		"/api/v1/mining/pools",
-		"/api/v1/blocks/0000000000000000000000000000000000000000000000000000000000000001/transactions",
-		"/api/v1/blocks/0000000000000000000000000000000000000000000000000000000000000001/transactions/0000000000000000000000000000000000000000000000000000000000000002",
-		"/api/v1/history?metric=rx_rate&range=1h",
-		"/api/v1/auth/session",
+		"/api/1.0/overview",
+		"/api/1.0/peers",
+		"/api/1.0/peer-map",
+		"/api/1.0/traffic",
+		"/api/1.0/mempool",
+		"/api/1.0/blocks",
+		"/api/1.0/mining",
+		"/api/1.0/fees",
+		"/api/1.0/mining/pools",
+		"/api/1.0/blocks/0000000000000000000000000000000000000000000000000000000000000001/transactions",
+		"/api/1.0/blocks/0000000000000000000000000000000000000000000000000000000000000001/transactions/0000000000000000000000000000000000000000000000000000000000000002",
+		"/api/1.0/history?metric=rx_rate&range=1h",
+		"/api/1.0/auth/session",
 	} {
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, httptest.NewRequest("GET", path, nil))

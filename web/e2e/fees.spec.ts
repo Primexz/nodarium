@@ -7,11 +7,11 @@ test('backend exports local fee estimates and persists their history', async ({
   page,
   request,
 }) => {
-  expect((await request.get('/api/v1/fees')).status()).toBe(401);
+  expect((await request.get('/api/1.0/fees')).status()).toBe(401);
   await signIn(page);
   await navigate(page, 'Mempool');
   const panel = page.getByRole('region', { name: 'Fee estimates', exact: true });
-  const response = await page.request.get('/api/v1/fees');
+  const response = await page.request.get('/api/1.0/fees');
   expect(response.ok()).toBe(true);
   const section: Section<Fees> = await response.json();
   expect(section.stale).toBe(false);
@@ -29,7 +29,7 @@ test('backend exports local fee estimates and persists their history', async ({
     expect(target.data?.fee_rate).toBeCloseTo(rate);
     expect(target.data?.estimated_blocks).toBe(blocks);
     const historyResponse = await page.request.get(
-      `/api/v1/history?metric=fee_estimate_${blocks}&range=24h`,
+      `/api/1.0/history?metric=fee_estimate_${blocks}&range=24h`,
     );
 
     expect(historyResponse.ok()).toBe(true);
@@ -54,7 +54,7 @@ test('fee estimates and history support ranges, themes, German and partial obser
   let historyFailed = false;
   let syncing = false;
 
-  await page.route('**/api/v1/fees', (route) => {
+  await page.route('**/api/1.0/fees', (route) => {
     if (state === 'failed')
       return route.fulfill({ status: 503, json: { error: 'Refresh failed' } });
 
@@ -87,14 +87,14 @@ test('fee estimates and history support ranges, themes, German and partial obser
     });
   });
 
-  await page.route('**/api/v1/overview', async (route) => {
+  await page.route('**/api/1.0/overview', async (route) => {
     const response = await route.fetch();
     const body: OverviewResponse = await response.json();
     body.overview.data!.blockchain.initialblockdownload = syncing;
     await route.fulfill({ json: body });
   });
 
-  await page.route('**/api/v1/history?**', (route) => {
+  await page.route('**/api/1.0/history?**', (route) => {
     const url = new URL(route.request().url());
     const metric = url.searchParams.get('metric')!;
 
@@ -223,7 +223,7 @@ test('fee estimates and history support ranges, themes, German and partial obser
 
 test('missing fee readings stay empty and collection errors explain recovery', async ({ page }) => {
   let failed = false;
-  await page.route('**/api/v1/fees', (route) =>
+  await page.route('**/api/1.0/fees', (route) =>
     route.fulfill({
       json: {
         data: null,

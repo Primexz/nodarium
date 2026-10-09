@@ -7,14 +7,14 @@ test('backend exports and persists network hashrate and difficulty for the chart
   page,
   request,
 }) => {
-  expect((await request.get('/api/v1/mining')).status()).toBe(401);
+  expect((await request.get('/api/1.0/mining')).status()).toBe(401);
   await signIn(page);
   await navigate(page, 'Mining');
   const charts = page.getByRole('region', { name: 'Network mining' });
   await expect(charts.getByText('910.00 EH/s', { exact: true })).toBeVisible();
   await expect(charts.getByText('895.00 EH/s', { exact: true })).toBeVisible();
   await expect(charts.getByText('123.40T', { exact: true })).toBeVisible();
-  const response = await page.request.get('/api/v1/mining');
+  const response = await page.request.get('/api/1.0/mining');
   expect(response.ok()).toBe(true);
   const mining: Section<Mining> = await response.json();
   expect(mining.stale).toBe(false);
@@ -25,7 +25,7 @@ test('backend exports and persists network hashrate and difficulty for the chart
     ['hashrate_1008', 895e18],
     ['difficulty', 123.4e12],
   ] as const) {
-    const historyResponse = await page.request.get(`/api/v1/history?metric=${metric}&range=24h`);
+    const historyResponse = await page.request.get(`/api/1.0/history?metric=${metric}&range=24h`);
     expect(historyResponse.ok()).toBe(true);
     const history: History = await historyResponse.json();
     expect(
@@ -48,7 +48,7 @@ test('mining charts support ranges, accessible data, themes, German, outages and
   const now = Date.now();
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  await page.route('**/api/v1/mining', (route) =>
+  await page.route('**/api/1.0/mining', (route) =>
     failed
       ? route.fulfill({ status: 503, json: { error: 'Refresh failed' } })
       : route.fulfill({
@@ -60,14 +60,14 @@ test('mining charts support ranges, accessible data, themes, German, outages and
         }),
   );
 
-  await page.route('**/api/v1/overview', async (route) => {
+  await page.route('**/api/1.0/overview', async (route) => {
     const response = await route.fetch();
     const body: OverviewResponse = await response.json();
     body.overview.data!.blockchain.initialblockdownload = syncing;
     await route.fulfill({ json: body });
   });
 
-  await page.route('**/api/v1/history?**', (route) => {
+  await page.route('**/api/1.0/history?**', (route) => {
     const url = new URL(route.request().url());
     const metric = url.searchParams.get('metric')!;
 

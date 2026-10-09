@@ -8,7 +8,7 @@ export class APIError extends Error {
 }
 
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(`/api/v1/${path}`, {
+  const res = await fetch(`/api/1.0/${path}`, {
     credentials: 'same-origin',
     ...options,
     headers: { 'Content-Type': 'application/json', ...options.headers },

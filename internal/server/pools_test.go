@@ -33,7 +33,7 @@ func TestPoolWindowValidation(t *testing.T) {
 		pools,
 		nil,
 	)
-	login := httptest.NewRequest("POST", "/api/v1/auth/login", strings.NewReader(`{"key":"secret"}`))
+	login := httptest.NewRequest("POST", "/api/1.0/auth/login", strings.NewReader(`{"key":"secret"}`))
 	login.Header.Set("Content-Type", "application/json")
 	response := httptest.NewRecorder()
 	h.ServeHTTP(response, login)
@@ -50,7 +50,7 @@ func TestPoolWindowValidation(t *testing.T) {
 		{"?blocks=999999", 400},
 		{"?blocks=abc", 400},
 	} {
-		request := httptest.NewRequest("GET", "/api/v1/mining/pools"+test.query, nil)
+		request := httptest.NewRequest("GET", "/api/1.0/mining/pools"+test.query, nil)
 		request.AddCookie(cookie)
 		response := httptest.NewRecorder()
 		h.ServeHTTP(response, request)

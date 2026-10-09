@@ -5,7 +5,7 @@ import type { PoolDistribution } from '../src/types';
 
 test('local coinbases build official pool shares for both block windows', async ({ page }) => {
   test.setTimeout(60000);
-  expect((await page.request.get('/api/v1/mining/pools')).status()).toBe(401);
+  expect((await page.request.get('/api/1.0/mining/pools')).status()).toBe(401);
   const outbound: string[] = [];
   page.on('request', (request) => {
     if (!request.url().startsWith('http://127.0.0.1:18080/')) outbound.push(request.url());
@@ -28,7 +28,7 @@ test('local coinbases build official pool shares for both block windows', async 
 
   await expect(pools.locator('.pool-pie canvas')).toBeVisible();
   const body: PoolDistribution = await (
-    await page.request.get('/api/v1/mining/pools?blocks=144')
+    await page.request.get('/api/1.0/mining/pools?blocks=144')
   ).json();
 
   expect(body.status).toBe('ready');
@@ -37,7 +37,7 @@ test('local coinbases build official pool shares for both block windows', async 
   expect(body.shares.reduce((total, share) => total + share.percent, 0)).toBeCloseTo(100);
   expect(body.definitions.source).toBe('https://github.com/mempool/mining-pools');
   expect(body.definitions.commit).toMatch(/^[0-9a-f]{40}$/);
-  expect((await page.request.get('/api/v1/mining/pools?blocks=0')).status()).toBe(400);
+  expect((await page.request.get('/api/1.0/mining/pools?blocks=0')).status()).toBe(400);
   await pools.getByRole('button', { name: 'Last 1,008 blocks', exact: true }).click();
   await expect(pools.getByRole('button', { name: 'Last 1,008 blocks', exact: true })).toHaveClass(
     'active',
@@ -61,7 +61,7 @@ test('local coinbases build official pool shares for both block windows', async 
     (
       await (
         await page.request.get(
-          `/api/v1/blocks/${(900123).toString(16).padStart(64, '0')}/transactions`,
+          `/api/1.0/blocks/${(900123).toString(16).padStart(64, '0')}/transactions`,
         )
       ).json()
     ).mining_pool.pool.name,
@@ -73,7 +73,7 @@ test('pool chart shows partial, syncing, unsupported and failed refresh states',
 }) => {
   let status: PoolDistribution['status'] = 'indexing';
   let failed = false;
-  await page.route('**/api/v1/mining/pools?**', async (route) => {
+  await page.route('**/api/1.0/mining/pools?**', async (route) => {
     if (failed) {
       await route.fulfill({ status: 503, json: { error: 'Unavailable' } });
 

@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test';
 import { mapFixture, mockMap, signIn, navigate } from './fixtures';
 
 test('admin authentication protects API and supports logout', async ({ page, request }) => {
-  expect((await request.get('/api/v1/peers')).status()).toBe(401);
-  expect((await request.get('/api/v1/peer-map')).status()).toBe(401);
+  expect((await request.get('/api/1.0/peers')).status()).toBe(401);
+  expect((await request.get('/api/1.0/peer-map')).status()).toBe(401);
   await page.goto('/');
   await page.getByLabel('Admin key', { exact: true }).fill('wrong');
   await page.getByRole('button', { name: 'Open dashboard' }).click();
@@ -18,7 +18,7 @@ test('admin authentication protects API and supports logout', async ({ page, req
 
   await page.getByRole('button', { name: 'Sign out' }).click();
   await expect(page.getByLabel('Admin key', { exact: true })).toBeVisible();
-  expect((await page.request.get('/api/v1/overview')).status()).toBe(401);
+  expect((await page.request.get('/api/1.0/overview')).status()).toBe(401);
 });
 
 test('overview displays node metrics without horizontal overflow', async ({ page }, info) => {
@@ -84,7 +84,7 @@ test('lost RPC connection is clearly marked while last readings remain visible',
   page,
 }) => {
   await signIn(page);
-  await page.route('**/api/v1/overview', async (route) => {
+  await page.route('**/api/1.0/overview', async (route) => {
     const response = await route.fetch();
     const body = await response.json();
     body.status = 'disconnected';
@@ -176,7 +176,7 @@ test('GeoIP failure preserves the rest of the dashboard', async ({ page }) => {
 
   await navigate(page, 'Overview');
   await expect(page.getByText('900,123', { exact: true }).first()).toBeVisible();
-  const response = await page.request.get('/api/v1/peer-map');
+  const response = await page.request.get('/api/1.0/peer-map');
   expect(response.status()).toBe(200);
   const body = await response.json();
   expect(body.data.status).toBe('unavailable');
@@ -323,7 +323,7 @@ test('recent blocks show compact amounts, exact details and transaction counts i
     fullPage: true,
   });
 
-  await page.route('**/api/v1/blocks', async (route) => {
+  await page.route('**/api/1.0/blocks', async (route) => {
     const response = await route.fetch();
     const body = await response.json();
     body.data[0].total_transaction_amount_sats = null;
@@ -388,7 +388,7 @@ test('block details distinguish missing data from zero and close after a reorg',
   page,
 }) => {
   let reorg = false;
-  await page.route('**/api/v1/blocks', async (route) => {
+  await page.route('**/api/1.0/blocks', async (route) => {
     const response = await route.fetch();
     const body = await response.json();
     Object.assign(body.data[0], {
