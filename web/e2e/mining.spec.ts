@@ -45,6 +45,7 @@ test('mining charts support ranges, accessible data, themes, German, outages and
   let failed = false;
   let syncing = false;
   let empty = false;
+  const now = Date.now();
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.route('**/api/v1/mining', (route) =>
@@ -76,7 +77,6 @@ test('mining charts support ranges, accessible data, themes, German, outages and
       return route.fulfill({ status: 503, json: { error: 'History storage unavailable' } });
 
     const base = metric === 'difficulty' ? 123.4e12 : metric === 'hashrate_144' ? 910e18 : 895e18;
-    const now = Date.now();
     const span =
       { '1h': 3600000, '24h': 86400000, '7d': 604800000, '30d': 2592000000, '1y': 31536000000 }[
         url.searchParams.get('range')!

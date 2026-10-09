@@ -57,6 +57,7 @@ type Snapshot struct {
 	Mempool          Section[rpc.Mempool] `json:"mempool"`
 	Blocks           Section[[]Block]     `json:"blocks"`
 	Mining           Section[Mining]      `json:"mining"`
+	Fees             Section[Fees]        `json:"fees"`
 }
 
 type Store interface {
@@ -109,6 +110,7 @@ func (c *Collector) Snapshot() Snapshot {
 		s.Mempool.Stale = true
 		s.Blocks.Stale = true
 		s.Mining.Stale = true
+		s.Fees.Stale = true
 	}
 
 	return s
@@ -313,14 +315,26 @@ func (c *Collector) Collect(ctx context.Context) {
 		s.Blocks.Error = "blockchain data unavailable"
 	}
 
-	// Optional mining estimates run after core readings so a timeout cannot
+	// Optional estimates run after core readings so a timeout cannot
 	// consume the block collection's deadline or replace node-health data.
-	var miningValues map[string]storage.Measurement
+	var miningValues, feeValues map[string]storage.Measurement
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
 
-	s.Mining, miningValues = c.collectMining(rpcCtx, chain, errs[0], s.Mining, now)
+		s.Mining, miningValues = c.collectMining(rpcCtx, chain, errs[0], s.Mining, now)
+	}()
+	go func() {
+		defer wg.Done()
 
-	for metric, value := range miningValues {
-		values[metric] = value
+		s.Fees, feeValues = c.collectFees(rpcCtx, chain, errs[0], s.Fees, now)
+	}()
+	wg.Wait()
+
+	for _, measurements := range []map[string]storage.Measurement{miningValues, feeValues} {
+		for metric, value := range measurements {
+			values[metric] = value
+		}
 	}
 
 	success := 0

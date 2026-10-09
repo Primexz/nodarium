@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import type { Overview, Section } from '../types';
-import { difficultyPeriod } from '../difficulty';
+import { difficultyAdjustmentTime, difficultyPeriod } from '../difficulty';
 import { decimal, number } from '../format';
-import { message } from '../i18n';
+import { intlLocale, message } from '../i18n';
 import { Empty, Metric, Notice, SectionHeading } from './ui';
 
 export default function DifficultyPeriod({ section }: { section?: Section<Overview> }) {
@@ -10,6 +10,10 @@ export default function DifficultyPeriod({ section }: { section?: Section<Overvi
   const chain = section?.data?.blockchain;
   const period = chain ? difficultyPeriod(chain.chain, chain.blocks) : null;
   const syncing = chain && (chain.initialblockdownload || chain.blocks < chain.headers);
+  const adjustmentTime =
+    chain && !syncing
+      ? difficultyAdjustmentTime(chain.chain, chain.blocks, section?.updated_at)
+      : null;
 
   return (
     <section className="panel difficulty-panel" aria-label={t('difficultyPeriod.title')}>
@@ -63,6 +67,34 @@ export default function DifficultyPeriod({ section }: { section?: Section<Overvi
               height: number(chain.blocks),
             })}
           </p>
+          {!syncing && (
+            <dl className="difficulty-estimate">
+              <Metric
+                label={t('difficultyPeriod.expectedTime')}
+                value={
+                  adjustmentTime == null ? (
+                    '—'
+                  ) : (
+                    <time dateTime={new Date(adjustmentTime).toISOString()}>
+                      {new Intl.DateTimeFormat(intlLocale(), {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        timeZoneName: 'short',
+                      }).format(adjustmentTime)}
+                    </time>
+                  )
+                }
+                detail={t(
+                  adjustmentTime == null
+                    ? 'difficultyPeriod.timeUnavailable'
+                    : 'difficultyPeriod.timeBasis',
+                )}
+              />
+            </dl>
+          )}
         </div>
       )}
     </section>

@@ -115,7 +115,7 @@ func TestStorageBackends(t *testing.T) {
 				}
 			})
 
-			t.Run("network mining rollups preserve scale and missing history", func(t *testing.T) {
+			t.Run("estimate rollups preserve scale and missing history", func(t *testing.T) {
 				n := node + "mining"
 
 				for _, sample := range []struct {
@@ -124,7 +124,7 @@ func TestStorageBackends(t *testing.T) {
 				}{{20, 1, 10}, {10, 2, 5}} {
 					values := map[string]Measurement{}
 
-					for metric, base := range map[string]float64{"hashrate_144": 910e18, "hashrate_1008": 895e18, "difficulty": 123.4e12} {
+					for metric, base := range map[string]float64{"hashrate_144": 910e18, "hashrate_1008": 895e18, "difficulty": 123.4e12, "fee_estimate_2": 12, "fee_estimate_3": 8, "fee_estimate_6": 4} {
 						values[metric] = Measurement{Value: base * sample.multiplier, Weight: sample.weight}
 					}
 
@@ -133,7 +133,7 @@ func TestStorageBackends(t *testing.T) {
 					}
 				}
 
-				for metric, base := range map[string]float64{"hashrate_144": 910e18, "hashrate_1008": 895e18, "difficulty": 123.4e12} {
+				for metric, base := range map[string]float64{"hashrate_144": 910e18, "hashrate_1008": 895e18, "difficulty": 123.4e12, "fee_estimate_2": 12, "fee_estimate_3": 8, "fee_estimate_6": 4} {
 					for _, period := range []string{"1h", "24h", "7d", "30d", "1y"} {
 						h, err := s.History(ctx, n, metric, period, now)
 

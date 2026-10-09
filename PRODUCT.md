@@ -59,10 +59,18 @@ Implementation details are grounded in the repository's README and source.
 - Show synchronization, height, uptime, Core version, disk usage, pruning,
   difficulty, and node warnings. Show difficulty-period progress, remaining blocks,
   and the next scheduled adjustment height from the node's validated block height.
+  Estimate the adjustment date in the viewer's local time zone using the latest
+  node observation and a ten-minute target per remaining block. Hide the date
+  during synchronization and retain its observation anchor when readings are stale.
   Identify syncing and stale readings; regtest has no difficulty retargeting.
 - Show locally sourced network hashrate estimates over up to 144 and 1,008 blocks,
   with persisted hashrate and difficulty charts. Pause network mining history
   during synchronization and preserve gaps for failed estimates.
+- Show local conservative fee estimates for 2, 3, and 6-block confirmation targets
+  in sat/vB, with persisted history on the Mempool page. Preserve each target's
+  observation and stale state independently; missing estimates stay unavailable.
+  Show Core's returned target when it differs from the request and record history
+  only when they match. Pause fee collection during blockchain synchronization.
 - Provide searchable and sortable peer connections, approximate peer locations,
   country counts from local GeoIP data, traffic rates and totals, mempool statistics,
   and the latest ten blocks with

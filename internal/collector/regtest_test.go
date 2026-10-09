@@ -85,4 +85,36 @@ func TestRegtest(t *testing.T) {
 	if s.Overview.Data.Network.Version < 280000 {
 		t.Fatal("expected Core 28+")
 	}
+
+	for _, target := range feeTargets {
+		var estimate rpc.SmartFee
+
+		if err := client.Call(context.Background(), "estimatesmartfee", []any{target, "CONSERVATIVE"}, &estimate); err != nil {
+			t.Fatal("real fee estimation RPC failed:", err)
+		}
+
+		if estimate.FeeRate != nil || len(estimate.Errors) == 0 {
+			t.Fatalf("regtest without confirmed transactions should have no fee estimate: %+v", estimate)
+		}
+	}
+
+	chain := s.Overview.Data.Blockchain
+
+	if chain.InitialBlockDownload || chain.Blocks < chain.Headers {
+		if s.Fees.Data != nil || s.Fees.Error != "Fee estimates are unavailable while the node is syncing." {
+			t.Fatal("syncing regtest exposed current fee estimates")
+		}
+
+		return
+	}
+
+	if s.Fees.Data == nil || len(s.Fees.Data.Targets) != 3 {
+		t.Fatalf("missing real fee estimator responses: %+v", s.Fees)
+	}
+
+	for _, target := range s.Fees.Data.Targets {
+		if target.Data != nil || target.Stale || target.Error != "Not enough data to estimate this fee rate." {
+			t.Fatalf("regtest without estimator observations should be unavailable, not zero: %+v", target)
+		}
+	}
 }

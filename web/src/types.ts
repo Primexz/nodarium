@@ -49,6 +49,20 @@ export interface Mining {
   hashrate_1008: number;
 }
 
+export interface FeeRate {
+  fee_rate: number;
+  estimated_blocks: number;
+}
+
+export interface FeeTarget extends Section<FeeRate> {
+  target_blocks: number;
+}
+
+export interface Fees {
+  mode: 'conservative';
+  targets: FeeTarget[];
+}
+
 export interface Peer {
   id: number;
   addr: string;

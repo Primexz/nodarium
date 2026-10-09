@@ -145,6 +145,13 @@ func New(
 		},
 	)
 
+	api.HandleFunc(
+		"GET /api/v1/fees",
+		func(w http.ResponseWriter, r *http.Request) {
+			jsonResponse(w, 200, c.Snapshot().Fees)
+		},
+	)
+
 	api.HandleFunc("GET /api/v1/mining/pools", func(w http.ResponseWriter, r *http.Request) {
 		window := 144
 

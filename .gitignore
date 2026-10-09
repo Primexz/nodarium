@@ -23,6 +23,7 @@
 
 # Personal Impeccable settings
 **/.impeccable/config.local.json
+**/.impeccable/hook.cache.json
 
 # Live runtime state; retain shared setup
 **/.impeccable/live/*

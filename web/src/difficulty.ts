@@ -25,3 +25,19 @@ export function difficultyPeriod(network: string, height: number) {
     percent: (elapsed / interval) * 100,
   };
 }
+
+// Anchor the target-spacing estimate to the backend observation, so failed
+// refreshes retain the original date rather than silently moving it forward.
+export function difficultyAdjustmentTime(
+  network: string,
+  height: number,
+  observedAt: string | null | undefined,
+) {
+  const period = difficultyPeriod(network, height);
+
+  if (!period || !observedAt) return null;
+
+  const estimate = Date.parse(observedAt) + period.remaining * 600_000;
+
+  return Number.isFinite(new Date(estimate).getTime()) ? estimate : null;
+}

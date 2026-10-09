@@ -130,6 +130,22 @@
     "maximum": "{{size}} configured maximum",
     "totalFees": "{{fee}} BTC total fees"
   },
+  "fees": {
+    "title": "Fee estimates",
+    "description": "Conservative confirmation estimates from your Bitcoin Core node.",
+    "target": "{{blocks}}-block target",
+    "observedAt": "Observed {{time}}",
+    "lastKnown": "Last known reading: {{time}}.",
+    "returnedTarget": "Core returned a {{blocks}}-block estimate for this request.",
+    "basis": "Block targets are approximate; confirmation is not guaranteed. Estimates may be unavailable until your node has observed enough transactions and blocks.",
+    "waiting": "Waiting for a fee estimate from your node.",
+    "stale": "Some fee estimates could not be refreshed. Last known readings are labeled below; refresh to retry.",
+    "unavailable": "Fee estimates are unavailable. Refresh to retry.",
+    "syncing": "Fee estimates are unavailable while the node is syncing.",
+    "waitingSync": "Estimates resume after synchronization.",
+    "history": "Fee estimate history",
+    "historyDescription": "Recorded conservative fee rates, averaged within each interval. Only estimates matching the requested block target are recorded."
+  },
   "peers": {
     "active": "Active network connections",
     "inboundDescription": "Peers connected to you",
@@ -332,7 +348,10 @@
     "fetch": "Failed to fetch",
     "sessionCapacity": "Session capacity reached",
     "miningSyncing": "Network hashrate is unavailable while the node is syncing.",
-    "miningUnavailable": "Network hashrate estimate is unavailable."
+    "miningUnavailable": "Network hashrate estimate is unavailable.",
+    "feesSyncing": "Fee estimates are unavailable while the node is syncing.",
+    "feesInsufficient": "Not enough data to estimate this fee rate.",
+    "feesUnavailable": "Fee rate estimate is unavailable."
   },
   "language": {
     "label": "Language"
@@ -375,6 +394,9 @@
     "progress": "Period progress",
     "remaining": "Blocks remaining",
     "nextHeight": "Next adjustment height",
+    "expectedTime": "Expected next adjustment",
+    "timeBasis": "Estimate at 10 minutes per block. Actual timing may vary.",
+    "timeUnavailable": "Waiting for a valid node reading.",
     "elapsed": "{{elapsed}} of {{interval}} blocks since adjustment",
     "basis": "Based on your node’s validated block height: {{height}}.",
     "syncing": "Your node is syncing. Progress reflects its validated height ({{height}}), which may be behind the network.",

@@ -130,6 +130,22 @@
     "maximum": "{{size}} konfiguriertes Maximum",
     "totalFees": "{{fee}} BTC Gesamtgebühren"
   },
+  "fees": {
+    "title": "Gebührenschätzungen",
+    "description": "Konservative Schätzungen für die Bestätigung von deinem Bitcoin-Core-Node.",
+    "target": "Ziel: {{blocks}} Blöcke",
+    "observedAt": "Gemessen am {{time}}",
+    "lastKnown": "Letzter bekannter Messwert: {{time}}.",
+    "returnedTarget": "Core hat für diese Anfrage eine Schätzung für {{blocks}} Blöcke geliefert.",
+    "basis": "Blockziele sind ungefähre Angaben; eine Bestätigung ist nicht garantiert. Schätzungen können fehlen, bis dein Node genügend Transaktionen und Blöcke beobachtet hat.",
+    "waiting": "Warten auf eine Gebührenschätzung deines Nodes.",
+    "stale": "Einige Gebührenschätzungen konnten nicht aktualisiert werden. Letzte bekannte Messwerte sind unten gekennzeichnet; versuche erneut zu aktualisieren.",
+    "unavailable": "Gebührenschätzungen sind nicht verfügbar. Versuche erneut zu aktualisieren.",
+    "syncing": "Gebührenschätzungen sind während der Node-Synchronisierung nicht verfügbar.",
+    "waitingSync": "Schätzungen werden nach der Synchronisierung fortgesetzt.",
+    "history": "Verlauf der Gebührenschätzungen",
+    "historyDescription": "Aufgezeichnete konservative Gebührenraten, gemittelt pro Verlaufsintervall. Nur Schätzungen für das angefragte Blockziel werden aufgezeichnet."
+  },
   "peers": {
     "active": "Aktive Netzwerkverbindungen",
     "inboundDescription": "Peers, die sich mit dir verbunden haben",
@@ -332,7 +348,10 @@
     "fetch": "Verbindung fehlgeschlagen",
     "sessionCapacity": "Maximale Anzahl an Sitzungen erreicht",
     "miningSyncing": "Die Netzwerk-Hashrate ist während der Synchronisierung des Nodes nicht verfügbar.",
-    "miningUnavailable": "Die Netzwerk-Hashrate kann derzeit nicht geschätzt werden."
+    "miningUnavailable": "Die Netzwerk-Hashrate kann derzeit nicht geschätzt werden.",
+    "feesSyncing": "Gebührenschätzungen sind während der Node-Synchronisierung nicht verfügbar.",
+    "feesInsufficient": "Nicht genügend Daten für diese Gebührenschätzung.",
+    "feesUnavailable": "Gebührenratenschätzung ist nicht verfügbar."
   },
   "language": {
     "label": "Sprache"
@@ -375,6 +394,9 @@
     "progress": "Periodenfortschritt",
     "remaining": "Verbleibende Blöcke",
     "nextHeight": "Blockhöhe der nächsten Anpassung",
+    "expectedTime": "Nächste Anpassung (geschätzt)",
+    "timeBasis": "Schätzung bei 10 Minuten pro Block. Der tatsächliche Zeitpunkt kann abweichen.",
+    "timeUnavailable": "Warten auf einen gültigen Messwert des Nodes.",
     "elapsed": "{{elapsed}} von {{interval}} Blöcken seit der Anpassung",
     "basis": "Basierend auf der validierten Blockhöhe deines Nodes: {{height}}.",
     "syncing": "Dein Node synchronisiert sich. Der Fortschritt basiert auf seiner validierten Blockhöhe ({{height}}), die hinter dem Netzwerk liegen kann.",

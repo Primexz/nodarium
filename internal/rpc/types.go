@@ -80,6 +80,14 @@ type Mempool struct {
 	RelayFee   float64 `json:"minrelaytxfee"`
 }
 
+// SmartFee rates are BTC per virtual kilobyte. A missing rate is a normal
+// response when Core has not observed enough confirmed transactions yet.
+type SmartFee struct {
+	FeeRate *float64 `json:"feerate"`
+	Blocks  int      `json:"blocks"`
+	Errors  []string `json:"errors"`
+}
+
 type Block struct {
 	Hash          string `json:"hash"`
 	Height        int64  `json:"height"`

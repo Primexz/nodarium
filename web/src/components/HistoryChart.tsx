@@ -19,6 +19,7 @@ function HistoryChart({
   readings,
   notice,
   step,
+  linePatterns,
 }: {
   title: string;
   subtitle?: string;
@@ -29,6 +30,7 @@ function HistoryChart({
   readings?: { label: string; value: string; detail?: string }[];
   notice?: string;
   step?: 'end';
+  linePatterns?: ('solid' | 'dashed' | 'dotted')[];
 }) {
   const { t } = useTranslation();
   const { effective } = useTheme();
@@ -115,7 +117,10 @@ function HistoryChart({
       step,
       showSymbol: true,
       symbolSize: 4,
-      lineStyle: { width: 2, type: unit === 'hashrate' && i === 1 ? 'dashed' : 'solid' },
+      lineStyle: {
+        width: 2,
+        type: linePatterns?.[i] ?? (unit === 'hashrate' && i === 1 ? 'dashed' : 'solid'),
+      },
       data: s?.points.map((p) => [p.at, p.value]) ?? [],
     })),
   });
@@ -211,7 +216,13 @@ function HistoryDataTable({
 }) {
   const { t } = useTranslation();
   const [page, setPage] = useState(1);
-  const points = series[0]?.points ?? [];
+  // Join by timestamp: one failed request or a range-boundary difference must
+  // not hide another series or pair values with the wrong observation time.
+  const points = [...new Set(series.flatMap((s) => s?.points.map((p) => p.at) ?? []))].sort(
+    (a, b) => a - b,
+  );
+
+  const values = series.map((s) => new Map(s?.points.map((p) => [p.at, p.value])));
   const pages = Math.max(1, Math.ceil(points.length / 100));
   const current = Math.min(page, pages);
 
@@ -228,14 +239,12 @@ function HistoryDataTable({
             </tr>
           </thead>
           <tbody>
-            {points.slice((current - 1) * 100, current * 100).map((point, i) => (
-              <tr key={point.at}>
-                <td>{dateTime(point.at)}</td>
-                {series.map((s, j) => (
+            {points.slice((current - 1) * 100, current * 100).map((at) => (
+              <tr key={at}>
+                <td>{dateTime(at)}</td>
+                {values.map((readings, j) => (
                   <td key={j}>
-                    {s?.points[(current - 1) * 100 + i]?.value == null
-                      ? t('history.noReading')
-                      : format(s.points[(current - 1) * 100 + i]!.value!)}
+                    {readings.get(at) == null ? t('history.noReading') : format(readings.get(at)!)}
                   </td>
                 ))}
               </tr>
@@ -267,6 +276,7 @@ export default memo(
     previous.unit === next.unit &&
     previous.notice === next.notice &&
     previous.step === next.step &&
+    previous.linePatterns?.join() === next.linePatterns?.join() &&
     JSON.stringify(previous.readings) === JSON.stringify(next.readings) &&
     previous.metrics.join() === next.metrics.join() &&
     previous.labels.join() === next.labels.join(),

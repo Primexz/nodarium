@@ -52,6 +52,9 @@ class Handler(BaseHTTPRequestHandler):
         }
         if method == 'getnetworkhashps':
             result = 910e18 if req['params'][0] == 144 else 895e18
+        elif method == 'estimatesmartfee':
+            target = req['params'][0]
+            result = dict(feerate={2: .00012, 3: .00008, 6: .00004}[target], blocks=target)
         elif method == 'getblockheader':
             height=int(req['params'][0],16)
             result=dict(hash=f'{height:064x}', height=height, time=now-180-(tip-height)*600, confirmations=tip-height+1, previousblockhash=f'{height-1:064x}')

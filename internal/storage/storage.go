@@ -62,20 +62,23 @@ type History struct {
 }
 
 var Metrics = map[string]bool{
-	"rx_rate":       true,
-	"tx_rate":       true,
-	"peers":         true,
-	"peers_in":      true,
-	"peers_out":     true,
-	"height":        true,
-	"sync":          true,
-	"mempool_count": true,
-	"mempool_bytes": true,
-	"mempool_usage": true,
-	"mempool_fee":   true,
-	"hashrate_144":  true,
-	"hashrate_1008": true,
-	"difficulty":    true,
+	"rx_rate":        true,
+	"tx_rate":        true,
+	"peers":          true,
+	"peers_in":       true,
+	"peers_out":      true,
+	"height":         true,
+	"sync":           true,
+	"mempool_count":  true,
+	"mempool_bytes":  true,
+	"mempool_usage":  true,
+	"mempool_fee":    true,
+	"fee_estimate_2": true,
+	"fee_estimate_3": true,
+	"fee_estimate_6": true,
+	"hashrate_144":   true,
+	"hashrate_1008":  true,
+	"difficulty":     true,
 }
 
 func Open(ctx context.Context, driver, dsn string) (*Store, error) {

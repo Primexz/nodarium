@@ -11,6 +11,7 @@ import PeerCountries from '../components/PeerCountries';
 import DifficultyPeriod from '../components/DifficultyPeriod';
 import MiningCharts from '../components/MiningCharts';
 import MiningPools from '../components/MiningPools';
+import FeeEstimates, { FeeHistory } from '../components/FeeEstimates';
 import PeerTable from '../components/PeerTable';
 import BlockTable, { BlockStrip } from '../components/BlockTable';
 import { ArrowUpRight, ShieldCheck } from 'lucide-react';
@@ -215,6 +216,7 @@ export default function Dashboard({
           </section>
         </>
       )}
+      {page === 'mempool' && <FeeEstimates overview={node.overview?.overview} />}
       {page === 'mempool' && (
         <dl className="metrics-grid">
           <Metric
@@ -368,6 +370,7 @@ export default function Dashboard({
           />
         </div>
       )}
+      {page === 'mempool' && <FeeHistory range={range} />}
       {page === 'mempool' && (
         <div className="chart-grid">
           <HistoryChart

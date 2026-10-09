@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { difficultyPeriod } from './difficulty';
+import { difficultyAdjustmentTime, difficultyPeriod } from './difficulty';
 
 describe('difficulty period', () => {
   it('starts a new period at each retarget height, including genesis', () => {
@@ -39,6 +39,34 @@ describe('difficulty period', () => {
   it('does not fabricate progress for invalid or unsafe heights', () => {
     for (const height of [-1, 0.5, NaN, Infinity, Number.MAX_SAFE_INTEGER]) {
       expect(difficultyPeriod('main', height)).toBeNull();
+    }
+  });
+});
+
+describe('difficulty adjustment time', () => {
+  const observedAt = '2026-10-09T12:00:00Z';
+
+  it('uses remaining blocks and advances the date at a period boundary', () => {
+    expect(difficultyAdjustmentTime('main', 900123, observedAt)).toBe(
+      Date.parse('2026-10-16T15:30:00Z'),
+    );
+
+    expect(difficultyAdjustmentTime('main', 901151, observedAt)).toBe(
+      Date.parse('2026-10-09T12:10:00Z'),
+    );
+
+    expect(difficultyAdjustmentTime('main', 901152, observedAt)).toBe(
+      Date.parse('2026-10-23T12:00:00Z'),
+    );
+  });
+
+  it('does not invent dates for unsupported networks, bad heights or missing timestamps', () => {
+    expect(difficultyAdjustmentTime('regtest', 900123, observedAt)).toBeNull();
+    expect(difficultyAdjustmentTime('unknown', 900123, observedAt)).toBeNull();
+    expect(difficultyAdjustmentTime('main', -1, observedAt)).toBeNull();
+
+    for (const timestamp of [null, undefined, '', 'invalid', '+275760-09-13T00:00:00Z']) {
+      expect(difficultyAdjustmentTime('main', 900123, timestamp)).toBeNull();
     }
   });
 });

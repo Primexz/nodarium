@@ -472,6 +472,25 @@ nav a.active {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.fee-estimates {
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.fee-estimates .panel-heading {
+  padding: 0 0 20px;
+}
+
+.fee-readings {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.fees-note {
+  margin-top: 20px;
+  font-size: 12px;
+}
+
 .metric {
   min-width: 0;
   padding-right: 20px;
@@ -561,6 +580,17 @@ nav a.active {
 .difficulty-note {
   margin-top: 12px;
   font-size: 12px;
+}
+
+.difficulty-estimate {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+}
+
+.difficulty-estimate .metric dd {
+  font-size: 18px;
+  line-height: 1.4;
 }
 
 .peer-map-layout {
@@ -1644,6 +1674,21 @@ tbody tr:hover {
 
   .metric dt {
     font-size: 12px;
+  }
+
+  .fee-readings {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .fee-readings .metric {
+    padding-right: 0;
+  }
+
+  .fee-readings .metric + .metric {
+    border-left: 0;
+    border-top: 1px solid var(--rule);
+    padding: 16px 0 0;
   }
 
   .panel-heading {

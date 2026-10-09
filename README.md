@@ -1,15 +1,17 @@
 # Nodarium
 
-A self-hosted, read-only dashboard for your Bitcoin Core node, built with Go and React. Available in English and German, with light and dark themes and a responsive layout.
+A lightweight, self-hosted Bitcoin node explorer for keeping an eye on your Bitcoin Core node.
+
+Runs as one Go application with an embedded React frontend and SQLite by default. Monitoring is read-only, with English and German support, light and dark themes, and a responsive layout.
 
 ## Features
 
 - **Overview and node details:** health, synchronization, storage, uptime, and recent blocks.
 - **Peers and traffic:** searchable connections, a world map, country distribution, transfer rates, and history.
-- **Mining:** difficulty-period progress, estimated network hashrate, difficulty history, and pool shares over the latest 144 or 1,008 blocks.
-- **Mempool and blocks:** mempool statistics, block details, and a transaction mosaic. Click a transaction to inspect its inputs, outputs, and fees.
+- **Mining:** difficulty-period progress and estimated adjustment time, network hashrate, difficulty history, and pool shares over the latest 144 or 1,008 blocks.
+- **Mempool and blocks:** local fee estimates for 2, 3, and 6-block targets with history, mempool statistics, block details, and a transaction mosaic. Click a transaction to inspect its inputs, outputs, and fees.
 
-Nodarium monitors one node per instance. SQLite is included; PostgreSQL is optional. History begins when collection starts and is retained for up to a year. No wallet features, peer controls, or host-resource monitoring.
+Nodarium monitors one node per instance; PostgreSQL is optional. History begins when collection starts and is retained for up to a year. No wallet features, peer controls, or host-resource monitoring.
 
 ## Quick start
 
