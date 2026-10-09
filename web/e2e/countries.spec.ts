@@ -33,6 +33,26 @@ test('country bars count peers, include unknown locations, translate and retain 
   await expect(panel.locator('.country-unknown .country-count')).toHaveText('2');
   await expect(panel.getByText('Germany', { exact: true })).toHaveCount(0);
   await expect(panel.locator('.country-bars > div')).toHaveCount(5);
+  await panel.scrollIntoViewIfNeeded();
+  await expect(panel.locator('.country-flag img')).toHaveCount(4);
+  await expect(panel.locator('.country-unknown .country-flag img')).toHaveCount(0);
+  await expect(panel.locator('.country-unknown .country-flag svg')).toHaveCount(1);
+  await expect
+    .poll(() =>
+      panel.locator('.country-flag img').evaluateAll((images) =>
+        images.every((image) => {
+          const flag = image as HTMLImageElement;
+
+          return (
+            flag.complete &&
+            flag.naturalWidth > 0 &&
+            new URL(flag.src).origin === window.location.origin &&
+            new URL(flag.src).pathname.endsWith('.svg')
+          );
+        }),
+      ),
+    )
+    .toBe(true);
 
   for (const theme of ['light', 'dark']) {
     await page.getByLabel('Theme', { exact: true }).selectOption(theme);
@@ -46,8 +66,9 @@ test('country bars count peers, include unknown locations, translate and retain 
 
   await page.getByLabel('Theme', { exact: true }).selectOption('light');
   await expect(page.locator('.chart-empty.skeleton')).toHaveCount(0);
+  await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({
-    path: `../.impeccable/review/countries-${info.project.name}.png`,
+    path: `../.impeccable/review/country-flags-${info.project.name}-light.png`,
     fullPage: true,
   });
 
@@ -56,6 +77,13 @@ test('country bars count peers, include unknown locations, translate and retain 
   await expect(panel.getByText('Vereinigte Staaten', { exact: true })).toBeVisible();
   await expect(panel.getByText('Land unbekannt', { exact: true })).toBeVisible();
   await expect(panel.getByText('28,6%')).toHaveCount(2);
+  await page.getByLabel('Darstellung', { exact: true }).selectOption('dark');
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({
+    path: `../.impeccable/review/country-flags-${info.project.name}-dark-de.png`,
+    fullPage: true,
+  });
+
   await mockMap(page, { ...fixture, stale: true });
   await page.getByRole('button', { name: 'Node-Daten aktualisieren' }).click();
   await expect(panel.getByRole('alert')).toContainText('letzten');

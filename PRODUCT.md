@@ -104,7 +104,9 @@ Implementation details are grounded in the repository's README and source.
 - Resolve peer and node IP locations locally using a city MMDB database. Do not
   send these addresses to a geolocation service. Keep peers with unavailable
   locations visible without invented coordinates. Map lines indicate connections,
-  not physical network routes.
+  not physical network routes. Pair localized country names with locally bundled
+  SVG flags from flag-icons; retain a neutral globe for unknown or unavailable
+  icons and make no external flag requests.
 - Retain up to 365 days of monitoring history at progressively coarser
   resolutions. Missing readings, counter resets, and failed persistence leave
   explicit gaps rather than fabricated zeroes.

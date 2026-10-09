@@ -1,10 +1,33 @@
 import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Globe } from 'lucide-react';
 import type { PeerMapData, Section } from '../types';
 import { countryDistribution, countryName } from '../map';
 import { decimal, number } from '../format';
 import { message } from '../i18n';
 import { Empty, Notice, SectionHeading } from './ui';
+
+const flags = import.meta.glob<string>('../../node_modules/flag-icons/flags/4x3/*.svg', {
+  eager: true,
+  query: '?url&no-inline',
+  import: 'default',
+});
+
+function CountryFlag({ code }: { code: string | null }) {
+  const source = code
+    ? flags[`../../node_modules/flag-icons/flags/4x3/${code.toLowerCase()}.svg`]
+    : undefined;
+
+  return (
+    <span className="country-flag" aria-hidden="true">
+      {source ? (
+        <img src={source} alt="" width={24} height={18} loading="lazy" />
+      ) : (
+        <Globe size={18} />
+      )}
+    </span>
+  );
+}
 
 function PeerCountries({ section }: { section: Section<PeerMapData> }) {
   const [expanded, setExpanded] = useState(false);
@@ -43,9 +66,12 @@ function PeerCountries({ section }: { section: Section<PeerMapData> }) {
               return (
                 <div key={group.key} className={group.key === 'unknown' ? 'country-unknown' : ''}>
                   <dt>
-                    {group.key === 'unknown'
-                      ? t('countries.unknown')
-                      : countryName(group.countryCode, group.country)}
+                    <CountryFlag code={group.countryCode} />
+                    <span>
+                      {group.key === 'unknown'
+                        ? t('countries.unknown')
+                        : countryName(group.countryCode, group.country)}
+                    </span>
                   </dt>
                   <dd>
                     <span className="country-track" aria-hidden="true">

@@ -2028,7 +2028,32 @@ tbody tr:hover {
 }
 
 .country-bars dt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   overflow-wrap: anywhere;
+}
+
+.country-bars dt > span:last-child {
+  min-width: 0;
+}
+
+.country-flag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 18px;
+  color: var(--muted);
+}
+
+.country-flag img {
+  display: block;
+  width: 24px;
+  height: 18px;
+  object-fit: contain;
+  outline: 1px solid var(--rule);
 }
 
 .country-bars dd {
