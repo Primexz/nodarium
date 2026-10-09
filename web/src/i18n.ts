@@ -1,7 +1,7 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import en from './locales/en.json';
-import de from './locales/de.json';
+import en from './locales/en';
+import de from './locales/de';
 
 export { i18n };
 
@@ -67,8 +67,11 @@ export function setLanguage(language: string) {
 
 export const intlLocale = () => (i18n.language === 'de' ? 'de-DE' : 'en-US');
 
-const apiMessages = new Map(
-  Object.entries(en.error).map(([key, value]) => [value, `error.${key}`]),
+const apiMessages = new Map<string, `error.${keyof typeof en.error}`>(
+  (Object.keys(en.error) as Array<keyof typeof en.error>).map((key) => [
+    en.error[key],
+    `error.${key}` as const,
+  ]),
 );
 
 export function message(value: string | null | undefined): string {

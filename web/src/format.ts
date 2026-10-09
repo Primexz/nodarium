@@ -36,20 +36,23 @@ export function duration(n: number | null | undefined): string {
 
   if (n >= 86400)
     return t('duration.days', {
-      days: Math.floor(n / 86400),
-      hours: Math.floor((n % 86400) / 3600),
+      days: String(Math.floor(n / 86400)),
+      hours: String(Math.floor((n % 86400) / 3600)),
     });
 
   if (n >= 3600)
     return t('duration.hours', {
-      hours: Math.floor(n / 3600),
-      minutes: Math.floor((n % 3600) / 60),
+      hours: String(Math.floor(n / 3600)),
+      minutes: String(Math.floor((n % 3600) / 60)),
     });
 
   if (n >= 60)
-    return t('duration.minutes', { minutes: Math.floor(n / 60), seconds: Math.floor(n % 60) });
+    return t('duration.minutes', {
+      minutes: String(Math.floor(n / 60)),
+      seconds: String(Math.floor(n % 60)),
+    });
 
-  return t('duration.seconds', { seconds: Math.floor(n) });
+  return t('duration.seconds', { seconds: String(Math.floor(n)) });
 }
 
 export const shortHash = (hash: string) => `${hash.slice(0, 12)}…${hash.slice(-8)}`;

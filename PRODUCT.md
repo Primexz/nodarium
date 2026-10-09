@@ -135,7 +135,8 @@ No additional visual direction or voice requirement was established during init.
   limitations, configuration, and API documentation.
 - `web/src/App.tsx`, `web/src/views/Dashboard.tsx`, and `web/src/components/`:
   existing login, navigation, monitoring views, charts, tables, and peer map.
-- `web/src/locales/en.json` and `web/src/locales/de.json`: existing interface copy.
+- `web/src/locales/en.ts` and `web/src/locales/de.ts`: typed interface copy;
+  English defines the canonical keys and German satisfies the same structure.
 - `web/public/favicon.svg`: existing product icon.
 - `web/public/map-attribution.txt` and `web/src/assets/world.json`: map attribution
   and geography assets; preserve required attribution.

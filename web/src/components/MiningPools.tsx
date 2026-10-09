@@ -78,7 +78,7 @@ export function BlockPool({ attribution }: { attribution?: PoolAttribution }) {
             pool.name
           )
         ) : (
-          t(`pools.${status}`)
+          t(`pools.${status === 'identified' ? 'unknown' : status}`)
         )}
       </strong>
       <small>
@@ -135,7 +135,7 @@ export default function MiningPools() {
               <span>
                 {data.target
                   ? t('pools.indexing', {
-                      count: number(data.scanned),
+                      total: number(data.scanned),
                       target: number(data.target),
                     })
                   : t('pools.loading')}
@@ -145,7 +145,10 @@ export default function MiningPools() {
               )}
             </div>
           )}
-          {['unavailable', 'unsupported', 'syncing', 'partial'].includes(data.status) && (
+          {(data.status === 'unavailable' ||
+            data.status === 'unsupported' ||
+            data.status === 'syncing' ||
+            data.status === 'partial') && (
             <Notice error={data.status === 'unavailable' || data.status === 'partial'}>
               {t(`pools.${data.status}Note`)}
             </Notice>
@@ -157,7 +160,7 @@ export default function MiningPools() {
             <>
               <p className="pool-sample">
                 {t('pools.sample', {
-                  count: number(data.scanned),
+                  total: number(data.scanned),
                   target: number(data.target),
                   height: number(data.height),
                 })}

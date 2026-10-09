@@ -146,7 +146,7 @@ export function BlockStrip({
             <span className="strip-reading">
               {block.transaction_count == null
                 ? '—'
-                : t('blocks.tileTransactions', { count: number(block.transaction_count) })}
+                : t('blocks.tileTransactions', { total: number(block.transaction_count) })}
             </span>
             <span className="strip-time">
               {i === 0
@@ -195,14 +195,16 @@ export default function BlockTable({
         <table className="blocks-table">
           <thead>
             <tr>
-              {[
-                'heightColumn',
-                'hash',
-                'timestamp',
-                'transactions',
-                'totalAmount',
-                'confirmations',
-              ].map((key) => (
+              {(
+                [
+                  'heightColumn',
+                  'hash',
+                  'timestamp',
+                  'transactions',
+                  'totalAmount',
+                  'confirmations',
+                ] as const
+              ).map((key) => (
                 <th key={key}>{t(`blocks.${key}`)}</th>
               ))}
             </tr>

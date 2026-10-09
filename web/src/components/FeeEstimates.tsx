@@ -4,7 +4,7 @@ import { api } from '../api';
 import { dateTime, decimal, number } from '../format';
 import { message } from '../i18n';
 import { sectionResult } from '../state';
-import type { Fees, Overview, Section } from '../types';
+import type { Fees, Overview, Section, HistoryRange } from '../types';
 import HistoryChart from './HistoryChart';
 import { Metric, Notice, SectionHeading } from './ui';
 
@@ -70,7 +70,7 @@ export default function FeeEstimates({ overview }: { overview?: Section<Overview
   );
 }
 
-export function FeeHistory({ range }: { range: string }) {
+export function FeeHistory({ range }: { range: HistoryRange }) {
   const { t } = useTranslation();
 
   return (

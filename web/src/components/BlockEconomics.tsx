@@ -178,7 +178,7 @@ export default function BlockEconomics({
     <section className="block-economics" aria-label={t('blockEconomics.title')}>
       <SectionHeading
         title={t('blockEconomics.title')}
-        subtitle={t('blockEconomics.description', { count: number(blocks.length) })}
+        subtitle={t('blockEconomics.description', { total: number(blocks.length) })}
       />
       {section.stale && (
         <Notice error>

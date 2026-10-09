@@ -1,3 +1,9 @@
+export const historyRanges = ['1h', '24h', '7d', '30d', '1y'] as const;
+
+export type HistoryRange = (typeof historyRanges)[number];
+
+export type Page = 'overview' | 'node' | 'mining' | 'peers' | 'traffic' | 'mempool' | 'blocks';
+
 export interface Section<T> {
   data: T | null;
   updated_at: string | null;

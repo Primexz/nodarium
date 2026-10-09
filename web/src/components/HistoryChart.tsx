@@ -5,7 +5,7 @@ import { api } from '../api';
 import { message, intlLocale } from '../i18n';
 import { bytes, decimal, number, dateTime, hashrate, compactNumber } from '../format';
 import { useTheme } from '../theme';
-import type { History } from '../types';
+import type { History, HistoryRange } from '../types';
 import { chartPalette, useChart } from './useChart';
 import { Metric, Notice, SectionHeading } from './ui';
 import VirtualTable from './VirtualTable';
@@ -28,7 +28,7 @@ function HistoryChart({
   subtitle?: string;
   metrics: string[];
   labels: string[];
-  range: string;
+  range: HistoryRange;
   unit?: string;
   readings?: { label: string; value: string; detail?: string }[];
   notice?: string;

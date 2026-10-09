@@ -21,6 +21,7 @@ import {
 import { useAuth } from './auth';
 import { useReadings, refresh } from './state';
 import { message } from './i18n';
+import type { HistoryRange } from './types';
 import { duration } from './format';
 import { Brand, LanguagePicker, ThemePicker, Notice, ErrorBoundary } from './components/ui';
 
@@ -132,7 +133,7 @@ function Workspace() {
 
   const [menu, setMenu] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [range, setRange] = useState('24h');
+  const [range, setRange] = useState<HistoryRange>('24h');
 
   const links = [
     { path: 'overview', icon: LayoutDashboard },
@@ -142,10 +143,10 @@ function Workspace() {
     { path: 'traffic', icon: Activity },
     { path: 'mempool', icon: Blocks },
     { path: 'blocks', icon: Globe2 },
-  ];
+  ] as const;
 
-  const page = location.pathname.slice(1);
-  const title = t(`nav.${links.some((l) => l.path === page) ? page : 'overview'}`);
+  const page = links.find((link) => link.path === location.pathname.slice(1))?.path ?? 'overview';
+  const title = t(`nav.${page}`);
 
   const navigation = (
     <>
@@ -221,7 +222,7 @@ function Workspace() {
             <span className={`connection-badge ${status}`}>
               <span className="status-dot" />
               {t(
-                `status.${['connected', 'partial', 'disconnected'].includes(status) ? status : 'connecting'}`,
+                `status.${status === 'connected' || status === 'partial' || status === 'disconnected' ? status : 'connecting'}`,
               )}
             </span>
           </div>

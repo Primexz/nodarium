@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import type { Overview, Mining, Section } from '../types';
+import type { Overview, Mining, Section, HistoryRange } from '../types';
 import { compactNumber, hashrate, number } from '../format';
 import { message } from '../i18n';
 import HistoryChart from './HistoryChart';
@@ -11,7 +11,7 @@ export default function MiningCharts({
 }: {
   mining: Section<Mining>;
   overview?: Section<Overview>;
-  range: string;
+  range: HistoryRange;
 }) {
   const { t } = useTranslation();
   const chain = overview?.data?.blockchain;

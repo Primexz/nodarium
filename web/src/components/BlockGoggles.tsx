@@ -287,7 +287,7 @@ function Mosaic({
       ref={element}
       className="transaction-mosaic"
       role="img"
-      aria-label={t('goggles.accessible', { count: number(transactions.length) })}
+      aria-label={t('goggles.accessible', { total: number(transactions.length) })}
     />
   );
 }
@@ -311,7 +311,7 @@ export default function BlockGoggles({ hash }: { hash: string }) {
     <section className="block-goggles" aria-label={t('goggles.title')}>
       <div className="goggles-heading">
         <h3>{t('goggles.title')}</h3>
-        <span>{data ? t('goggles.count', { count: number(transactions.length) }) : ''}</span>
+        <span>{data ? t('goggles.count', { total: number(transactions.length) }) : ''}</span>
       </div>
       <p className="goggles-description">{t('goggles.description')}</p>
       {query.isPending && <Notice>{t('goggles.loading')}</Notice>}

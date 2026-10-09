@@ -9,8 +9,8 @@ import {
 } from './i18n';
 import { bytes, dateTime, decimal, duration, fee, number, bitcoinAmount } from './format';
 import { locationName } from './map';
-import en from './locales/en.json';
-import de from './locales/de.json';
+import en from './locales/en';
+import de from './locales/de';
 
 afterEach(() => {
   void i18n.changeLanguage('en');

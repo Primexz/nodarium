@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import type { Readings } from '../state';
+import { historyRanges, type HistoryRange, type Page } from '../types';
 import { message } from '../i18n';
 import { bytes, duration, fee, number, decimal, dateTime } from '../format';
 import { Metric, Notice, SectionHeading, Empty } from '../components/ui';
@@ -23,10 +24,10 @@ export default function Dashboard({
   range,
   setRange,
 }: {
-  page: string;
+  page: Page;
   node: Readings;
-  range: string;
-  setRange: (range: string) => void;
+  range: HistoryRange;
+  setRange: (range: HistoryRange) => void;
 }) {
   const { t } = useTranslation();
   const [blockHash, setBlockHash] = useState<string | null>(null);
@@ -136,12 +137,12 @@ export default function Dashboard({
               <Metric
                 label={t('metrics.height')}
                 value={number(chain?.blocks)}
-                detail={t('metrics.headers', { count: number(chain?.headers) })}
+                detail={t('metrics.headers', { total: number(chain?.headers) })}
               />
               <Metric
                 label={t('nav.peers')}
                 value={number(network?.connections)}
-                detail={`${t('metrics.inbound', { count: number(network?.connections_in) })} / ${t('metrics.outbound', { count: number(network?.connections_out) })}`}
+                detail={`${t('metrics.inbound', { total: number(network?.connections_in) })} / ${t('metrics.outbound', { total: number(network?.connections_out) })}`}
               />
               <Metric
                 label={t('metrics.mempoolTransactions')}
@@ -290,7 +291,7 @@ export default function Dashboard({
       )}
       {page === 'overview' && (
         <div className="overview-links">
-          {['node', 'mining', 'peers', 'traffic', 'mempool'].map((destination) => (
+          {(['node', 'mining', 'peers', 'traffic', 'mempool'] as const).map((destination) => (
             <Link key={destination} to={`/${destination}`} className="text-link">
               {t(`nav.${destination}`)} <ArrowUpRight size={15} aria-hidden />
             </Link>
@@ -307,7 +308,7 @@ export default function Dashboard({
         <div className="section-toolbar">
           <h2>{t(historyTitle)}</h2>
           <div className="range-picker" role="group" aria-label={t('history.range')}>
-            {['1h', '24h', '7d', '30d', '1y'].map((r) => (
+            {historyRanges.map((r) => (
               <button
                 key={r}
                 aria-pressed={range === r}
@@ -406,7 +407,7 @@ export default function Dashboard({
             <Metric
               label={t('metrics.height')}
               value={number(chain?.blocks)}
-              detail={t('metrics.headers', { count: number(chain?.headers) })}
+              detail={t('metrics.headers', { total: number(chain?.headers) })}
             />
             <Metric label={t('metrics.uptime')} value={duration(overview?.uptime)} />
             <Metric label={t('node.disk')} value={bytes(chain?.size_on_disk)} />
