@@ -16,13 +16,13 @@ jobs:
         with:
           go-version-file: go.mod
       # pnpm 11 requires Node 22.13+ before it can be installed or invoked.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
       - uses: pnpm/action-setup@v4
         with:
           package_json_file: web/package.json
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: pnpm
