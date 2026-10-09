@@ -1,0 +1,32 @@
+services:
+  dashboard:
+    build: .
+    image: ${NODARIUM_IMAGE:-nodarium:local}
+    restart: unless-stopped
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${PORT:-8080}:8080"
+    environment:
+      ADMIN_KEY: ${ADMIN_KEY:?Set ADMIN_KEY in .env}
+      BITCOIN_RPC_URL: ${BITCOIN_RPC_URL:?Set BITCOIN_RPC_URL in .env}
+      BITCOIN_RPC_USER: ${BITCOIN_RPC_USER:?Set BITCOIN_RPC_USER in .env}
+      BITCOIN_RPC_PASSWORD: ${BITCOIN_RPC_PASSWORD:?Set BITCOIN_RPC_PASSWORD in .env}
+      DB_DRIVER: ${DB_DRIVER:-sqlite}
+      DB_DSN: ${DB_DSN:-}
+      DATA_DIR: /data
+      POLL_INTERVAL: ${POLL_INTERVAL:-10s}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      NODE_IP: ${NODE_IP:-}
+      NODE_LOCATION_NAME: ${NODE_LOCATION_NAME:-My node}
+      GEOIP_DB_PATH: ${GEOIP_DB_PATH:-}
+      GEOIP_AUTO_DOWNLOAD: ${GEOIP_AUTO_DOWNLOAD:-}
+    volumes:
+      - monitor-data:/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+volumes:
+  monitor-data:

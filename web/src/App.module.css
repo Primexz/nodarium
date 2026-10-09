@@ -1,0 +1,300 @@
+.shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 256px minmax(0, 1fr);
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  background: var(--rail);
+  border-right: 1px solid var(--rule);
+}
+
+.main {
+  min-width: 0;
+}
+
+.topbar {
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 36px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--surface);
+}
+
+.context,
+.tools {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+}
+
+.tools {
+  gap: 12px;
+}
+
+.pageTitle {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.topbar .mobileMenu {
+  display: none;
+}
+
+.navBottom {
+  margin-top: auto;
+  padding-top: 32px;
+}
+
+.navBottom p {
+  font-size: 12px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.navBottom p svg {
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px 36px;
+  border-top: 1px solid var(--rule);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.footer span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.login {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+}
+
+.loginIntroduction {
+  padding: 42px 64px;
+  background: var(--rail);
+  border-right: 1px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 64px;
+}
+
+.loginIntroduction h1 {
+  font-size: 44px;
+  max-width: 12ch;
+  line-height: 1.16;
+  letter-spacing: -0.035em;
+}
+
+.loginIntroduction h1 span {
+  color: var(--accent);
+}
+
+.loginIntroduction p {
+  max-width: 42ch;
+  margin-top: 24px;
+  font-size: 16px;
+}
+
+.loginChain {
+  display: flex;
+  align-items: center;
+  margin-top: 60px;
+}
+
+.loginChain > div {
+  width: 20%;
+  padding: 18px 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  border-right: 1px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--accent);
+}
+
+.loginChain > div:first-child {
+  border-left: 1px solid var(--rule);
+}
+
+.loginChain svg,
+.loginChain span {
+  margin-left: 16px;
+}
+
+.loginChain span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.loginFoot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.loginAccess {
+  display: flex;
+  flex-direction: column;
+  padding: 36px 48px;
+  background: var(--surface);
+}
+
+.loginPreferences {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.loginForm {
+  margin: auto;
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 60px 0;
+}
+
+.loginForm > svg {
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.loginForm h2 {
+  font-size: 30px;
+}
+
+.loginForm label {
+  margin-top: 16px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.loginForm input,
+.loginForm button,
+.loginForm .banner {
+  width: 100%;
+}
+
+.loginVersion {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
+@media (max-width: 1200px) {
+  .tools :global(.updated) {
+    display: none;
+  }
+
+  .topbar {
+    padding-inline: 24px;
+  }
+
+  .context {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 767px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .topbar .mobileMenu {
+    display: inline-flex;
+  }
+
+  .topbar {
+    padding: 12px 16px;
+    min-height: 104px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .context {
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .pageTitle {
+    margin-right: auto;
+  }
+
+  .tools {
+    width: 100%;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+
+  .footer {
+    padding: 24px 20px;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .login {
+    grid-template-columns: 1fr;
+  }
+
+  .loginIntroduction {
+    padding: 28px;
+    gap: 40px;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .loginIntroduction h1 {
+    font-size: 34px;
+    max-width: 17ch;
+  }
+
+  .loginIntroduction p {
+    font-size: 14px;
+    margin-top: 16px;
+  }
+
+  .loginChain {
+    display: none;
+  }
+
+  .loginFoot {
+    display: none;
+  }
+
+  .loginAccess {
+    padding: 24px;
+  }
+
+  .loginForm {
+    padding: 40px 0;
+  }
+}

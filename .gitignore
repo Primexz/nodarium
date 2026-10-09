@@ -1,0 +1,37 @@
+.env
+.env.*
+!.env.example
+/data/
+/bin/
+/web/node_modules/
+/web/dist/
+/web/test-results/
+/web/playwright-report/
+*.db
+*.db-shm
+*.db-wal
+.DS_Store
+
+# Local credentials, logs, and Python caches
+*.pem
+*.key
+*.p12
+*.pfx
+*.log
+**/__pycache__/
+*.py[cod]
+
+# Personal Impeccable settings
+**/.impeccable/config.local.json
+
+# Live runtime state; retain shared setup
+**/.impeccable/live/*
+!**/.impeccable/live/config.json
+
+# Generated previews, screenshots, and build state
+**/.impeccable/mocks/
+**/.impeccable/review/
+**/.impeccable/build/
+
+# Platform-specific engine binaries
+/.agents/skills/impeccable/scripts/bin/

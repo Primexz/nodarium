@@ -1,0 +1,53 @@
+name: Verify Nodarium
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_type == 'branch' }}
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      # pnpm 11 requires Node 22.13+ before it can be installed or invoked.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: web/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - run: pnpm --dir web install --frozen-lockfile
+      - run: make format-check
+      - run: pnpm --dir web build
+      - run: go vet ./...
+      - run: go test -race ./...
+      - run: ./scripts/integration.sh
+      - run: pnpm --dir web test
+      - run: pnpm exec playwright install --with-deps chromium
+        working-directory: web
+      - run: pnpm test:e2e
+        working-directory: web
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-test-results
+          path: web/test-results
+  docker:
+    needs: test
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/release.yml
+    with:
+      publish: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')) }}
