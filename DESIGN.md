@@ -204,7 +204,7 @@ Monitoring panels have no shadows. Surface color and one-pixel rules establish d
 
 ## Shapes
 
-Ruled sections and adjacent block cells have square corners. Small control rounding uses the control token; the peer dialog uses the dialog token. The brand mark has a compact (4px) radius. Status dots and plot points are circular because they encode state or location.
+Ruled sections and adjacent block cells have square corners. Small control rounding uses the control token; the peer dialog uses the dialog token. The brand mark keeps a fixed (34px × 38px) footprint with a compact (4px) radius and a filled (23px) Bitcoin symbol in the theme accent. Status dots and plot points are circular because they encode state or location.
 
 ## Components
 

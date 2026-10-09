@@ -10,6 +10,7 @@ test('desktop sidebar supports icon navigation, keyboard toggles and a saved pre
   await signIn(page);
   const sidebar = page.locator('#workspace-sidebar');
   await expect(sidebar).toHaveCSS('width', '256px');
+  await expect(sidebar.locator('.brand-mark')).toHaveCSS('width', '34px');
   await page.getByLabel('Theme', { exact: true }).selectOption('light');
   await page.screenshot({ path: 'test-results/sidebar-expanded-light.png', fullPage: true });
   const collapse = page.getByRole('button', { name: 'Collapse sidebar', exact: true });
@@ -20,6 +21,7 @@ test('desktop sidebar supports icon navigation, keyboard toggles and a saved pre
   await collapse.focus();
   await collapse.press('Enter');
   await expect(sidebar).toHaveCSS('width', '76px');
+  await expect(sidebar.locator('.brand-mark')).toHaveCSS('width', '34px');
   await expect(sidebar.locator('nav a')).toHaveCount(7);
   await expect(sidebar.locator('nav a span').first()).toBeHidden();
   await expect(sidebar.locator('.brand-descriptor')).toBeHidden();
@@ -84,6 +86,7 @@ test('a collapsed desktop preference keeps mobile navigation fully labeled', asy
   await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
   const drawer = page.getByRole('dialog', { name: 'Workspace', exact: true });
   await expect(drawer.locator('.brand-descriptor')).toBeVisible();
+  await expect(drawer.locator('.brand-mark')).toHaveCSS('width', '34px');
   await expect(drawer.locator('nav a span').first()).toBeVisible();
   await expect(drawer.getByRole('link', { name: 'Connected peers', exact: true })).toBeVisible();
   await expect(drawer.getByRole('button', { name: 'Sign out', exact: true })).toBeVisible();
