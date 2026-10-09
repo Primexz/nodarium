@@ -2189,7 +2189,7 @@ tbody tr:hover {
 .block-pool {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   gap: 6px 16px;
   padding: 14px 0 20px;
   font-size: 13px;

@@ -1,6 +1,46 @@
 import { test, expect } from '@playwright/test';
-import type { PoolDistribution } from '../src/types';
+import type { BlockTransactions, PoolDistribution } from '../src/types';
 import { navigate, signIn } from './fixtures';
+
+test('block pool logos and names align with localized attribution text', async ({ page }, info) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.route('**/api/1.0/blocks/*/transactions', async (route) => {
+    const response = await route.fetch();
+    const body: BlockTransactions = await response.json();
+    body.mining_pool = {
+      status: 'identified',
+      method: 'payout_address',
+      pool: { id: 1, name: 'Luxor', link: 'https://luxor.tech' },
+    };
+
+    await route.fulfill({ json: body });
+  });
+
+  await signIn(page);
+  await page.getByLabel('Language', { exact: true }).selectOption('de');
+  await page.getByRole('button', { name: 'Block 900.123 ansehen', exact: true }).click();
+  const attribution = page.locator('.block-pool');
+
+  for (const theme of ['light', 'dark']) {
+    await page.getByLabel('Darstellung', { exact: true }).selectOption(theme);
+    await expect(attribution.locator('img')).toHaveJSProperty('complete', true);
+    await expect(attribution).toContainText('Coinbase-Auszahlungsadresse');
+    const label = (await attribution.locator(':scope > span').boundingBox())!;
+    const name = (await attribution.getByRole('link', { name: 'Luxor' }).boundingBox())!;
+    const logo = (await attribution.locator('img').boundingBox())!;
+    const center = (box: { y: number; height: number }) => box.y + box.height / 2;
+
+    expect(Math.abs(center(label) - center(name))).toBeLessThanOrEqual(2);
+    expect(Math.abs(center(logo) - center(name))).toBeLessThanOrEqual(2);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+
+    await page.locator('.block-goggles').screenshot({
+      path: `../.impeccable/review/block-pool-alignment-${info.project.name}-${theme}.png`,
+    });
+  }
+});
 
 test('unknown and missing pool logos use local theme-aware fallbacks without changing names', async ({
   page,
