@@ -1,0 +1,2 @@
+# Bundled Impeccable tooling is third-party code, not Nodarium application code.
+/.agents/skills/impeccable/** linguist-vendored
