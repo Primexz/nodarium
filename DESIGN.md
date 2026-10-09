@@ -188,7 +188,7 @@ The hierarchy is compact and practical. Sentence case, restrained weight, and ta
 
 ## Layout
 
-The desktop shell pairs a sticky (256px) navigation rail with a flexible workspace. Content is centered within (1520px), using the workspace spacing token. The topbar is at least (76px) high. Panels have fine boundaries, section padding, and aligned headings rather than ornamental card stacks.
+The desktop shell pairs a sticky (256px) navigation rail with a flexible workspace. Content is centered within (1520px), using the workspace spacing token. The workspace column fills the viewport, placing its footer at the bottom on short pages and after the content on longer pages. The topbar is at least (76px) high. Panels have fine boundaries, section padding, and aligned headings rather than ornamental card stacks.
 
 An (8px) base step supports common (16px), (24px), and (32px) intervals; observed (12px), (20px), and (36px) insets handle compact controls and workspace edges. Primary metrics form four columns, charts two columns, and map details a separate (240px) side column. The map canvas is (350px) high; its geography fits the available width and height.
 
