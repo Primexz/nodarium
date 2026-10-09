@@ -665,7 +665,7 @@
       "name": "Mining chart readings",
       "kind": "custom",
       "refersTo": "panel",
-      "description": "Hashrate and difficulty history panels share the range picker and native data table. Current readings precede the plots; hashrate uses solid orange and dashed teal windows with a consistent SI scale. Illustrative preview values.",
+      "description": "Hashrate and difficulty history panels share the range picker and expandable native data tables with contained virtual scrolling, sticky headers, row totals, and a shorter history viewport. Current readings precede the plots; hashrate uses solid orange and dashed teal windows with a consistent SI scale. Illustrative preview values.",
       "html": "<section class=\"ds-mining\"><h2>Estimated network hashrate</h2><p>Network-wide estimates using up to 144 and 1,008 blocks.</p><dl><div><dt>144 blocks</dt><dd>910.00 EH/s</dd></div><div><dt>1,008 blocks</dt><dd>895.00 EH/s</dd></div></dl></section>",
       "css": ".ds-mining{font:14px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--surface,#fffef9);color:var(--ink,#202420);border:1px solid var(--rule,#d7d9ce);padding:20px 24px}.ds-mining h2{font-size:18px;font-weight:600;margin:0}.ds-mining p{font-size:12px;line-height:1.6;color:var(--muted,#62695e);margin:5px 0 20px}.ds-mining dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin:0}.ds-mining dt{font-size:13px;color:var(--muted,#62695e)}.ds-mining dd{margin:9px 0 0;font-size:26px;font-weight:550;font-variant-numeric:tabular-nums}@media(max-width:767px){.ds-mining dd{font-size:23px}}"
     }

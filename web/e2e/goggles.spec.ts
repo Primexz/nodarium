@@ -43,11 +43,18 @@ test('authenticated local transactions open from mosaic and keyboard table', asy
   await expect(panel).toContainText('bc1qfixtureprevious');
   await panel.getByRole('button', { name: 'Close transaction details' }).click();
   await expect(choose).toBeFocused();
-  await page.getByRole('button', { name: 'Next', exact: true }).click();
-  await expect(page.locator('.goggles-table tbody tr')).toHaveCount(25);
+  const scroll = page.locator('.goggles-table .virtual-table-scroll');
+  await scroll.evaluate((node) => {
+    const height = node.querySelector('tr[data-index]')!.getBoundingClientRect().height;
+    node.scrollTop = height * 25;
+  });
+
   await expect(
     page.getByRole('button', { name: `Inspect transaction ${txid(25)}`, exact: true }),
   ).toBeVisible();
+
+  expect(await page.locator('.goggles-table tr[data-index]').count()).toBeLessThan(40);
+  await expect(page.getByRole('button', { name: 'Next', exact: true })).toHaveCount(0);
 
   expect((await page.request.get('/api/v1/blocks/invalid/transactions')).status()).toBe(400);
 });

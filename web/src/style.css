@@ -1179,7 +1179,8 @@ summary {
   padding: 12px 20px;
 }
 
-.chart-data > .table-scroll {
+.chart-data > .table-scroll,
+.chart-data > .virtual-table-scroll {
   max-height: 260px;
   margin-top: 12px;
 }
@@ -1232,6 +1233,84 @@ summary {
 .table-scroll {
   overflow-x: auto;
   max-width: 100%;
+}
+
+/* Measured rows keep long lists bounded without changing native table semantics. */
+.virtual-table-scroll {
+  max-height: 480px;
+  overflow: auto;
+  overflow-anchor: none;
+  scroll-padding-top: 64px;
+}
+
+.virtual-table-scroll table {
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+.virtual-table-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--ground);
+  border-bottom: 1px solid var(--rule);
+}
+
+.virtual-table-scroll .virtual-spacer td {
+  padding: 0;
+  border: 0;
+  line-height: 0;
+}
+
+.virtual-table-scroll .virtual-spacer:hover {
+  background: transparent;
+}
+
+.compact-table-scroll {
+  max-height: none;
+}
+
+.table-scroll-note {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--rule);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.history-data-table {
+  min-width: 640px;
+}
+
+.transactions-table {
+  min-width: 760px;
+}
+
+.transactions-table th:first-child {
+  width: 34%;
+}
+
+.peers-table {
+  min-width: 880px;
+}
+
+.peers-table th:first-child {
+  width: 28%;
+}
+
+.peers-table .client-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.peers-table .peer-address {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 table {
@@ -1341,20 +1420,6 @@ tbody tr:hover {
 
 .empty-state strong {
   font-size: 15px;
-}
-
-.pagination {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 16px 20px;
-  border-top: 1px solid var(--rule);
-  font-size: 12px;
-}
-
-.pagination span {
-  margin-right: auto;
 }
 
 .node-essentials {
@@ -1816,6 +1881,26 @@ tbody tr:hover {
   .search-box {
     flex-basis: 100%;
     max-width: 100%;
+  }
+
+  .peers-table {
+    min-width: 0;
+  }
+
+  .virtual-table-scroll .peers-table {
+    table-layout: auto;
+  }
+
+  .peers-table th:first-child {
+    width: 48%;
+  }
+
+  .virtual-table-scroll {
+    max-height: min(480px, 65vh);
+  }
+
+  .compact-table-scroll {
+    max-height: none;
   }
 
   .peers-table th:nth-child(3),

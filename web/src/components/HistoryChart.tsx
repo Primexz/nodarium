@@ -8,6 +8,9 @@ import { useTheme } from '../theme';
 import type { History } from '../types';
 import { chartPalette, useChart } from './useChart';
 import { Metric, Notice, SectionHeading } from './ui';
+import VirtualTable from './VirtualTable';
+
+const timestampKey = (at: number) => at;
 
 function HistoryChart({
   title,
@@ -215,7 +218,6 @@ function HistoryDataTable({
   format: (value: number) => string;
 }) {
   const { t } = useTranslation();
-  const [page, setPage] = useState(1);
   // Join by timestamp: one failed request or a range-boundary difference must
   // not hide another series or pair values with the wrong observation time.
   const points = [...new Set(series.flatMap((s) => s?.points.map((p) => p.at) ?? []))].sort(
@@ -223,47 +225,34 @@ function HistoryDataTable({
   );
 
   const values = series.map((s) => new Map(s?.points.map((p) => [p.at, p.value])));
-  const pages = Math.max(1, Math.ceil(points.length / 100));
-  const current = Math.min(page, pages);
 
   return (
-    <>
-      <div className="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>{t('blocks.timestamp')}</th>
-              {labels.map((label) => (
-                <th key={label}>{label}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {points.slice((current - 1) * 100, current * 100).map((at) => (
-              <tr key={at}>
-                <td>{dateTime(at)}</td>
-                {values.map((readings, j) => (
-                  <td key={j}>
-                    {readings.get(at) == null ? t('history.noReading') : format(readings.get(at)!)}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {pages > 1 && (
-        <div className="pagination">
-          <span>{t('peers.page', { page: number(current), pages: number(pages) })}</span>
-          <button disabled={current === 1} onClick={() => setPage(current - 1)}>
-            {t('common.previous')}
-          </button>
-          <button disabled={current === pages} onClick={() => setPage(current + 1)}>
-            {t('common.next')}
-          </button>
-        </div>
+    <VirtualTable
+      rows={points}
+      rowKey={timestampKey}
+      columns={labels.length + 1}
+      label={t('history.data')}
+      className="history-data-table"
+      estimate={46}
+      header={
+        <>
+          <th>{t('blocks.timestamp')}</th>
+          {labels.map((label) => (
+            <th key={label}>{label}</th>
+          ))}
+        </>
+      }
+      renderRow={(at) => (
+        <>
+          <td>{dateTime(at)}</td>
+          {values.map((readings, j) => (
+            <td key={j}>
+              {readings.get(at) == null ? t('history.noReading') : format(readings.get(at)!)}
+            </td>
+          ))}
+        </>
       )}
-    </>
+    />
   );
 }
 

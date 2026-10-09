@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import * as Dialog from '@radix-ui/react-dialog';
@@ -6,6 +6,9 @@ import { ArrowDownLeft, ArrowUpRight, ArrowUpDown, Search, X } from 'lucide-reac
 import type { Peer } from '../types';
 import { bytes, duration, number, decimal } from '../format';
 import { Empty, SectionHeading } from './ui';
+import VirtualTable from './VirtualTable';
+
+const peerKey = (peer: Peer) => peer.id;
 
 export default function PeerTable({
   peers,
@@ -21,32 +24,33 @@ export default function PeerTable({
   const [direction, setDirection] = useState('all');
   const [sort, setSort] = useState('traffic');
   const [ascending, setAscending] = useState(false);
+  const trigger = useRef<HTMLButtonElement | null>(null);
+  const panel = useRef<HTMLElement>(null);
   const [selectedID, setSelectedID] = useState<number | null>(null);
-  const [page, setPage] = useState(1);
 
   const selected = peers.find((p) => p.id === selectedID);
-  const filtered = peers
-    .filter(
-      (p) =>
-        (direction === 'all' || p.inbound === (direction === 'inbound')) &&
-        `${p.addr} ${p.subver} ${p.network}`.toLowerCase().includes(search.toLowerCase()),
-    )
-    .sort((a, b) => {
-      let diff: number;
+  const filtered = useMemo(
+    () =>
+      peers
+        .filter(
+          (p) =>
+            (direction === 'all' || p.inbound === (direction === 'inbound')) &&
+            `${p.addr} ${p.subver} ${p.network}`.toLowerCase().includes(search.toLowerCase()),
+        )
+        .sort((a, b) => {
+          let diff: number;
 
-      if (sort === 'traffic') diff = a.bytesrecv + a.bytessent - b.bytesrecv - b.bytessent;
-      else if (sort === 'latency') diff = (a.pingtime ?? Infinity) - (b.pingtime ?? Infinity);
-      else if (sort === 'duration') diff = b.conntime - a.conntime;
-      else diff = a.addr.localeCompare(b.addr);
+          if (sort === 'traffic') diff = a.bytesrecv + a.bytessent - b.bytesrecv - b.bytessent;
+          else if (sort === 'latency') diff = (a.pingtime ?? Infinity) - (b.pingtime ?? Infinity);
+          else if (sort === 'duration') diff = b.conntime - a.conntime;
+          else diff = a.addr.localeCompare(b.addr);
 
-      return ascending ? diff : -diff;
-    });
+          return ascending ? diff : -diff;
+        }),
+    [peers, direction, search, sort, ascending],
+  );
 
-  const pages = Math.max(1, Math.ceil(filtered.length / 20));
-  const currentPage = Math.min(page, pages);
-  const visible = compact
-    ? filtered.slice(0, 5)
-    : filtered.slice((currentPage - 1) * 20, currentPage * 20);
+  const visible = compact ? filtered.slice(0, 5) : filtered;
 
   function order(key: string) {
     if (sort === key) setAscending(!ascending);
@@ -54,8 +58,6 @@ export default function PeerTable({
       setSort(key);
       setAscending(key === 'latency' || key === 'address');
     }
-
-    setPage(1);
   }
 
   const columns = [
@@ -74,7 +76,7 @@ export default function PeerTable({
         if (!open) setSelectedID(null);
       }}
     >
-      <section className="panel peer-panel">
+      <section ref={panel} className="panel peer-panel">
         <SectionHeading
           title={t(compact ? 'peers.yourConnections' : 'nav.peers')}
           subtitle={t(compact ? 'peers.live' : 'peers.explore')}
@@ -98,7 +100,6 @@ export default function PeerTable({
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
-                  setPage(1);
                 }}
               />
             </label>
@@ -107,7 +108,6 @@ export default function PeerTable({
               value={direction}
               onChange={(e) => {
                 setDirection(e.target.value);
-                setPage(1);
               }}
             >
               <option value="all">{t('peers.allDirections')}</option>
@@ -116,76 +116,84 @@ export default function PeerTable({
             </select>
           </div>
         )}
-        <div className="table-scroll">
-          <table className="peers-table">
-            <thead>
-              <tr>
-                {columns.map(([key, label]) => (
-                  <th
-                    key={key}
-                    aria-sort={sort === key ? (ascending ? 'ascending' : 'descending') : undefined}
-                  >
-                    {['address', 'latency', 'traffic', 'duration'].includes(key!) ? (
-                      <button onClick={() => order(key!)}>
-                        {label}
-                        <ArrowUpDown size={12} />
-                      </button>
-                    ) : (
-                      label
-                    )}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {visible.map((p) => (
-                <tr key={p.id}>
-                  <td>
-                    <Dialog.Trigger asChild>
-                      <button className="peer-address" onClick={() => setSelectedID(p.id)}>
-                        {p.addr}
-                      </button>
-                    </Dialog.Trigger>
-                    <span className="network-tag">{p.network}</span>
-                  </td>
-                  <td>
-                    <span className={`direction ${p.inbound ? 'inbound' : ''}`}>
-                      {p.inbound ? <ArrowDownLeft size={13} /> : <ArrowUpRight size={13} />}{' '}
-                      {t(p.inbound ? 'common.inbound' : 'common.outbound')}
-                    </span>
-                  </td>
-                  <td className="client-cell">{p.subver.replaceAll('/', '')}</td>
-                  <td className="numeric">
-                    {p.pingtime == null ? '—' : `${decimal(p.pingtime * 1000, 0)} ms`}
-                  </td>
-                  <td className="numeric">{bytes(p.bytesrecv + p.bytessent)}</td>
-                  <td>{duration(now / 1000 - p.conntime)}</td>
-                </tr>
+        <VirtualTable
+          rows={visible}
+          rowKey={peerKey}
+          className="peers-table"
+          columns={6}
+          label={t('nav.peers')}
+          estimate={76}
+          compact={compact}
+          resetKey={`${search}:${direction}:${sort}:${ascending}`}
+          keepKey={selectedID}
+          header={
+            <>
+              {columns.map(([key, label]) => (
+                <th
+                  key={key}
+                  aria-sort={sort === key ? (ascending ? 'ascending' : 'descending') : undefined}
+                >
+                  {['address', 'latency', 'traffic', 'duration'].includes(key!) ? (
+                    <button onClick={() => order(key!)}>
+                      {label}
+                      <ArrowUpDown size={12} />
+                    </button>
+                  ) : (
+                    label
+                  )}
+                </th>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </>
+          }
+          renderRow={(p) => (
+            <>
+              <td>
+                <Dialog.Trigger asChild>
+                  <button
+                    className="peer-address"
+                    onClick={(event) => {
+                      trigger.current = event.currentTarget;
+                      setSelectedID(p.id);
+                    }}
+                  >
+                    {p.addr}
+                  </button>
+                </Dialog.Trigger>
+                <span className="network-tag">{p.network}</span>
+              </td>
+              <td>
+                <span className={`direction ${p.inbound ? 'inbound' : ''}`}>
+                  {p.inbound ? <ArrowDownLeft size={13} /> : <ArrowUpRight size={13} />}{' '}
+                  {t(p.inbound ? 'common.inbound' : 'common.outbound')}
+                </span>
+              </td>
+              <td className="client-cell">{p.subver.replaceAll('/', '')}</td>
+              <td className="numeric">
+                {p.pingtime == null ? '—' : `${decimal(p.pingtime * 1000, 0)} ms`}
+              </td>
+              <td className="numeric">{bytes(p.bytesrecv + p.bytessent)}</td>
+              <td>{duration(now / 1000 - p.conntime)}</td>
+            </>
+          )}
+        />
         {!visible.length && (
           <Empty
             title={t(peers.length ? 'peers.noMatch' : 'peers.empty')}
             description={t(peers.length ? 'peers.trySearch' : 'peers.discover')}
           />
         )}
-        {!compact && pages > 1 && (
-          <div className="pagination">
-            <span>{t('peers.page', { page: number(currentPage), pages: number(pages) })}</span>
-            <button disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>
-              {t('common.previous')}
-            </button>
-            <button disabled={currentPage === pages} onClick={() => setPage(currentPage + 1)}>
-              {t('common.next')}
-            </button>
-          </div>
-        )}
       </section>
       <Dialog.Portal>
         <Dialog.Overlay className="modal-backdrop" />
-        <Dialog.Content className="peer-dialog">
+        <Dialog.Content
+          className="peer-dialog"
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+
+            if (trigger.current?.isConnected) trigger.current.focus({ preventScroll: true });
+            else panel.current?.querySelector<HTMLElement>('.virtual-table-scroll')?.focus();
+          }}
+        >
           <Dialog.Close asChild>
             <button className="icon-button dialog-close" aria-label={t('peers.close')}>
               <X size={20} />

@@ -11,6 +11,10 @@ import { Notice, Empty } from './ui';
 import { useChart, chartPalette } from './useChart';
 import { BlockPool } from './MiningPools';
 
+import VirtualTable from './VirtualTable';
+
+const transactionKey = (tx: BlockTransaction) => tx.txid;
+
 function rate(tx: BlockTransaction, coinbaseLabel: string) {
   return tx.coinbase ? coinbaseLabel : tx.fee_rate == null ? '—' : `${decimal(tx.fee_rate)} sat/vB`;
 }
@@ -291,7 +295,6 @@ function Mosaic({
 export default function BlockGoggles({ hash }: { hash: string }) {
   const { t } = useTranslation();
   const [selected, setSelected] = useState<string | null>(null);
-  const [page, setPage] = useState(0);
   const query = useQuery({
     queryKey: ['explorer', 'block', hash],
     queryFn: ({ signal }) => api<BlockTransactions>(`blocks/${hash}/transactions`, { signal }),
@@ -301,7 +304,6 @@ export default function BlockGoggles({ hash }: { hash: string }) {
   const data = query.data;
   const transactions = data?.transactions ?? [];
   const inactive = query.error instanceof APIError && query.error.status === 409;
-  const pages = Math.ceil(transactions.length / 25);
   const { effective } = useTheme();
   const palette = useMemo(() => chartPalette(effective === 'dark'), [effective]);
 
@@ -350,48 +352,40 @@ export default function BlockGoggles({ hash }: { hash: string }) {
             )}
             <details className="goggles-table">
               <summary>{t('goggles.table')}</summary>
-              <div className="table-scroll">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>{t('goggles.txid')}</th>
-                      <th>{t('goggles.vsize')}</th>
-                      <th>{t('goggles.feeRate')}</th>
-                      <th>{t('goggles.totalOutput')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {transactions.slice(page * 25, (page + 1) * 25).map((tx) => (
-                      <tr key={tx.txid}>
-                        <td>
-                          <button
-                            className="transaction-select mono"
-                            aria-label={t('goggles.inspect', { txid: tx.txid })}
-                            aria-pressed={selected === tx.txid}
-                            onClick={() => setSelected(tx.txid)}
-                          >
-                            {shortHash(tx.txid)}
-                          </button>
-                        </td>
-                        <td>{number(tx.vsize)} vB</td>
-                        <td>{rate(tx, t('goggles.coinbase'))}</td>
-                        <td>{bitcoinAmount(tx.output_sats, 8)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {pages > 1 && (
-                <div className="pagination">
-                  <span>{t('peers.page', { page: page + 1, pages })}</span>
-                  <button disabled={page === 0} onClick={() => setPage(page - 1)}>
-                    {t('common.previous')}
-                  </button>
-                  <button disabled={page + 1 >= pages} onClick={() => setPage(page + 1)}>
-                    {t('common.next')}
-                  </button>
-                </div>
-              )}
+              <VirtualTable
+                rows={transactions}
+                rowKey={transactionKey}
+                columns={4}
+                label={t('goggles.table')}
+                className="transactions-table"
+                resetKey={hash}
+                keepKey={selected}
+                header={
+                  <>
+                    <th>{t('goggles.txid')}</th>
+                    <th>{t('goggles.vsize')}</th>
+                    <th>{t('goggles.feeRate')}</th>
+                    <th>{t('goggles.totalOutput')}</th>
+                  </>
+                }
+                renderRow={(tx) => (
+                  <>
+                    <td>
+                      <button
+                        className="transaction-select mono"
+                        aria-label={t('goggles.inspect', { txid: tx.txid })}
+                        aria-pressed={selected === tx.txid}
+                        onClick={() => setSelected(tx.txid)}
+                      >
+                        {shortHash(tx.txid)}
+                      </button>
+                    </td>
+                    <td>{number(tx.vsize)} vB</td>
+                    <td>{rate(tx, t('goggles.coinbase'))}</td>
+                    <td>{bitcoinAmount(tx.output_sats, 8)}</td>
+                  </>
+                )}
+              />
             </details>
           </>
         ) : (

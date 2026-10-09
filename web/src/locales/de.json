@@ -521,5 +521,10 @@
     "partial": "Einige Blockstatistiken fehlen. Sie werden automatisch erneut abgefragt; Diagramme zeigen Lücken.",
     "stale": "Die zuletzt erfassten Blockstatistiken werden angezeigt. Aktualisiere die Node-Daten, um es erneut zu versuchen. Letzte Aktualisierung:",
     "syncing": "Dein Node synchronisiert sich. Die Diagramme zeigen seine zuletzt validierten Blöcke während des Aufholens."
+  },
+  "tables": {
+    "rows_one": "{{total}} Zeile",
+    "rows_other": "{{total}} Zeilen",
+    "scroll": "Scrolle, um alle Zeilen zu sehen."
   }
 }

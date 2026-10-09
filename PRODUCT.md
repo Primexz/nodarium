@@ -79,6 +79,11 @@ Implementation details are grounded in the repository's README and source.
   bytes and colored by fee rate. Tile selection and a keyboard-accessible data
   table open transaction details, inputs, and outputs from the local node;
   unavailable fees, prevouts, and pruned blocks remain explicitly unavailable.
+- Use contained virtual scrolling instead of pagination in peer lists, expanded
+  history readings, and block transaction tables. Keep sticky headers, native table
+  semantics, row totals, and keyboard access to every row. Preserve scroll during
+  refresh, reset it for search/sort or a different history range, and retain focus
+  when inspecting peers or transactions. Short tables remain fully rendered.
 - Compare the latest ten validated blocks on the Blocks page with subsidy and fees,
   fee share of available reward, Core's average and weight-percentile median fee
   rates, and full-block capacity utilization. Available reward means subsidy plus

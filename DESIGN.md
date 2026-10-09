@@ -218,6 +218,12 @@ Surface-filled fields use the same control rounding and fine-rule border as butt
 
 Flat panels use surface fill, a one-pixel fine rule, square corners, and section spacing. Headings use (20px 24px) insets, becoming (20px) on mobile. Tables share these rules and contain their own overflow. Empty states use a clear title and explanation within the same area.
 
+### Tables
+
+Peer lists, expanded history readings, and block transaction tables share contained vertical scrolling with native table semantics, sticky column headers, a localized row total, and a scrolling hint. Long lists (more than 50 rows) render a measured row window with overscan; shorter lists remain fully mounted. The viewport is bounded at (480px), capped at (65vh) on mobile; expanded history data uses a shorter (260px) viewport. Dense columns scroll horizontally within the container, preserving the mobile page width.
+
+Peer search, direction filters, and sort changes return the list to the beginning; live refresh retains the scroll position. Changing the history range or selected block also resets its corresponding table. Stable row identity preserves selection and the invoking peer or transaction control while details are inspected. Tab traversal reaches rows beyond the mounted window; interactive rows also support Up/Down and Home/End. Accessible row totals and absolute row indices retain each mounted row's position in the full table. The compact overview peer preview remains five rows without a scrolling hint.
+
 ### Navigation
 
 The rail provides Overview, Node details, Mining, Peers, Traffic, Mempool, and Blocks destinations, each with a quiet icon and sentence-case label. Active items use orange wash and orange ink, with weight (600); hover uses a surface fill. Links have a minimum (44px) height. Mobile uses the same navigation inside a modal drawer with the theme scrim and shadow.
@@ -232,7 +238,7 @@ Inspectable block tiles form a horizontally scrollable sequence with contained o
 
 ### Transaction mosaic and details
 
-The on-demand transaction mosaic uses a static treemap within the selected block's ruled detail area. Each tile's area is proportional to transaction virtual size; block overhead is excluded. The existing chart palette distinguishes fee rates below (5 sat/vB), from (5) to below (20 sat/vB), and at least (20 sat/vB), with separate coinbase and unavailable-fee colors. A textual legend explains each band. The canvas is (360px) high, becoming (300px) on mobile, and selection has a contrasting ink border. Clicking a tile opens its transaction details inline. An initially collapsed native data table offers the same selection through keyboard-accessible transaction buttons, with (25) rows per page and contained horizontal scrolling.
+The on-demand transaction mosaic uses a static treemap within the selected block's ruled detail area. Each tile's area is proportional to transaction virtual size; block overhead is excluded. The existing chart palette distinguishes fee rates below (5 sat/vB), from (5) to below (20 sat/vB), and at least (20 sat/vB), with separate coinbase and unavailable-fee colors. A textual legend explains each band. The canvas is (360px) high, becoming (300px) on mobile, and selection has a contrasting ink border. Clicking a tile opens its transaction details inline. An initially collapsed native data table offers the same selection through keyboard-accessible transaction buttons, using the shared contained virtual scrolling pattern, sticky headers, row totals, and retained inspection focus.
 
 Block attribution sits above the mosaic as a compact, wrapping row: a quiet mining-pool label, a stronger pool name with its website link when available, and the coinbase-tag or payout-address matching method. Unknown, unavailable, and unsupported attribution retain readable state text and a short explanation that identity is inferred. The row wraps naturally on mobile rather than widening the detail area.
 

@@ -521,5 +521,10 @@
     "partial": "Some block statistics are unavailable. Missing readings are retried automatically; charts leave gaps.",
     "stale": "Showing the last collected block statistics. Refresh node data to try again. Last update:",
     "syncing": "Your node is syncing. These charts show its latest validated blocks while it catches up."
+  },
+  "tables": {
+    "rows_one": "{{total}} row",
+    "rows_other": "{{total}} rows",
+    "scroll": "Scroll to explore all rows."
   }
 }
