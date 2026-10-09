@@ -12,5 +12,11 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "type-tests/**/*.ts", "vite.config.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "type-tests/**/*.ts",
+    "vite.config.ts",
+    "eslint.config.ts"
+  ]
 }
