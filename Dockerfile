@@ -7,7 +7,7 @@ RUN pnpm install --frozen-lockfile
 COPY web/ ./
 RUN pnpm run build
 
-FROM golang:1.26-bookworm AS backend
+FROM golang:1.27-bookworm AS backend
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
