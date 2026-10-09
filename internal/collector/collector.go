@@ -44,6 +44,8 @@ type Block struct {
 	WeightUnits                *int64   `json:"weight_units"`
 	CapacityPercent            *float64 `json:"capacity_percent"`
 	MedianFeeRate              *float64 `json:"median_fee_rate"`
+	SubsidySats                *string  `json:"subsidy_sats"`
+	AverageFeeRate             *float64 `json:"average_fee_rate"`
 }
 
 type Snapshot struct {

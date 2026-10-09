@@ -79,6 +79,13 @@ Implementation details are grounded in the repository's README and source.
   bytes and colored by fee rate. Tile selection and a keyboard-accessible data
   table open transaction details, inputs, and outputs from the local node;
   unavailable fees, prevouts, and pruned blocks remain explicitly unavailable.
+- Compare the latest ten validated blocks on the Blocks page with subsidy and fees,
+  fee share of available reward, Core's average and weight-percentile median fee
+  rates, and full-block capacity utilization. Available reward means subsidy plus
+  fees, not the actual claimed coinbase payout. Use cached local block statistics,
+  exact satoshi amounts in expandable tables, and height-ordered plots. Missing
+  statistics leave gaps and are retried; syncing and stale readings remain explicit.
+  This is a recent-block comparison, not a persisted or backfilled economics history.
 - Attribute mainnet coinbase transactions locally using bundled official
   mempool/mining-pools definitions. Show pool block shares for the latest 144 or
   1,008 blocks and the attributed miner in block goggles. Keep unknown matches,

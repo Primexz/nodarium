@@ -102,6 +102,8 @@ type BlockStats struct {
 	TotalOut           *int64    `json:"total_out"`
 	Transactions       *int64    `json:"txs"`
 	TotalFee           *int64    `json:"totalfee"`
+	Subsidy            *int64    `json:"subsidy"`
+	AverageFeeRate     *float64  `json:"avgfeerate"`
 	FeeRatePercentiles []float64 `json:"feerate_percentiles"`
 }
 

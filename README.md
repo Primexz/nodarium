@@ -9,7 +9,7 @@ Runs as one Go application with an embedded React frontend and SQLite by default
 - **Overview and node details:** health, synchronization, storage, uptime, and recent blocks.
 - **Peers and traffic:** searchable connections, a world map, country distribution, transfer rates, and history.
 - **Mining:** difficulty-period progress and estimated adjustment time, network hashrate, difficulty history, and pool shares over the latest 144 or 1,008 blocks.
-- **Mempool and blocks:** local fee estimates for 2, 3, and 6-block targets with history, mempool statistics, block details, and a transaction mosaic. Click a transaction to inspect its inputs, outputs, and fees.
+- **Mempool and blocks:** local fee estimates for 2, 3, and 6-block targets with history, mempool statistics, recent-block economics charts, block details, and a transaction mosaic. Click a transaction to inspect its inputs, outputs, and fees.
 
 Nodarium monitors one node per instance; PostgreSQL is optional. History begins when collection starts and is retained for up to a year. No wallet features, peer controls, or host-resource monitoring.
 
@@ -67,7 +67,7 @@ Pool names are inferred locally from coinbase tags or payout addresses using the
 
 Pool logos come from a bundled snapshot of [mempool/mining-pool-logos](https://github.com/mempool/mining-pool-logos). Refresh them with `make update-mining-pool-logos`, then rebuild and restart. Browsers load logos locally; missing artwork uses a neutral icon.
 
-Block and transaction details come from your node without requiring `txindex`. Pruned blocks or unavailable undo data can limit details and fees. Missing readings and partial samples are labeled instead of filled with invented values.
+Block and transaction details come from your node without requiring `txindex`. Economics charts compare subsidy, fees, fee rates, and fullness for the latest ten blocks. Pruned blocks or unavailable undo data can limit details and fees. Missing readings and partial samples are labeled instead of filled with invented values.
 
 To follow logs:
 

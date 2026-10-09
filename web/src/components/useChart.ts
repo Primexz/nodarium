@@ -5,7 +5,14 @@ import {
   type EChartsCoreOption,
   type EChartsType,
 } from 'echarts/core';
-import { LineChart, LinesChart, ScatterChart, TreemapChart, PieChart } from 'echarts/charts';
+import {
+  LineChart,
+  LinesChart,
+  ScatterChart,
+  TreemapChart,
+  PieChart,
+  BarChart,
+} from 'echarts/charts';
 import { GridComponent, TooltipComponent, GeoComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 
@@ -15,6 +22,7 @@ registerCharts([
   ScatterChart,
   TreemapChart,
   PieChart,
+  BarChart,
   GridComponent,
   TooltipComponent,
   GeoComponent,

@@ -498,5 +498,28 @@
     "tagMatch": "Identified from the coinbase tag",
     "addressMatch": "Identified from a coinbase payout address",
     "identificationNote": "Pool identity is inferred from coinbase data; it is not cryptographic proof."
+  },
+  "blockEconomics": {
+    "title": "Block economics",
+    "description": "The latest {{count}} validated blocks from your node.",
+    "reward": "Subsidy and fees",
+    "rewardDescription": "Available reward = subsidy + fees. The miner may claim less.",
+    "subsidy": "Block subsidy",
+    "availableReward": "Available reward",
+    "feeShare": "Fee share of reward",
+    "feeShareDescription": "Transaction fees as a percentage of the available reward.",
+    "feeRates": "Block fee rates",
+    "feeRatesDescription": "Core’s average and weight-percentile median; coinbase excluded.",
+    "averageRate": "Average fee rate",
+    "fullness": "Block fullness",
+    "fullnessDescription": "Full block weight as a percentage of the 4 million weight-unit limit.",
+    "plot": "{{title}} by block height. Expand the data table for exact readings.",
+    "order": "Block height · oldest to newest",
+    "gaps": "Missing readings leave gaps.",
+    "unavailable": "Waiting for block statistics",
+    "unavailableDescription": "Statistics may be unavailable for pruned blocks. Missing readings are retried automatically.",
+    "partial": "Some block statistics are unavailable. Missing readings are retried automatically; charts leave gaps.",
+    "stale": "Showing the last collected block statistics. Refresh node data to try again. Last update:",
+    "syncing": "Your node is syncing. These charts show its latest validated blocks while it catches up."
   }
 }

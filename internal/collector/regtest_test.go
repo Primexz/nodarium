@@ -40,7 +40,7 @@ func TestRegtest(t *testing.T) {
 	if err := client.Call(
 		context.Background(),
 		"getblockstats",
-		[]any{first.Hash, []string{"blockhash", "total_out", "txs", "totalfee"}},
+		[]any{first.Hash, []string{"blockhash", "total_out", "txs", "totalfee", "subsidy", "avgfeerate"}},
 		&stats,
 	); err != nil {
 		t.Fatal("real block statistics unavailable:", err)
@@ -57,6 +57,16 @@ func TestRegtest(t *testing.T) {
 		*first.TransactionCount != *stats.Transactions ||
 		*first.TransactionCount < 1 {
 		t.Fatal("collector transaction count differs from Bitcoin Core")
+	}
+
+	if stats.Subsidy == nil || first.SubsidySats == nil ||
+		*first.SubsidySats != strconv.FormatInt(*stats.Subsidy, 10) {
+		t.Fatal("block subsidy differs from Core")
+	}
+
+	if stats.AverageFeeRate == nil || first.AverageFeeRate == nil ||
+		*first.AverageFeeRate != *stats.AverageFeeRate {
+		t.Fatal("average fee rate differs from Core")
 	}
 
 	if stats.TotalFee == nil ||

@@ -477,6 +477,22 @@ nav a.active {
   border-bottom: 1px solid var(--rule);
 }
 
+.block-economics {
+  margin-block: 32px;
+}
+
+.block-economics .chart-panel .panel-heading {
+  display: block;
+}
+
+.block-economics .chart-legend {
+  margin-top: 16px;
+}
+
+.block-economics > .panel-heading {
+  padding: 0 0 20px;
+}
+
 .fee-estimates .panel-heading {
   padding: 0 0 20px;
 }

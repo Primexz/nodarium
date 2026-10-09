@@ -72,7 +72,7 @@ class Handler(BaseHTTPRequestHandler):
             result=transaction(height,index)
         elif method == 'getblockstats':
             height=int(req['params'][0],16)
-            result=dict(blockhash=req['params'][0], total_out=123456789012 + (tip-height)*100000000, txs=2500 + (tip-height), totalfee=12567890, feerate_percentiles=[1,3,8,25,40])
+            result=dict(blockhash=req['params'][0], total_out=123456789012 + (tip-height)*100000000, txs=2500 + (tip-height), totalfee=12567890, feerate_percentiles=[1,3,8,25,40], subsidy=312500000, avgfeerate=12)
         else: result=responses[method]
         body=json.dumps(dict(jsonrpc='2.0', id=req['id'], result=result)).encode()
         self.send_response(200);self.send_header('Content-Type','application/json');self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)

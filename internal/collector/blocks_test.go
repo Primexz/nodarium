@@ -25,6 +25,8 @@ type statsRPC struct {
 	metadata    *rpc.BlockMetadata
 	blockCalls  map[string]int
 	percentiles []float64
+	subsidies   map[string]*int64
+	rates       map[string]*float64
 }
 
 func (f *statsRPC) Call(ctx context.Context, method string, params any, out any) error {
@@ -70,7 +72,7 @@ func (f *statsRPC) Call(ctx context.Context, method string, params any, out any)
 
 	args := params.([]any)
 
-	if !reflect.DeepEqual(args[1], []string{"blockhash", "total_out", "txs", "totalfee", "feerate_percentiles"}) {
+	if !reflect.DeepEqual(args[1], []string{"blockhash", "total_out", "txs", "totalfee", "feerate_percentiles", "subsidy", "avgfeerate"}) {
 		return errors.New("unexpected statistics request")
 	}
 
@@ -109,17 +111,40 @@ func (f *statsRPC) Call(ctx context.Context, method string, params any, out any)
 		Transactions:       count,
 		TotalFee:           fees,
 		FeeRatePercentiles: f.percentiles,
+		Subsidy:            f.subsidy(hash),
+		AverageFeeRate:     f.rate(hash),
 	})
 
 	return json.Unmarshal(encoded, out)
 }
 
+func (f *statsRPC) subsidy(hash string) *int64 {
+	if value, exists := f.subsidies[hash]; exists {
+		return value
+	}
+
+	value := int64(312500000)
+
+	return &value
+}
+
+func (f *statsRPC) rate(hash string) *float64 {
+	if value, exists := f.rates[hash]; exists {
+		return value
+	}
+
+	value := float64(8)
+
+	return &value
+}
+
 func newStatsRPC() *statsRPC {
 	return &statsRPC{
-		fakeRPC:    &fakeRPC{fail: map[string]bool{}, chain: "regtest", tip: "a", uptime: 100},
-		calls:      map[string]int{},
-		blockCalls: map[string]int{},
-		totals:     map[string]*int64{},
+		fakeRPC:     &fakeRPC{fail: map[string]bool{}, chain: "regtest", tip: "a", uptime: 100},
+		calls:       map[string]int{},
+		blockCalls:  map[string]int{},
+		totals:      map[string]*int64{},
+		percentiles: []float64{1, 3, 8, 25, 40},
 	}
 }
 
@@ -392,5 +417,80 @@ func TestBlockMedianFeeRateIsOptionalAndCached(t *testing.T) {
 		if valid && (cached == nil || *cached != *got) {
 			t.Fatal("cached median lost")
 		}
+	}
+}
+
+func TestBlockEconomicsRetryAndCache(t *testing.T) {
+	f := newStatsRPC()
+	amount := int64(100000000)
+	f.totals["a"] = &amount
+	f.rates = map[string]*float64{"a": nil}
+	c := New(f, &memoryStore{}, "node", 10*time.Second, nil)
+	blocks := []Block{{Block: rpc.Block{Hash: "a"}}}
+	first := c.blockStatistics(context.Background(), blocks, nil)
+
+	if first[0].SubsidySats == nil || *first[0].SubsidySats != "312500000" || first[0].AverageFeeRate != nil {
+		t.Fatal("partial economics statistics lost or fabricated")
+	}
+
+	f.failStats = true
+	second := c.blockStatistics(context.Background(), blocks, &first)
+
+	if second[0].SubsidySats == nil || *second[0].SubsidySats != "312500000" || second[0].AverageFeeRate != nil {
+		t.Fatal("retry failure erased the available subsidy")
+	}
+
+	f.failStats = false
+	zeroRate := float64(0)
+	f.rates["a"] = &zeroRate
+	third := c.blockStatistics(context.Background(), blocks, &second)
+
+	if third[0].AverageFeeRate == nil || *third[0].AverageFeeRate != 0 || f.calls["a"] != 3 || f.blockCalls["a"] != 1 {
+		t.Fatal("missing rate not retried independently of cached metadata")
+	}
+
+	if first[0].AverageFeeRate != nil || second[0].AverageFeeRate != nil {
+		t.Fatal("enrichment mutated an already published snapshot")
+	}
+
+	c.blockStatistics(context.Background(), blocks, &third)
+
+	if f.calls["a"] != 3 {
+		t.Fatal("complete zero-valued rate not cached")
+	}
+
+	// Replacement at the same height must never inherit another hash's subsidy.
+	zeroSubsidy := int64(0)
+	f.totals["b"] = &amount
+	f.subsidies = map[string]*int64{"b": &zeroSubsidy}
+	replacement := c.blockStatistics(context.Background(), []Block{{Block: rpc.Block{Hash: "b"}}}, &third)
+
+	if replacement[0].SubsidySats == nil || *replacement[0].SubsidySats != "0" {
+		t.Fatal("real zero subsidy lost or reorg reused old economics")
+	}
+}
+
+func TestBlockEconomicsValidation(t *testing.T) {
+	for _, subsidy := range []int64{-1, 0, 312500000, 5000000000, 5000000001} {
+		f := newStatsRPC()
+		negativeRate := float64(-1)
+		f.subsidies = map[string]*int64{"a": &subsidy}
+		f.rates = map[string]*float64{"a": &negativeRate}
+		c := New(f, &memoryStore{}, "node", 10*time.Second, nil)
+		got := c.blockStatistics(context.Background(), []Block{{Block: rpc.Block{Hash: "a"}}}, nil)[0]
+		valid := subsidy >= 0 && subsidy <= 5000000000
+
+		if valid != (got.SubsidySats != nil) || got.AverageFeeRate != nil {
+			t.Fatal("invalid economics accepted or valid subsidy dropped", subsidy)
+		}
+	}
+
+	f := newStatsRPC()
+	f.wrongHash = true
+	c := New(f, &memoryStore{}, "node", 10*time.Second, nil)
+	got := c.blockStatistics(context.Background(), []Block{{Block: rpc.Block{Hash: "a"}}}, nil)[0]
+
+	if got.SubsidySats != nil || got.AverageFeeRate != nil {
+		t.Fatal("economics from a different block hash accepted")
 	}
 }

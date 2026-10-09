@@ -11,6 +11,15 @@ import (
 
 const maxBlockWeight int64 = 4_000_000
 
+func completeStatistics(block Block) bool {
+	return block.TotalTransactionAmountSats != nil &&
+		block.TransactionCount != nil &&
+		block.TotalFeesSats != nil &&
+		block.SubsidySats != nil &&
+		block.AverageFeeRate != nil &&
+		block.MedianFeeRate != nil
+}
+
 // Keep only statistics for the displayed hashes. Reusing them across tip changes
 // avoids re-reading nine old blocks, while a reorg cannot reuse another hash's statistics.
 // Copy the slice before enrichment: snapshots may still be read by HTTP handlers.
@@ -37,10 +46,10 @@ func (c *Collector) blockStatistics(ctx context.Context, blocks []Block, previou
 		result[i].WeightUnits = previous.WeightUnits
 		result[i].CapacityPercent = previous.CapacityPercent
 		result[i].MedianFeeRate = previous.MedianFeeRate
+		result[i].SubsidySats = previous.SubsidySats
+		result[i].AverageFeeRate = previous.AverageFeeRate
 
-		if result[i].TotalTransactionAmountSats != nil &&
-			result[i].TransactionCount != nil &&
-			result[i].TotalFeesSats != nil &&
+		if completeStatistics(result[i]) &&
 			result[i].SizeBytes != nil &&
 			result[i].WeightUnits != nil {
 			continue
@@ -59,17 +68,26 @@ func (c *Collector) blockStatistics(ctx context.Context, blocks []Block, previou
 
 			block := &result[i]
 
-			if block.TotalTransactionAmountSats == nil || block.TransactionCount == nil || block.TotalFeesSats == nil {
+			if !completeStatistics(*block) {
 				var stats rpc.BlockStats
 
 				err := c.rpc.Call(
 					ctx,
 					"getblockstats",
-					[]any{block.Hash, []string{"blockhash", "total_out", "txs", "totalfee", "feerate_percentiles"}},
+					[]any{block.Hash, []string{"blockhash", "total_out", "txs", "totalfee", "feerate_percentiles", "subsidy", "avgfeerate"}},
 					&stats,
 				)
 
 				if err == nil && stats.BlockHash == block.Hash {
+					if stats.Subsidy != nil && *stats.Subsidy >= 0 && *stats.Subsidy <= 5_000_000_000 {
+						subsidy := strconv.FormatInt(*stats.Subsidy, 10)
+						block.SubsidySats = &subsidy
+					}
+
+					if stats.AverageFeeRate != nil && *stats.AverageFeeRate >= 0 && !math.IsNaN(*stats.AverageFeeRate) && !math.IsInf(*stats.AverageFeeRate, 0) {
+						block.AverageFeeRate = stats.AverageFeeRate
+					}
+
 					if len(stats.FeeRatePercentiles) == 5 {
 						median := stats.FeeRatePercentiles[2]
 

@@ -109,6 +109,8 @@ export interface Mempool {
 }
 
 export interface Block {
+  subsidy_sats: string | null;
+  average_fee_rate: number | null;
   total_transaction_amount_sats: string | null;
   transaction_count: number | null;
   total_fees_sats: string | null;

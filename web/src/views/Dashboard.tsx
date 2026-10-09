@@ -12,6 +12,7 @@ import DifficultyPeriod from '../components/DifficultyPeriod';
 import MiningCharts from '../components/MiningCharts';
 import MiningPools from '../components/MiningPools';
 import FeeEstimates, { FeeHistory } from '../components/FeeEstimates';
+import BlockEconomics from '../components/BlockEconomics';
 import PeerTable from '../components/PeerTable';
 import BlockTable, { BlockStrip } from '../components/BlockTable';
 import { ArrowUpRight, ShieldCheck } from 'lucide-react';
@@ -467,6 +468,7 @@ export default function Dashboard({
             selectedHash={blockHash}
             onSelect={setBlockHash}
           />
+          <BlockEconomics section={node.blocks} syncing={chain != null && !synced} />
           <section className="panel">
             <SectionHeading
               title={t('nav.blocks')}

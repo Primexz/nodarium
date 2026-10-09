@@ -498,5 +498,28 @@
     "tagMatch": "Anhand des Coinbase-Tags erkannt",
     "addressMatch": "Anhand einer Coinbase-Auszahlungsadresse erkannt",
     "identificationNote": "Die Pool-Identität wird aus Coinbase-Daten abgeleitet; sie ist kein kryptografischer Beweis."
+  },
+  "blockEconomics": {
+    "title": "Blockökonomie",
+    "description": "Die neuesten {{count}} validierten Blöcke deines Nodes.",
+    "reward": "Subvention und Gebühren",
+    "rewardDescription": "Verfügbare Belohnung = Subvention + Gebühren. Der Miner kann weniger beanspruchen.",
+    "subsidy": "Blocksubvention",
+    "availableReward": "Verfügbare Belohnung",
+    "feeShare": "Gebührenanteil der Belohnung",
+    "feeShareDescription": "Transaktionsgebühren als Anteil der verfügbaren Belohnung.",
+    "feeRates": "Gebührenraten im Block",
+    "feeRatesDescription": "Durchschnitt und gewichtetes Median-Perzentil von Core; ohne Coinbase.",
+    "averageRate": "Durchschnittliche Gebührenrate",
+    "fullness": "Blockauslastung",
+    "fullnessDescription": "Gewicht des gesamten Blocks als Anteil des Limits von 4 Millionen Gewichtseinheiten.",
+    "plot": "{{title}} nach Blockhöhe. Öffne die Datentabelle für exakte Messwerte.",
+    "order": "Blockhöhe · ältester zuerst",
+    "gaps": "Fehlende Messwerte bleiben als Lücken sichtbar.",
+    "unavailable": "Warten auf Blockstatistiken",
+    "unavailableDescription": "Bei beschnittenen Blöcken können Statistiken fehlen. Fehlende Messwerte werden automatisch erneut abgefragt.",
+    "partial": "Einige Blockstatistiken fehlen. Sie werden automatisch erneut abgefragt; Diagramme zeigen Lücken.",
+    "stale": "Die zuletzt erfassten Blockstatistiken werden angezeigt. Aktualisiere die Node-Daten, um es erneut zu versuchen. Letzte Aktualisierung:",
+    "syncing": "Dein Node synchronisiert sich. Die Diagramme zeigen seine zuletzt validierten Blöcke während des Aufholens."
   }
 }
