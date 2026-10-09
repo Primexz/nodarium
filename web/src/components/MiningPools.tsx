@@ -7,6 +7,7 @@ import { number, decimal } from '../format';
 import { useTheme } from '../theme';
 import { chartPalette, useChart } from './useChart';
 import { Notice, SectionHeading } from './ui';
+import PoolLogo from './PoolLogo';
 
 function poolName(share: PoolShare, unknown: string) {
   return share.pool?.name ?? unknown;
@@ -67,6 +68,7 @@ export function BlockPool({ attribution }: { attribution?: PoolAttribution }) {
     <div className="block-pool" role="group" aria-label={t('pools.miner')}>
       <span>{t('pools.miner')}</span>
       <strong>
+        <PoolLogo name={pool?.name} />
         {pool ? (
           pool.link ? (
             <a href={pool.link} target="_blank" rel="noopener noreferrer">
@@ -186,7 +188,8 @@ export default function MiningPools() {
                                     : palette.edge,
                                 }}
                               />
-                              {poolName(share, t('pools.unknown'))}
+                              <PoolLogo name={share.pool?.name} />
+                              <span>{poolName(share, t('pools.unknown'))}</span>
                             </span>
                           </th>
                           <td>{number(share.blocks)}</td>

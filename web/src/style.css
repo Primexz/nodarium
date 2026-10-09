@@ -2074,6 +2074,11 @@ tbody tr:hover {
   font-size: 12px;
 }
 .block-pool strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-weight: 600;
 }
 @media (max-width: 767px) {
@@ -2094,6 +2099,20 @@ tbody tr:hover {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+}
+.pool-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+}
+.pool-logo img {
+  display: block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }
 .pool-swatch {
   display: inline-block;

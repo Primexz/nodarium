@@ -65,6 +65,8 @@ IP geolocation runs locally. Peer and node addresses are never sent to a geoloca
 
 Pool names are inferred locally from coinbase tags or payout addresses using the official [mempool mining-pool definitions](https://github.com/mempool/mining-pools). Unknown matches stay Unknown. Pool shares count observed mainnet blocks, not measured hash power. Refresh the bundled definitions with `make update-mining-pools`, then rebuild and restart.
 
+Pool logos come from a bundled snapshot of [mempool/mining-pool-logos](https://github.com/mempool/mining-pool-logos). Refresh them with `make update-mining-pool-logos`, then rebuild and restart. Browsers load logos locally; missing artwork uses a neutral icon.
+
 Block and transaction details come from your node without requiring `txindex`. Pruned blocks or unavailable undo data can limit details and fees. Missing readings and partial samples are labeled instead of filled with invented values.
 
 To follow logs:
@@ -106,4 +108,4 @@ Browser tests use a local RPC fixture. `scripts/integration.sh` runs disposable 
 
 ## License
 
-[MIT](LICENSE), copyright 2026 Primexz. Third-party notices remain with their assets: [mining-pool definitions](internal/miningpool/data/LICENSE) and [map attribution](web/public/map-attribution.txt).
+[MIT](LICENSE), copyright 2026 Primexz. Third-party notices remain with their assets: [mining-pool definitions](internal/miningpool/data/LICENSE), [pool logos](web/src/assets/mining-pool-logos/NOTICE.txt), and [map attribution](web/public/map-attribution.txt).

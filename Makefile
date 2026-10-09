@@ -1,4 +1,4 @@
-.PHONY: build test dev docker format format-check update-mining-pools
+.PHONY: build test dev docker format format-check update-mining-pools update-mining-pool-logos
 build:
 	pnpm --dir web install --frozen-lockfile
 	pnpm --dir web build
@@ -25,3 +25,6 @@ format-check:
 
 update-mining-pools:
 	go run ./cmd/update-mining-pools
+
+update-mining-pool-logos:
+	go run ./cmd/update-mining-pool-logos

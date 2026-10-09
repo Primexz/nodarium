@@ -85,6 +85,10 @@ Implementation details are grounded in the repository's README and source.
   partial/pruned samples, backfill progress, stale data, and attribution methods
   explicit. Definitions update through an explicit fetch-and-validate command;
   block-share charts do not claim measured pool hash power.
+  Display locally bundled official mempool/mining-pool-logos artwork beside pool
+  names in distribution tables and block goggles. Respect available theme variants,
+  retain readable names and neutral fallbacks, and make no external logo requests.
+  Logos update through a separate revision-pinned fetch-and-validate command.
 - Resolve peer and node IP locations locally using a city MMDB database. Do not
   send these addresses to a geolocation service. Keep peers with unavailable
   locations visible without invented coordinates. Map lines indicate connections,

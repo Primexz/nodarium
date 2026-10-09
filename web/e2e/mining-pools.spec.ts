@@ -22,6 +22,10 @@ test('local coinbases build official pool shares for both block windows', async 
   await expect(pools.locator('.pool-table')).toContainText('Unknown');
   await expect(pools.locator('.pool-table')).toContainText('Foundry USA');
   await expect(pools.locator('.pool-table')).toContainText('F2Pool');
+  await expect(
+    pools.locator('.pool-name').filter({ hasText: 'F2Pool' }).locator('img'),
+  ).toHaveAttribute('src', /^\/assets\/f2pool-[^/]+\.svg$/);
+
   await expect(pools.locator('.pool-pie canvas')).toBeVisible();
   const body: PoolDistribution = await (
     await page.request.get('/api/v1/mining/pools?blocks=144')
@@ -50,6 +54,9 @@ test('local coinbases build official pool shares for both block windows', async 
   const miner = page.getByRole('group', { name: 'Mining pool', exact: true });
   await expect(miner).toContainText('F2Pool');
   await expect(miner).toContainText('Identified from a coinbase payout address');
+  await expect(miner.locator('img')).toHaveAttribute('src', /^\/assets\/f2pool-[^/]+\.svg$/);
+  await expect(miner.locator('img')).toHaveJSProperty('naturalWidth', 80);
+  expect(outbound).toEqual([]);
   expect(
     (
       await (
@@ -130,6 +137,19 @@ test('pool chart and block attribution support themes, German and accessible lay
 
   for (const theme of ['light', 'dark']) {
     await page.getByLabel('Theme', { exact: true }).selectOption(theme);
+    const foundry = pools.locator('.pool-name').filter({ hasText: 'Foundry USA' }).locator('img');
+    await expect(foundry).toHaveAttribute(
+      'src',
+      theme === 'light'
+        ? /^\/assets\/foundryusa\.light-[^/]+\.svg$/
+        : /^\/assets\/foundryusa-[^/]+\.svg$/,
+    );
+
+    await expect(foundry).toHaveJSProperty('complete', true);
+    expect(await foundry.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(
+      0,
+    );
+
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
@@ -151,7 +171,7 @@ test('pool chart and block attribution support themes, German and accessible lay
     });
 
     await page.screenshot({
-      path: `../.impeccable/review/pools-${info.project.name}-${theme}.png`,
+      path: `../.impeccable/review/logos-${info.project.name}-${theme}.png`,
       fullPage: true,
     });
   }
@@ -160,7 +180,7 @@ test('pool chart and block attribution support themes, German and accessible lay
   await expect(page.locator('.mining-pools .pool-table')).toContainText('Unbekannt');
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({
-    path: `../.impeccable/review/pools-${info.project.name}-german.png`,
+    path: `../.impeccable/review/logos-${info.project.name}-german.png`,
     fullPage: true,
   });
 
@@ -168,9 +188,10 @@ test('pool chart and block attribution support themes, German and accessible lay
   await page.getByRole('button', { name: 'Block 900.123 ansehen', exact: true }).click();
   await expect(page.locator('.block-pool')).toContainText('F2Pool');
   await expect(page.locator('.block-pool')).toContainText('Coinbase-Auszahlungsadresse');
+  await expect(page.locator('.block-pool img')).toHaveJSProperty('naturalWidth', 80);
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({
-    path: `../.impeccable/review/pools-${info.project.name}-block.png`,
+    path: `../.impeccable/review/logos-${info.project.name}-block.png`,
     fullPage: true,
   });
 });

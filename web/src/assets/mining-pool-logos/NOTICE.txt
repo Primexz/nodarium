@@ -1,0 +1,10 @@
+Mining pool logos
+
+Source: https://github.com/mempool/mining-pool-logos
+Revision: 72a6819f95b9873997d608b98a7f843dee07a3db
+
+Original upstream artwork. Standard external SVG DTD declarations are removed;
+line endings and trailing whitespace are normalized. Names and artwork belong
+to their respective pool owners. The upstream repository does not declare a
+license; these assets are not covered by Nodarium's MIT license. No endorsement
+is implied.
