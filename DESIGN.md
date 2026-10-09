@@ -192,6 +192,8 @@ The desktop shell pairs a sticky (256px) navigation rail with a flexible workspa
 
 An (8px) base step supports common (16px), (24px), and (32px) intervals; observed (12px), (20px), and (36px) insets handle compact controls and workspace edges. Primary metrics form four columns, charts two columns, and map details a separate (240px) side column. The map canvas is (350px) high; its geography fits the available width and height.
 
+The Blocks page places status readings and the inspectable block strip before the block table and its expanded block details. Block economics follows the table so aggregate charts do not interrupt block inspection.
+
 At (1200px) and below, workspace padding narrows, the map detail column becomes (220px), and some secondary shell metadata is hidden. At (767px) and below, the rail becomes a drawer, content uses (28px 20px) padding, primary metrics form two columns, and chart/map sections stack. The map canvas becomes (260px) high. Block tables and the block strip scroll within their containers; selected block details stay within the viewport. Peer tables emphasize address, direction, and latency while the dialog exposes full details.
 
 ## Elevation & Depth

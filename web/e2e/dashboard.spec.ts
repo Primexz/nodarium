@@ -348,7 +348,11 @@ test('block rows expand into responsive details and preserve selection across re
   await navigate(page, 'Recent blocks');
   const toggle = page.getByRole('button', { name: 'Expand block 900,123', exact: true });
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-  await toggle.click();
+  await page.getByRole('button', { name: 'Inspect block 900,123', exact: true }).click();
+  await expect(
+    page.getByRole('button', { name: 'Collapse block 900,123', exact: true }),
+  ).toHaveAttribute('aria-expanded', 'true');
+
   const panel = page.getByRole('region', { name: 'Block 900,123 details', exact: true });
   await expect(panel).toBeVisible();
   await expect(panel.getByText('2,500', { exact: true })).toBeVisible();
@@ -361,6 +365,8 @@ test('block rows expand into responsive details and preserve selection across re
   const bounds = await panel.boundingBox();
   expect(bounds!.x).toBeGreaterThanOrEqual(0);
   expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+  const economicsBounds = await page.locator('.block-economics').boundingBox();
+  expect(bounds!.y + bounds!.height).toBeLessThan(economicsBounds!.y);
   await page.getByRole('button', { name: 'Refresh node data' }).click();
   await expect(panel).toBeVisible();
   await page.locator('.topbar').getByLabel('Language', { exact: true }).selectOption('de');

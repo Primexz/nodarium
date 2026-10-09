@@ -469,7 +469,6 @@ export default function Dashboard({
             selectedHash={blockHash}
             onSelect={setBlockHash}
           />
-          <BlockEconomics section={node.blocks} syncing={chain != null && !synced} />
           <section className="panel">
             <SectionHeading
               title={t('nav.blocks')}
@@ -485,6 +484,7 @@ export default function Dashboard({
               onSelect={setBlockHash}
             />
           </section>
+          <BlockEconomics section={node.blocks} syncing={chain != null && !synced} />
         </>
       )}
     </main>
