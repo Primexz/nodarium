@@ -1,7 +1,12 @@
 .shell {
+  --sidebar-width: 256px;
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 256px minmax(0, 1fr);
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+}
+
+.collapsed {
+  --sidebar-width: 76px;
 }
 
 .sidebar {
@@ -13,6 +18,55 @@
   flex-direction: column;
   background: var(--rail);
   border-right: 1px solid var(--rule);
+  overflow-y: auto;
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sidebarHeader .sidebarToggle {
+  flex-shrink: 0;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.collapsed .sidebar {
+  padding-inline: 12px;
+}
+
+.collapsed .sidebarHeader {
+  flex-direction: column;
+  gap: 12px;
+}
+
+.collapsed .sidebarHeader > a {
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.collapsed .sidebar :global(.brand > span:last-child),
+.collapsed .sidebar nav span,
+.collapsed .sidebar :global(.logout) span,
+.collapsed .sidebar .navBottom p {
+  display: none;
+}
+
+.collapsed .sidebar nav {
+  margin-top: 32px;
+}
+
+.collapsed .sidebar nav a,
+.collapsed .sidebar :global(.logout) {
+  justify-content: center;
+  min-height: 44px;
+  padding-inline: 0;
 }
 
 .main {

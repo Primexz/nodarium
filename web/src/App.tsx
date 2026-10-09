@@ -17,6 +17,8 @@ import {
   RefreshCw,
   Pickaxe,
   Server,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 import { useAuth } from './auth';
 import { useReadings, refresh } from './state';
@@ -27,6 +29,8 @@ import { Brand, LanguagePicker, ThemePicker, Notice, ErrorBoundary } from './com
 
 const Dashboard = lazy(() => import('./views/Dashboard'));
 import styles from './App.module.css';
+
+const sidebarStorageKey = 'nodarium-sidebar-collapsed';
 
 export default function App() {
   const { checking, authenticated } = useAuth();
@@ -134,6 +138,24 @@ function Workspace() {
   const [menu, setMenu] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [range, setRange] = useState<HistoryRange>('24h');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem(sidebarStorageKey) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  function toggleSidebar() {
+    const collapsed = !sidebarCollapsed;
+    setSidebarCollapsed(collapsed);
+
+    try {
+      localStorage.setItem(sidebarStorageKey, String(collapsed));
+    } catch {
+      /* Navigation works without optional preference storage. */
+    }
+  }
 
   const links = [
     { path: 'overview', icon: LayoutDashboard },
@@ -148,15 +170,29 @@ function Workspace() {
   const page = links.find((link) => link.path === location.pathname.slice(1))?.path ?? 'overview';
   const title = t(`nav.${page}`);
 
+  const brand = (
+    <Link
+      to="/overview"
+      aria-label={`Nodarium · ${t('nav.overview')}`}
+      title="Nodarium"
+      onClick={() => setMenu(false)}
+    >
+      <Brand />
+    </Link>
+  );
+
   const navigation = (
     <>
-      <Link to="/overview" onClick={() => setMenu(false)}>
-        <Brand />
-      </Link>
       <nav aria-label={t('nav.workspace')}>
         {links.map(({ path, icon: Icon }) => (
-          <NavLink to={`/${path}`} key={path} onClick={() => setMenu(false)}>
-            <Icon size={18} />
+          <NavLink
+            to={`/${path}`}
+            key={path}
+            aria-label={t(`nav.${path}`)}
+            title={t(`nav.${path}`)}
+            onClick={() => setMenu(false)}
+          >
+            <Icon size={18} aria-hidden />
             <span>{t(`nav.${path}`)}</span>
             {path === 'peers' && node.peers.data && (
               <span className="nav-count">{node.peers.data.length}</span>
@@ -169,9 +205,14 @@ function Workspace() {
           <ShieldCheck size={14} />
           {t('login.hosted')}
         </p>
-        <button className="logout" onClick={() => void auth.logout()}>
-          <LogOut size={16} />
-          {t('nav.signOut')}
+        <button
+          className="logout"
+          aria-label={t('nav.signOut')}
+          title={t('nav.signOut')}
+          onClick={() => void auth.logout()}
+        >
+          <LogOut size={16} aria-hidden />
+          <span>{t('nav.signOut')}</span>
         </button>
       </div>
     </>
@@ -190,11 +231,30 @@ function Workspace() {
   }
 
   return (
-    <div className={styles.shell}>
+    <div className={`${styles.shell} ${sidebarCollapsed ? styles.collapsed : ''}`}>
       <a href="#content" className="skip-link">
         {t('common.skip')}
       </a>
-      <aside className={styles.sidebar}>{navigation}</aside>
+      <aside id="workspace-sidebar" className={styles.sidebar}>
+        <div className={styles.sidebarHeader}>
+          {brand}
+          <button
+            className={`icon-button ${styles.sidebarToggle}`}
+            aria-label={t(sidebarCollapsed ? 'nav.expandSidebar' : 'nav.collapseSidebar')}
+            title={t(sidebarCollapsed ? 'nav.expandSidebar' : 'nav.collapseSidebar')}
+            aria-expanded={!sidebarCollapsed}
+            aria-controls="workspace-sidebar"
+            onClick={toggleSidebar}
+          >
+            {sidebarCollapsed ? (
+              <PanelLeftOpen size={18} aria-hidden />
+            ) : (
+              <PanelLeftClose size={18} aria-hidden />
+            )}
+          </button>
+        </div>
+        {navigation}
+      </aside>
       <div className={styles.main}>
         <header className={`${styles.topbar} topbar`}>
           <div className={styles.context}>
@@ -214,6 +274,7 @@ function Workspace() {
                       <X size={20} />
                     </button>
                   </Dialog.Close>
+                  {brand}
                   {navigation}
                 </Dialog.Content>
               </Dialog.Portal>

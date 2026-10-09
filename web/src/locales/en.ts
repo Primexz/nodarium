@@ -9,6 +9,8 @@ const en = {
     workspaceLabel: 'WORKSPACE',
     close: 'Close navigation',
     open: 'Open navigation',
+    collapseSidebar: 'Collapse sidebar',
+    expandSidebar: 'Expand sidebar',
     signOut: 'Sign out',
     node: 'Node details',
     mining: 'Mining',

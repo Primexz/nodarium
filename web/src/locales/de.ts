@@ -11,6 +11,8 @@ const de = {
     workspaceLabel: 'ARBEITSBEREICH',
     close: 'Navigation schließen',
     open: 'Navigation öffnen',
+    collapseSidebar: 'Seitenleiste einklappen',
+    expandSidebar: 'Seitenleiste ausklappen',
     signOut: 'Abmelden',
     node: 'Node-Details',
     mining: 'Mining',

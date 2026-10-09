@@ -230,6 +230,8 @@ Peer search, direction filters, and sort changes return the list to the beginnin
 
 The rail provides Overview, Node details, Mining, Peers, Traffic, Mempool, and Blocks destinations, each with a quiet icon and sentence-case label. Active items use orange wash and orange ink, with weight (600); hover uses a surface fill. Links have a minimum (44px) height. Mobile uses the same navigation inside a modal drawer with the theme scrim and shadow.
 
+A toggle beside the desktop brand switches the (256px) rail to a (76px) icon rail. Collapsed navigation and sign-out controls keep accessible names and localized hover titles; the toggle exposes its expanded state and retains keyboard focus. The preference persists locally when browser storage is available. The mobile drawer always retains full labels, independent of the desktop preference; short desktop viewports allow the rail to scroll.
+
 ### Metrics and status
 
 The compact overview combines health, four key metrics, the recent-block strip, and text links to focused pages. Node details combines synchronization health, height, uptime, disk usage, and node mode with a ruled Core-information definition list; the best block hash uses the identifier font and wraps within the available width. Peers groups the map, country distribution, transport breakdown, history charts, and searchable peer table. Metric definition lists use quiet labels above tabular readings. Fine vertical rules separate desktop metrics; mobile retains them between paired columns. Status badges pair a small colored dot with readable state text. Warning banners retain explanation and stale-data context.
