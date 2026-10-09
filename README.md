@@ -1,8 +1,20 @@
-# Nodarium
+<div align="center">
 
-A lightweight, self-hosted Bitcoin node explorer for keeping an eye on your Bitcoin Core node.
+<h1>Nodarium</h1>
 
-Runs as one Go application with an embedded React frontend and SQLite by default. Monitoring is read-only, with English and German support, light and dark themes, and a responsive layout.
+<p>
+  A lightweight, self-hosted Bitcoin node explorer for keeping an eye on your Bitcoin Core node.
+</p>
+
+<p>
+  Runs as one Go application with an embedded React frontend and SQLite by default. Monitoring is read-only, with English and German support, light and dark themes, and a responsive layout.
+</p>
+
+<p>
+  <img src="docs/assets/nodarium-gopher.png" width="560" alt="A blue Go Gopher beside a Bitcoin node dashboard and an orange Bitcoin coin." />
+</p>
+
+</div>
 
 ## Features
 
@@ -109,3 +121,5 @@ Browser tests use a local RPC fixture. `scripts/integration.sh` runs disposable 
 ## License
 
 [MIT](LICENSE), copyright 2026 Primexz. Third-party notices remain with their assets: [mining-pool definitions](internal/miningpool/data/LICENSE), [pool logos](web/src/assets/mining-pool-logos/NOTICE.txt), and [map attribution](web/public/map-attribution.txt).
+
+The README illustration adapts the [Go Gopher by Renee French](https://go.dev/blog/gopher), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
