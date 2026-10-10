@@ -26,6 +26,7 @@ import { message } from './i18n';
 import type { HistoryRange } from './types';
 import { duration } from './format';
 import { Brand, LanguagePicker, ThemePicker, Notice, ErrorBoundary } from './components/ui';
+import BlockIndexProgress from './components/BlockIndexProgress';
 
 const Dashboard = lazy(() => import('./views/Dashboard'));
 const PoolDetail = lazy(() => import('./views/PoolDetail'));
@@ -309,6 +310,7 @@ function Workspace() {
               <RefreshCw size={16} />
             </button>
           </div>
+          <BlockIndexProgress />
         </header>
         {auth.error && <Notice error>{message(auth.error)}</Notice>}
         <ErrorBoundary key={page} label={t('app.interfaceError')} retry={t('common.retry')}>

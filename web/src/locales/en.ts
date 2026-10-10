@@ -21,6 +21,19 @@ const en = {
     disconnected: 'Node disconnected',
     connecting: 'Connecting',
   },
+  indexStatus: {
+    title: 'Block index',
+    progress: 'Block indexing progress',
+    lastKnown: 'Last known indexing progress',
+    count: '{{total}} / {{target}} blocks · {{percent}}%',
+    indexing: 'Indexing blocks',
+    waiting: 'Waiting for block indexing',
+    syncing: 'Indexing waits for node synchronization',
+    paused: 'Block indexing paused — retrying automatically',
+    offline: 'Block indexing offline',
+    stale: 'Indexing progress may be outdated',
+    unavailable: 'Indexing status unavailable',
+  },
   app: {
     opening: 'Opening your node dashboard…',
     direct: 'Direct from your Bitcoin Core node',
@@ -507,11 +520,9 @@ const en = {
     unavailable: 'Unavailable',
     unsupported: 'Unavailable on this network',
     loading: 'Reading recent blocks from your node…',
-    indexing: 'Reading blocks: {{total}} / {{target}}',
-    progress: 'Mining-pool backfill progress',
     sample: 'Blocks read: {{total}} / {{target}} · Latest height {{height}}',
     chartLabel:
-      'Mining-pool distribution for {{value}} blocks; exact counts are in the accompanying table.',
+      'Mining-pool distribution for {{value}} blocks; pool names, shares, and exact block counts are in the legend.',
     blockCount: '{{value}} blocks',
     requestFailed: 'Pool data could not be refreshed.',
     partialNote:
@@ -544,7 +555,6 @@ const en = {
     chartLabel:
       'Historical mining-pool block shares; exact counts and percentages are available in the data table.',
     other: 'Other identified pools',
-    partial: 'Block indexing is incomplete: {{total}} / {{target}} chain blocks indexed.',
     coverage:
       '{{blocks}} indexed blocks in this period · {{identified}} identified · {{classified}} with readable attribution',
     bucket: '{{hours}}-hour UTC buckets; boundary buckets may be partial',
@@ -614,7 +624,7 @@ const en = {
     timeOrder: 'Time · oldest to newest',
     sampleBlocks: 'Indexed blocks',
     historyPartial:
-      'Some historical data is still missing. {{total}} / {{target}} block headers indexed; only available statistics contribute.',
+      'Some historical block statistics are unavailable. Only available statistics contribute; missing readings leave gaps.',
     meanMedian: 'Mean block median fee rate',
     historyReward:
       'Average subsidy and fees per block with both statistics available; not the actual coinbase payout.',

@@ -10,6 +10,7 @@ import type {
   Mempool,
   Block,
   Mining,
+  BlockIndexStatus,
 } from './types';
 
 export const queryClient = new QueryClient({
@@ -19,6 +20,16 @@ export const queryClient = new QueryClient({
 });
 
 export const empty = <T>(): Section<T> => ({ data: null, updated_at: null, stale: false });
+
+// The workspace polls; page observers reuse its cache without extra timers.
+export function useBlockIndexStatus(poll = true) {
+  return useQuery({
+    queryKey: ['node', 'block-index'],
+    queryFn: ({ signal }) => api<BlockIndexStatus>('blocks/index', { signal }),
+    enabled: poll,
+    refetchInterval: poll ? 5000 : false,
+  });
+}
 
 export function sectionResult<T>(data: Section<T> | undefined, failed: boolean): Section<T> {
   const section = data ?? empty<T>();

@@ -23,6 +23,19 @@ const de = {
     disconnected: 'Node getrennt',
     connecting: 'Verbindung wird hergestellt',
   },
+  indexStatus: {
+    title: 'Block-Index',
+    progress: 'Fortschritt der Block-Indexierung',
+    lastKnown: 'Zuletzt bekannter Indexierungsfortschritt',
+    count: '{{total}} / {{target}} Blöcke · {{percent}}%',
+    indexing: 'Blöcke werden indexiert',
+    waiting: 'Warten auf Block-Indexierung',
+    syncing: 'Indexierung wartet auf die Node-Synchronisierung',
+    paused: 'Block-Indexierung pausiert — automatischer Wiederholungsversuch',
+    offline: 'Block-Indexierung offline',
+    stale: 'Indexierungsfortschritt möglicherweise veraltet',
+    unavailable: 'Indexierungsstatus nicht verfügbar',
+  },
   app: {
     opening: 'Dein Node-Dashboard wird geöffnet …',
     direct: 'Direkt von deinem Bitcoin-Core-Node',
@@ -529,11 +542,9 @@ const de = {
     unavailable: 'Nicht verfügbar',
     unsupported: 'In diesem Netzwerk nicht verfügbar',
     loading: 'Neueste Blöcke werden von deinem Node gelesen…',
-    indexing: 'Blöcke lesen: {{total}} / {{target}}',
-    progress: 'Fortschritt der Pool-Auswertung',
     sample: 'Gelesene Blöcke: {{total}} / {{target}} · Neueste Höhe {{height}}',
     chartLabel:
-      'Mining-Pool-Verteilung für {{value}} Blöcke; genaue Zahlen stehen in der zugehörigen Tabelle.',
+      'Mining-Pool-Verteilung für {{value}} Blöcke; Pool-Namen, Anteile und genaue Blockanzahlen stehen in der Legende.',
     blockCount: '{{value}} Blöcke',
     requestFailed: 'Pool-Daten konnten nicht aktualisiert werden.',
     partialNote:
@@ -568,7 +579,6 @@ const de = {
     chartLabel:
       'Historische Blockanteile der Mining-Pools; genaue Anzahlen und Prozentsätze stehen in der Datentabelle.',
     other: 'Weitere erkannte Pools',
-    partial: 'Die Block-Indexierung ist unvollständig: {{total}} / {{target}} Blöcke indexiert.',
     coverage:
       '{{blocks}} indexierte Blöcke im Zeitraum · {{identified}} erkannt · {{classified}} mit lesbarer Zuordnung',
     bucket: 'UTC-Intervalle von {{hours}} Stunden; Randintervalle können unvollständig sein',
@@ -646,7 +656,7 @@ const de = {
     timeOrder: 'Zeit · ältester zuerst',
     sampleBlocks: 'Indexierte Blöcke',
     historyPartial:
-      'Einige historische Daten fehlen noch. {{total}} / {{target}} Blockheader indexiert; nur verfügbare Statistiken fließen ein.',
+      'Einige historische Blockstatistiken fehlen. Nur verfügbare Statistiken fließen ein; fehlende Messwerte bleiben Lücken.',
     meanMedian: 'Mittlere Median-Gebührenrate der Blöcke',
     historyReward:
       'Mittlere Subvention und Gebühren pro Block mit beiden verfügbaren Statistiken; nicht die tatsächliche Coinbase-Auszahlung.',

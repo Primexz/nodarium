@@ -2168,7 +2168,6 @@ tbody tr:hover {
   font-variant-numeric: tabular-nums;
 }
 .pool-sample,
-.pool-progress,
 .pool-explanation,
 .pool-source {
   font-size: 12px;
@@ -2183,18 +2182,6 @@ tbody tr:hover {
 }
 .pool-source {
   margin-top: 8px;
-}
-.pool-progress {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  margin-top: 16px;
-}
-.pool-progress progress {
-  width: 160px;
-  height: 8px;
-  accent-color: var(--accent);
 }
 .block-pool {
   display: flex;

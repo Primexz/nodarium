@@ -98,7 +98,6 @@ export default function MiningPools() {
   });
 
   const data = query.data;
-  const indexing = data?.status === 'loading' || data?.status === 'indexing';
 
   return (
     <section className="mining-pools" aria-label={t('pools.title')}>
@@ -125,21 +124,6 @@ export default function MiningPools() {
       )}
       {data && (
         <>
-          {indexing && (
-            <div className="pool-progress" role="status">
-              <span>
-                {data.target
-                  ? t('pools.indexing', {
-                      total: number(data.scanned),
-                      target: number(data.target),
-                    })
-                  : t('pools.loading')}
-              </span>
-              {data.target > 0 && (
-                <progress max={data.target} value={data.scanned} aria-label={t('pools.progress')} />
-              )}
-            </div>
-          )}
           {(data.status === 'unavailable' ||
             data.status === 'unsupported' ||
             data.status === 'syncing' ||

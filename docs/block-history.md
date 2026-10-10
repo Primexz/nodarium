@@ -125,3 +125,14 @@ blocks with known fees. Each metric exposes its own sample count; missing data
 never becomes zero. Definition IDs keep historical blocks together across name
 changes. Invalid pool IDs/ranges return 400, unknown definition IDs return 404,
 and unavailable storage returns 503. Routes require the existing admin session.
+
+## Shared indexing progress
+
+The authenticated workspace polls `GET /api/1.0/blocks/index` every five seconds.
+Its top bar shows whole-chain indexed/target block counts and a percentage,
+with one native progress bar across all pages. Waiting, node synchronization,
+paused, offline, stale, and failed-status states remain visible; a failed request
+keeps any last-known progress with a retry action. The indicator disappears when
+the index is ready and current. The Blocks browser observes the same query cache
+without creating a second polling timer. Page bodies keep sample counts,
+missing-statistics and attribution notices, pruning, and the backfill frontier.

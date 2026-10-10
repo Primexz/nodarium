@@ -113,7 +113,10 @@ Implementation details are grounded in the repository's README and source.
   seven days, 30 days, one year, and all indexed history through bounded time buckets.
   Historical amounts are BTC averages, not exact totals; fee-rate curves average
   Core's per-block values and fee share uses summed fees divided by summed available
-  reward. Preserve per-metric sample counts, indexing coverage, partial and stale
+  reward. Show whole-chain indexing progress once in the shared topbar, with
+  indexed/target counts, percentage, and waiting, syncing, paused, offline, stale,
+  and request-failure states. Hide it on completion and preserve local missing-data
+  and pruning explanations. Preserve per-metric sample counts, indexing coverage, partial and stale
   states, and null gaps; missing statistics never count as zero.
 - Attribute mainnet coinbase transactions locally using bundled official
   mempool/mining-pools definitions. Show pool block shares for the latest 144 or

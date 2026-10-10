@@ -1,7 +1,7 @@
-import { act, cleanup, render } from '@testing-library/react';
+import { act, cleanup, render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, expect, it, vi } from 'vitest';
-import { useReadings } from './state';
+import { useBlockIndexStatus, useReadings } from './state';
 
 afterEach(() => {
   cleanup();
@@ -67,5 +67,50 @@ it('polls each section every ten seconds and never overlaps a pending request', 
   expect([...counts.values()]).toEqual([2, 2, 2, 2, 2, 2, 2]);
   view.unmount();
   expect(signals.slice(-7).every((signal) => signal.aborted)).toBe(true);
+  client.clear();
+});
+
+function IndexProbe() {
+  useBlockIndexStatus();
+  const page = useBlockIndexStatus(false);
+
+  return <output aria-label="Indexed blocks">{page.data?.headers}</output>;
+}
+
+it('polls the shared block index once while page observers receive fresh cached progress', async () => {
+  vi.useFakeTimers();
+  let calls = 0;
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => {
+      calls++;
+
+      return new Response(JSON.stringify({ status: 'indexing', headers: calls * 10, target: 100 }));
+    }),
+  );
+
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, refetchOnWindowFocus: false } },
+  });
+
+  const view = render(
+    <QueryClientProvider client={client}>
+      <IndexProbe />
+    </QueryClientProvider>,
+  );
+
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(10);
+  });
+
+  expect(calls).toBe(1);
+  expect(screen.getByLabelText('Indexed blocks').textContent).toBe('10');
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(5000);
+  });
+
+  expect(calls).toBe(2);
+  expect(screen.getByLabelText('Indexed blocks').textContent).toBe('20');
+  view.unmount();
   client.clear();
 });

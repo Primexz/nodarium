@@ -41,22 +41,10 @@ export function PoolRange({
 export function PoolCoverage({ data }: { data: PoolTrends }) {
   const { t } = useTranslation();
 
-  if (data.status === 'waiting') return <Notice>{t('blockHistory.waiting')}</Notice>;
-
   if (data.status === 'unsupported') return <Notice>{t('pools.unsupportedNote')}</Notice>;
 
   return (
     <>
-      {data.status === 'syncing' && <Notice>{t('pools.syncingNote')}</Notice>}
-      {data.status === 'paused' && <Notice>{t('blockHistory.paused')}</Notice>}
-      {data.indexed_blocks < data.target_blocks && data.status !== 'syncing' && (
-        <Notice>
-          {t('poolHistory.partial', {
-            total: number(data.indexed_blocks),
-            target: number(data.target_blocks),
-          })}
-        </Notice>
-      )}
       {data.classified_blocks < data.blocks && (
         <Notice>
           {t('poolHistory.attributionMissing', {

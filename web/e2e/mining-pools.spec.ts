@@ -112,7 +112,8 @@ test('pool chart shows partial, syncing, unsupported and failed refresh states',
   await signIn(page);
   await navigate(page, 'Mining');
   const pools = page.getByRole('region', { name: 'Mining pools', exact: true });
-  await expect(pools.getByRole('progressbar')).toHaveAttribute('value', '16');
+  await expect(pools.getByRole('progressbar')).toHaveCount(0);
+  await expect(pools.locator('.pool-sample')).toContainText('16 / 144');
   status = 'partial';
   await page.getByRole('button', { name: 'Refresh node data' }).click();
   await expect(pools.getByRole('alert')).toContainText('only the blocks read successfully');

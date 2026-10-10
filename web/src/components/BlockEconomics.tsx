@@ -268,14 +268,11 @@ export default function BlockEconomics({
           <button onClick={() => void query.refetch()}>{t('common.retry')}</button>
         </Notice>
       )}
-      {history?.partial && (
-        <Notice>
-          {t('blockEconomics.historyPartial', {
-            total: number(history.indexed_blocks),
-            target: number(history.target_blocks),
-          })}
-        </Notice>
-      )}
+      {history?.points.some((point) =>
+        [point.reward_blocks, point.rate_blocks, point.median_blocks, point.weight_blocks].some(
+          (count) => count < point.blocks,
+        ),
+      ) && <Notice>{t('blockEconomics.historyPartial')}</Notice>}
       {history?.stale && <Notice error>{t('blockHistory.offline')}</Notice>}
       {range === 'recent' && section.stale && (
         <Notice error>

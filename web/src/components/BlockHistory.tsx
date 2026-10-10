@@ -3,7 +3,8 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import { api, APIError } from '../api';
-import type { Block, BlockHistoryPage, BlockIndexStatus, IndexedBlock } from '../types';
+import type { Block, BlockHistoryPage, IndexedBlock } from '../types';
+import { useBlockIndexStatus } from '../state';
 import { number } from '../format';
 import { BlockDetails } from './BlockTable';
 import VirtualBlockStrip from './VirtualBlockStrip';
@@ -51,11 +52,7 @@ export default function BlockHistory({
   }, [selectedHash]);
 
   const visible = useRef({ start: 0, end: 0 });
-  const status = useQuery({
-    queryKey: ['node', 'block-index'],
-    queryFn: ({ signal }) => api<BlockIndexStatus>('blocks/index', { signal }),
-    refetchInterval: 5000,
-  });
+  const status = useBlockIndexStatus(false);
 
   const history = useInfiniteQuery({
     queryKey: ['node', 'block-history', startHeight ?? 'tip', generation],
@@ -223,14 +220,6 @@ export default function BlockHistory({
           <p id="block-height-error" role="alert">
             {t('blockHistory.invalidHeight')}
           </p>
-        )}
-        {status.data && status.data.status !== 'ready' && (
-          <Notice error={status.data.status === 'paused' || status.data.status === 'offline'}>
-            {t(`blockHistory.${status.data.status}`, {
-              total: number(status.data.headers),
-              target: number(status.data.target),
-            })}
-          </Notice>
         )}
         {status.data && status.data.pruned > 0 && (
           <p className="block-explanation">{t('blockHistory.pruned')}</p>
