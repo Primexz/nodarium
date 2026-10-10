@@ -17,9 +17,9 @@
 - **Overview and node details:** health, synchronization, storage, uptime, and recent blocks.
 - **Peers and traffic:** searchable connections, a world map, country distribution, transfer rates, and history.
 - **Mining:** difficulty-period progress and estimated adjustment time, network hashrate, difficulty history, and pool shares over the latest 144 or 1,008 blocks.
-- **Mempool and blocks:** local fee estimates for 2, 3, and 6-block targets with history, mempool statistics, recent-block economics charts, block details, and a transaction mosaic. Click a transaction to inspect its inputs, outputs, and fees.
+- **Mempool and blocks:** local fee estimates for 2, 3, and 6-block targets with history, mempool statistics, historical block economics charts, virtual-scrolling block history, and a transaction mosaic. Click a transaction to inspect its inputs, outputs, and fees.
 
-Nodarium monitors one node per instance; PostgreSQL is optional. History begins when collection starts and is retained for up to a year. No wallet features, peer controls, or host-resource monitoring.
+Nodarium monitors one node per instance; PostgreSQL is optional. Monitoring history begins when collection starts and is retained for up to a year. Block summaries are backfilled from Core and retained across restarts. No wallet features, peer controls, or host-resource monitoring.
 
 ## Quick start
 
@@ -65,6 +65,7 @@ See [.env.example](.env.example) for settings. Apply changes with `docker compos
 | `DB_DRIVER`, `DB_DSN` | Defaults to SQLite. For PostgreSQL, set `DB_DRIVER=postgres` and a connection string. Changing databases does not migrate history. |
 | `GEOIP_DB_PATH`, `GEOIP_AUTO_DOWNLOAD` | Custom city MMDB file or automatic DB-IP City Lite downloads. |
 | `POLL_INTERVAL` | Collection interval; defaults to `10s`. |
+| `BLOCK_INDEX_DELAY` | Optional pause between indexed blocks; defaults to `0s`. Increase it, e.g. `25ms`, to reduce indexing load. |
 | `LOG_LEVEL` | `debug`, `info`, `warn`, or `error`; defaults to `info`. |
 | `COOKIE_SECURE` | Set to `true` behind an HTTPS reverse proxy. Serve at the domain root and preserve the Host header. |
 | `BIND_ADDRESS`, `PORT` | Compose host address and port; defaults to `127.0.0.1:8080`. |
@@ -75,7 +76,7 @@ Pool names are inferred locally from coinbase tags or payout addresses using the
 
 Pool logos come from a bundled snapshot of [mempool/mining-pool-logos](https://github.com/mempool/mining-pool-logos). Refresh them with `make update-mining-pool-logos`, then rebuild and restart. Browsers load logos locally; missing artwork uses a neutral icon.
 
-Block and transaction details come from your node without requiring `txindex`. Economics charts compare subsidy, fees, fee rates, and fullness for the latest ten blocks. Pruned blocks or unavailable undo data can limit details and fees. Missing readings and partial samples are labeled instead of filled with invented values.
+Block and transaction details come from your node without requiring `txindex`. A background indexer starts after synchronization, reads recent blocks first, and works backwards to genesis with resumable progress. Economics charts compare subsidy, fees, fee rates, and fullness over recent blocks or long-term ranges. Block summaries persist indefinitely; transaction mosaics and details load on demand from Core. Pruned blocks or unavailable undo data can limit historical statistics and goggles. Missing readings and partial samples are labeled instead of filled with invented values. See the [block history and API details](docs/block-history.md).
 
 To follow logs:
 

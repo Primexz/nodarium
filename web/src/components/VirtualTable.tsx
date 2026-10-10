@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Key, KeyboardEvent, ReactNode } from 'react';
 import { defaultRangeExtractor, useVirtualizer } from '@tanstack/react-virtual';
 import { useTranslation } from 'react-i18next';
@@ -26,6 +26,10 @@ export default function VirtualTable<T>({
   keepKey,
   estimate = 52,
   compact = false,
+  onRangeChange,
+  onBoundary,
+  totalRows,
+  rowOffset = 0,
 }: {
   rows: T[];
   rowKey: (row: T) => Key;
@@ -38,6 +42,10 @@ export default function VirtualTable<T>({
   keepKey?: Key | null;
   estimate?: number;
   compact?: boolean;
+  onRangeChange?: (range: { start: number; end: number }) => void;
+  onBoundary?: (direction: 'older' | 'newer') => boolean;
+  totalRows?: number;
+  rowOffset?: number;
 }) {
   const { t } = useTranslation();
   const viewport = useRef<HTMLDivElement>(null);
@@ -45,6 +53,8 @@ export default function VirtualTable<T>({
   const [headerHeight, setHeaderHeight] = useState(48);
   const [focusedKey, setFocusedKey] = useState<Key | null>(null);
   const pendingFocus = useRef<{ index: number; reverse: boolean } | null>(null);
+  const anchor = useRef<{ key: Key; offset: number } | null>(null);
+  const boundaryFocus = useRef<{ key: Key; direction: number } | null>(null);
   const virtual = !compact && rows.length > 50;
   const getItemKey = useCallback((index: number) => rowKey(rows[index]!), [rowKey, rows]);
   const retained = rows.flatMap((row, index) =>
@@ -52,6 +62,18 @@ export default function VirtualTable<T>({
   );
 
   const virtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
+    onChange: (instance, scrolling) => {
+      if (!scrolling || !onRangeChange) return;
+
+      const index = instance.range?.startIndex;
+      const item = instance.getVirtualItems().find((item) => item.index === index);
+
+      if (item && rows[item.index])
+        anchor.current = {
+          key: rowKey(rows[item.index]!),
+          offset: (instance.scrollOffset ?? 0) - (item.start - headerHeight),
+        };
+    },
     count: rows.length,
     getScrollElement: () => viewport.current,
     getItemKey,
@@ -63,6 +85,47 @@ export default function VirtualTable<T>({
     rangeExtractor: (range) =>
       [...new Set([...defaultRangeExtractor(range), ...retained])].sort((a, b) => a - b),
   });
+
+  const rangeStart = virtualizer.range?.startIndex ?? 0;
+  const rangeEnd = virtualizer.range?.endIndex ?? rows.length - 1;
+
+  useEffect(() => {
+    onRangeChange?.({ start: rangeStart, end: rangeEnd });
+  }, [onRangeChange, rangeStart, rangeEnd]);
+
+  const paged = onRangeChange != null;
+
+  // Cursor-backed callers may prepend rows or evict a distant page. Keep the
+  // same visible block at the same offset rather than keeping an array index.
+  useLayoutEffect(() => {
+    if (paged && !anchor.current && rows.length)
+      anchor.current = { key: rowKey(rows[0]!), offset: 0 };
+
+    const saved = anchor.current;
+
+    if (paged && saved && viewport.current) {
+      const index = rows.findIndex((row) => rowKey(row) === saved.key);
+
+      if (index >= 0) {
+        const offset = virtualizer.getOffsetForIndex(index, 'start');
+
+        if (offset) viewport.current.scrollTop = offset[0] + saved.offset;
+      }
+    }
+
+    const boundary = boundaryFocus.current;
+
+    if (boundary) {
+      const index = rows.findIndex((row) => rowKey(row) === boundary.key) + boundary.direction;
+
+      if (index >= 0 && index < rows.length) {
+        boundaryFocus.current = null;
+        pendingFocus.current = { index, reverse: boundary.direction < 0 };
+        setFocusedKey(rowKey(rows[index]!));
+        virtualizer.scrollToIndex(index, { align: 'auto' });
+      }
+    }
+  }, [rows, rowKey, paged, virtualizer]);
 
   useLayoutEffect(() => {
     const node = heading.current;
@@ -82,6 +145,8 @@ export default function VirtualTable<T>({
 
     setFocusedKey(null);
     pendingFocus.current = null;
+    anchor.current = null;
+    boundaryFocus.current = null;
   }, [resetKey]);
 
   useLayoutEffect(() => {
@@ -126,7 +191,19 @@ export default function VirtualTable<T>({
     else if (event.key === 'End') next = rows.length - 1;
     else return;
 
-    if (next < 0 || next >= rows.length) return;
+    if (next < 0 || next >= rows.length) {
+      if (
+        onBoundary &&
+        (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Tab')
+      ) {
+        if (onBoundary(next < 0 ? 'newer' : 'older')) {
+          event.preventDefault();
+          boundaryFocus.current = { key: rowKey(rows[index]!), direction: next < 0 ? -1 : 1 };
+        }
+      }
+
+      return;
+    }
 
     event.preventDefault();
     pendingFocus.current = { index: next, reverse: event.shiftKey };
@@ -159,7 +236,11 @@ export default function VirtualTable<T>({
             setFocusedKey(null);
         }}
       >
-        <table className={className} aria-label={label} aria-rowcount={rows.length + 1}>
+        <table
+          className={className}
+          aria-label={label}
+          aria-rowcount={(totalRows ?? rows.length) + 1}
+        >
           <thead ref={heading}>
             <tr aria-rowindex={1}>{header}</tr>
           </thead>
@@ -173,7 +254,7 @@ export default function VirtualTable<T>({
                   <Spacer height={gap} columns={columns} />
                   <tr
                     data-index={item.index}
-                    aria-rowindex={item.index + 2}
+                    aria-rowindex={rowOffset + item.index + 2}
                     ref={virtual ? virtualizer.measureElement : undefined}
                   >
                     {renderRow(rows[item.index]!)}
@@ -189,7 +270,12 @@ export default function VirtualTable<T>({
       </div>
       {!compact && rows.length > 0 && (
         <div className="table-scroll-note">
-          <span>{t('tables.rows', { count: rows.length, total: number(rows.length) })}</span>
+          <span>
+            {t('tables.rows', {
+              count: totalRows ?? rows.length,
+              total: number(totalRows ?? rows.length),
+            })}
+          </span>
           <span>{t('tables.scroll')}</span>
         </div>
       )}

@@ -1,12 +1,17 @@
-import { Fragment, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, ChevronDown } from 'lucide-react';
-import type { Block } from '../types';
-import { number, shortHash, dateTime, bitcoinAmount, bytes, decimal } from '../format';
-import { Empty } from './ui';
+import type { Block, PoolAttribution } from '../types';
+import { number, dateTime, bitcoinAmount, bytes, decimal } from '../format';
 import BlockGoggles from './BlockGoggles';
+import { BlockPool } from './MiningPools';
 
-export function BlockDetails({ block, stale }: { block: Block; stale: boolean }) {
+export function BlockDetails({
+  block,
+  stale,
+}: {
+  block: Block & { pool?: PoolAttribution };
+  stale: boolean;
+}) {
   const { t } = useTranslation();
   const partial = [
     block.transaction_count,
@@ -95,7 +100,8 @@ export function BlockDetails({ block, stale }: { block: Block; stale: boolean })
           </dd>
         </div>
       </dl>
-      <BlockGoggles key={block.hash} hash={block.hash} />
+      {block.pool && <BlockPool attribution={block.pool} />}
+      <BlockGoggles key={block.hash} hash={block.hash} showPool={!block.pool} />
     </section>
   );
 }
@@ -118,49 +124,24 @@ export function BlockStrip({
   const selected = blocks.find((b) => b.hash === hash);
 
   useEffect(() => {
-    if (hash && !blocks.some((b) => b.hash === hash)) setHash(null);
-  }, [blocks, hash, setHash]);
+    if (!onSelect && hash && !blocks.some((b) => b.hash === hash)) setHash(null);
+  }, [blocks, hash, setHash, onSelect]);
 
   return (
     <section className="block-sequence">
       <div className="block-sequence-heading">
-        <h2>{t('nav.blocks')}</h2>
+        <h2>{t('blockEconomics.recent')}</h2>
         <span>{t('blocks.expandHint')}</span>
       </div>
       <div className="block-strip" role="group" aria-label={t('blocks.strip')}>
         {blocks.map((block, i) => (
-          <button
+          <BlockTile
             key={block.hash}
-            aria-pressed={selected?.hash === block.hash}
-            aria-label={t('blocks.inspect', { height: number(block.height) })}
-            onClick={() => setHash(selected?.hash === block.hash ? null : block.hash)}
-          >
-            <span className="block-tile-top" aria-hidden />
-            <span className="block-tile-side" aria-hidden />
-            <span className="strip-height">{number(block.height)}</span>
-            <span className="strip-fee">
-              {block.median_fee_rate == null ? '—' : `${decimal(block.median_fee_rate)} sat/vB`}
-            </span>
-            <span className="strip-label">{t('blocks.medianFee')}</span>
-            <span className="strip-reading">{bytes(block.size_bytes)}</span>
-            <span className="strip-reading">
-              {block.transaction_count == null
-                ? '—'
-                : t('blocks.tileTransactions', { total: number(block.transaction_count) })}
-            </span>
-            <span className="strip-time">
-              {i === 0
-                ? t('blocks.tip')
-                : dateTime(block.time * 1000)
-                    .split(',')
-                    .at(-1)
-                    ?.trim()}
-            </span>
-            <span
-              className="strip-weight"
-              style={{ width: `${Math.min(100, Math.max(0, block.capacity_percent ?? 0))}%` }}
-            />
-          </button>
+            block={block}
+            tip={i === 0}
+            selected={selected?.hash === block.hash}
+            onSelect={() => setHash(selected?.hash === block.hash ? null : block.hash)}
+          />
         ))}
       </div>
       {selected && !onSelect && <BlockDetails block={selected} stale={stale} />}
@@ -168,119 +149,55 @@ export function BlockStrip({
   );
 }
 
-export default function BlockTable({
-  blocks,
-  stale,
-  selectedHash,
+export function BlockTile({
+  block,
+  tip,
+  selected,
   onSelect,
+  fullTime = false,
 }: {
-  blocks: Block[];
-  stale: boolean;
-  selectedHash?: string | null;
-  onSelect?: (hash: string | null) => void;
+  block: Block;
+  tip: boolean;
+  selected: boolean;
+  onSelect: () => void;
+  fullTime?: boolean;
 }) {
   const { t } = useTranslation();
-  const [ownHash, setOwnHash] = useState<string | null>(null);
-  const hash = selectedHash === undefined ? ownHash : selectedHash;
-  const setHash = onSelect ?? setOwnHash;
-  const expanded = blocks.some((b) => b.hash === hash) ? hash : null;
-
-  useEffect(() => {
-    if (hash && !blocks.some((b) => b.hash === hash)) setHash(null);
-  }, [blocks, hash, setHash]);
 
   return (
-    <>
-      <div className="table-scroll block-table-scroll">
-        <table className="blocks-table">
-          <thead>
-            <tr>
-              {(
-                [
-                  'heightColumn',
-                  'hash',
-                  'timestamp',
-                  'transactions',
-                  'totalAmount',
-                  'confirmations',
-                ] as const
-              ).map((key) => (
-                <th key={key}>{t(`blocks.${key}`)}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {blocks.map((block) => (
-              <Fragment key={block.hash}>
-                <tr className={`block-summary-row ${expanded === block.hash ? 'expanded' : ''}`}>
-                  <td>
-                    <button
-                      className="block-toggle"
-                      aria-expanded={expanded === block.hash}
-                      aria-controls={`block-details-${block.hash}`}
-                      aria-label={t(expanded === block.hash ? 'blocks.collapse' : 'blocks.expand', {
-                        height: number(block.height),
-                      })}
-                      onClick={() => setHash(expanded === block.hash ? null : block.hash)}
-                    >
-                      <strong>{number(block.height)}</strong>
-                      <ChevronDown size={14} />
-                    </button>
-                  </td>
-                  <td className="mono" title={block.hash}>
-                    {shortHash(block.hash)}
-                  </td>
-                  <td>{dateTime(block.time * 1000)}</td>
-                  <td
-                    className="block-number"
-                    title={t(
-                      block.transaction_count == null
-                        ? 'blocks.countUnavailableDescription'
-                        : 'blocks.transactionsDescription',
-                    )}
-                  >
-                    {number(block.transaction_count)}
-                  </td>
-                  <td className="block-number">
-                    {block.total_transaction_amount_sats != null ? (
-                      <details className="block-amount">
-                        <summary
-                          aria-label={t('blocks.showExactAmount', {
-                            amount: bitcoinAmount(block.total_transaction_amount_sats, 8),
-                          })}
-                        >
-                          {bitcoinAmount(block.total_transaction_amount_sats)}
-                        </summary>
-                        <small>{bitcoinAmount(block.total_transaction_amount_sats, 8)}</small>
-                      </details>
-                    ) : (
-                      <span className="muted" title={t('blocks.amountUnavailableDescription')}>
-                        {t('blocks.amountUnavailable')}
-                      </span>
-                    )}
-                  </td>
-                  <td>
-                    <span className="confirmation">
-                      <Check size={13} />
-                      {number(block.confirmations)}
-                    </span>
-                  </td>
-                </tr>
-                {expanded === block.hash && (
-                  <tr className="block-detail-row">
-                    <td colSpan={6}>
-                      <BlockDetails block={block} stale={stale} />
-                    </td>
-                  </tr>
-                )}
-              </Fragment>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {!blocks.length && (
-        <Empty title={t('blocks.empty')} description={t('blocks.emptyDescription')} />
-      )}
-    </>
+    <button
+      aria-pressed={selected}
+      aria-label={t('blocks.inspect', { height: number(block.height) })}
+      onClick={onSelect}
+    >
+      <span className="block-tile-top" aria-hidden />
+      <span className="block-tile-side" aria-hidden />
+      <span className="strip-height">{number(block.height)}</span>
+      <span className="strip-fee">
+        {block.median_fee_rate == null ? '—' : `${decimal(block.median_fee_rate)} sat/vB`}
+      </span>
+      <span className="strip-label">{t('blocks.medianFee')}</span>
+      <span className="strip-reading">{bytes(block.size_bytes)}</span>
+      <span className="strip-reading">
+        {block.transaction_count == null
+          ? '—'
+          : t('blocks.tileTransactions', { total: number(block.transaction_count) })}
+      </span>
+      <span className="strip-time">
+        {tip
+          ? t('blocks.tip')
+          : fullTime
+            ? dateTime(block.time * 1000)
+            : dateTime(block.time * 1000)
+                .split(',')
+                .at(-1)
+                ?.trim()}
+      </span>
+      <span
+        className="strip-weight"
+        aria-hidden
+        style={{ width: `${Math.min(100, Math.max(0, block.capacity_percent ?? 0))}%` }}
+      />
+    </button>
   );
 }

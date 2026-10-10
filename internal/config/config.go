@@ -21,6 +21,7 @@ type Config struct {
 	AdminKey, RPCURL, RPCUser, RPCPassword string
 	DBDriver, DBDSN, DataDir, ListenAddr   string
 	PollInterval                           time.Duration
+	BlockIndexDelay                        time.Duration
 	CookieSecure                           bool
 }
 
@@ -64,6 +65,12 @@ func Load() (Config, error) {
 
 	if err != nil || c.PollInterval < 5*time.Second || c.PollInterval > 5*time.Minute {
 		return c, errors.New("POLL_INTERVAL must be between 5s and 5m")
+	}
+
+	c.BlockIndexDelay, err = time.ParseDuration(env("BLOCK_INDEX_DELAY", "0s"))
+
+	if err != nil || c.BlockIndexDelay < 0 || c.BlockIndexDelay > 5*time.Second {
+		return c, errors.New("BLOCK_INDEX_DELAY must be between 0s and 5s")
 	}
 
 	c.CookieSecure, err = strconv.ParseBool(env("COOKIE_SECURE", "false"))

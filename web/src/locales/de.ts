@@ -6,7 +6,7 @@ const de = {
     peers: 'Verbundene Peers',
     traffic: 'Netzwerkverkehr',
     mempool: 'Mempool',
-    blocks: 'Neueste Blöcke',
+    blocks: 'Blöcke',
     workspace: 'Arbeitsbereich',
     workspaceLabel: 'ARBEITSBEREICH',
     close: 'Navigation schließen',
@@ -55,7 +55,8 @@ const de = {
     peersDescription: 'Sieh, mit wem dein Node kommuniziert und wie gut die Verbindungen sind.',
     trafficDescription: 'Verfolge Bandbreite, Datenvolumen und Netzwerkaktivität deines Nodes.',
     mempoolDescription: 'Ein Live-Einblick in Transaktionen, die auf Bestätigung warten.',
-    blocksDescription: 'Die letzten zehn geprüften Blöcke in der aktiven Blockchain deines Nodes.',
+    blocksDescription:
+      'Durchsuche die Blockhistorie deines Nodes, prüfe Transaktionen und vergleiche die Blockökonomie.',
     eyebrow: 'NODE-STATISTIKEN',
     waiting: 'Warten auf erste Messwerte',
     refresh: 'Node-Daten aktualisieren',
@@ -553,7 +554,60 @@ const de = {
     identificationNote:
       'Die Pool-Identität wird aus Coinbase-Daten abgeleitet; sie ist kein kryptografischer Beweis.',
   },
+  blockHistory: {
+    title: 'Blöcke entdecken',
+    description:
+      'Validierte Blöcke deines Nodes. Scrolle zu älteren Blöcken oder springe zu einer Höhe.',
+    scrollHint: 'Scrolle seitlich durch die Blöcke. Wähle einen Block für sein Transaktionsmosaik.',
+    keyboardHint: 'Mit den Pfeiltasten links und rechts durch Blöcke navigieren.',
+    newer: 'Zu neueren Blöcken scrollen',
+    older: 'Zu älteren Blöcken scrollen',
+    selected: 'Ausgewählter Block',
+    loadingDetails: 'Blockdetails werden geladen…',
+    detailsUnavailable:
+      'Dieser Block ist noch nicht indexiert oder seine Details sind vorübergehend nicht verfügbar.',
+    jump: 'Blockhöhe',
+    go: 'Öffnen',
+    invalidHeight:
+      'Gib eine ganze Blockhöhe zwischen Genesis und der aktuellen Spitze deines Nodes ein.',
+    waiting: 'Warten auf den Start des Blockindex.',
+    syncing:
+      'Dein Node synchronisiert sich. Die historische Indexierung beginnt, sobald er aufgeholt hat.',
+    indexing:
+      'Blockhistorie wird indexiert: {{total}} / {{target}} Header. Neue Blöcke haben Vorrang.',
+    paused:
+      'Die Blockindexierung pausiert. Der lokale Node oder die Datenbank wird automatisch erneut abgefragt.',
+    offline: 'Gespeicherte Blockhistorie wird angezeigt. Dein Node ist derzeit nicht erreichbar.',
+    pruned:
+      'Dein Node hat einige Blöcke beschnitten. Gespeicherte Zusammenfassungen bleiben verfügbar; fehlende Statistiken und Transaktionsmosaike benötigen die Daten in Core.',
+    newBlocks: '{{total}} neuere Blöcke — zurück zu den neuesten',
+    loading: 'Blockhistorie wird geladen…',
+    reorg: 'Die aktive Blockchain hat sich geändert. Lade diese Höhe erneut, um weiterzublättern.',
+    error: 'Die Blockhistorie ist vorübergehend nicht verfügbar.',
+    frontier:
+      'Du hast die indexierte Historie erreicht. Ältere Blöcke erscheinen mit fortschreitender Indexierung.',
+    notIndexed:
+      'Diese Höhe ist noch nicht indexiert. Die Indexierung läuft im Hintergrund weiter, während du Nodarium nutzt.',
+  },
   blockEconomics: {
+    recent: 'Neueste Blöcke',
+    all: 'Gesamte Historie',
+    historyDescription:
+      'Historische Blockstatistiken aus deinem lokalen Index. Werte werden pro Zeitintervall zusammengefasst.',
+    historyPlot:
+      '{{title}} im Zeitverlauf. Öffne die Datentabelle für Intervallmittelwerte und Blockanzahl.',
+    timeOrder: 'Zeit · ältester zuerst',
+    sampleBlocks: 'Indexierte Blöcke',
+    historyPartial:
+      'Einige historische Daten fehlen noch. {{total}} / {{target}} Blockheader indexiert; nur verfügbare Statistiken fließen ein.',
+    meanMedian: 'Mittlere Median-Gebührenrate der Blöcke',
+    historyReward:
+      'Mittlere Subvention und Gebühren pro Block mit beiden verfügbaren Statistiken; nicht die tatsächliche Coinbase-Auszahlung.',
+    historyRates:
+      'Mittelwerte der Core-Blockdurchschnitte und gewichteten Blockmediane; kein Median aller Transaktionen.',
+    historyFullness:
+      'Mittleres Gewicht vollständiger Blöcke als Anteil des Limits von 4 Millionen Gewichtseinheiten.',
+
     title: 'Blockökonomie',
     description: 'Die neuesten {{total}} validierten Blöcke deines Nodes.',
     reward: 'Subvention und Gebühren',

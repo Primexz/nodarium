@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Primexz/nodarium/internal/auth"
+	"github.com/Primexz/nodarium/internal/blockindex"
 	"github.com/Primexz/nodarium/internal/collector"
 	"github.com/Primexz/nodarium/internal/config"
 	"github.com/Primexz/nodarium/internal/explorer"
@@ -137,6 +138,13 @@ func run(cfg config.Config, logger *zap.Logger) error {
 		logger,
 	)
 
+	index := blockindex.New(ctx, client, db, definitions, logger, blockindex.Options{
+		PollInterval: cfg.PollInterval,
+		BlockDelay:   cfg.BlockIndexDelay,
+	})
+	defer index.Close()
+	col.SetBlockIndex(index)
+
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
@@ -154,9 +162,6 @@ func run(cfg config.Config, logger *zap.Logger) error {
 
 	defer geo.Close()
 
-	pools := miningpool.NewService(ctx, client, definitions)
-	defer pools.Close()
-
 	app := server.New(
 		auth.New(cfg.AdminKey, cfg.CookieSecure),
 		col,
@@ -164,8 +169,9 @@ func run(cfg config.Config, logger *zap.Logger) error {
 		web.Assets(),
 		geo,
 		explorer.New(client, definitions),
-		pools,
+		index,
 		logger,
+		index,
 	)
 	srv := &http.Server{
 		Addr:              cfg.ListenAddr,

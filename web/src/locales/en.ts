@@ -4,7 +4,7 @@ const en = {
     peers: 'Connected peers',
     traffic: 'Network traffic',
     mempool: 'Mempool',
-    blocks: 'Recent blocks',
+    blocks: 'Blocks',
     workspace: 'Workspace',
     workspaceLabel: 'WORKSPACE',
     close: 'Close navigation',
@@ -51,7 +51,8 @@ const en = {
     peersDescription: 'See who your node talks to, and how those connections perform.',
     trafficDescription: 'Follow your node’s bandwidth, transfer volume, and network activity.',
     mempoolDescription: 'A live look at transactions waiting to be confirmed.',
-    blocksDescription: 'The latest ten blocks verified on your node’s active chain.',
+    blocksDescription:
+      'Browse your node’s block history, inspect transactions, and compare block economics.',
     eyebrow: 'NODE INTELLIGENCE',
     waiting: 'Waiting for first reading',
     refresh: 'Refresh node data',
@@ -530,7 +531,52 @@ const en = {
     identificationNote:
       'Pool identity is inferred from coinbase data; it is not cryptographic proof.',
   },
+  blockHistory: {
+    title: 'Browse blocks',
+    description:
+      'Validated blocks from your node. Scroll to browse older blocks or jump to a height.',
+    scrollHint: 'Scroll sideways to browse. Select a block for its transaction mosaic.',
+    keyboardHint: 'Use Left and Right arrow keys to browse blocks.',
+    newer: 'Scroll to newer blocks',
+    older: 'Scroll to older blocks',
+    selected: 'Selected block',
+    loadingDetails: 'Loading block details…',
+    detailsUnavailable: 'This block is not indexed yet or its details are temporarily unavailable.',
+    jump: 'Block height',
+    go: 'Go',
+    invalidHeight: 'Enter a whole block height between genesis and your node’s current tip.',
+    waiting: 'Waiting for the block index to start.',
+    syncing: 'Your node is syncing. Historical indexing starts when it catches up.',
+    indexing: 'Indexing block history: {{total}} / {{target}} headers. New blocks take priority.',
+    paused: 'Block indexing is paused. The local node or database will be retried automatically.',
+    offline: 'Showing stored block history. Your node is currently unavailable.',
+    pruned:
+      'Your node has pruned some blocks. Stored summaries remain available; missing statistics and transaction goggles require retained Core data.',
+    newBlocks: '{{total}} newer blocks — return to the latest',
+    loading: 'Loading block history…',
+    reorg: 'The active chain changed. Reload this height to continue browsing.',
+    error: 'Block history is temporarily unavailable.',
+    frontier: 'You’ve reached the indexed history. Older blocks will appear as indexing continues.',
+    notIndexed:
+      'This height has not been indexed yet. Background indexing continues while you use Nodarium.',
+  },
   blockEconomics: {
+    recent: 'Recent blocks',
+    all: 'All history',
+    historyDescription:
+      'Historical block statistics from your local index. Values are aggregated per time bucket.',
+    historyPlot: '{{title}} by time. Expand the data table for bucket averages and block counts.',
+    timeOrder: 'Time · oldest to newest',
+    sampleBlocks: 'Indexed blocks',
+    historyPartial:
+      'Some historical data is still missing. {{total}} / {{target}} block headers indexed; only available statistics contribute.',
+    meanMedian: 'Mean block median fee rate',
+    historyReward:
+      'Average subsidy and fees per block with both statistics available; not the actual coinbase payout.',
+    historyRates:
+      'Mean Core block averages and mean weight-percentile block medians; not a median of all transactions.',
+    historyFullness: 'Mean full-block weight as a percentage of the 4 million weight-unit limit.',
+
     title: 'Block economics',
     description: 'The latest {{total}} validated blocks from your node.',
     reward: 'Subsidy and fees',

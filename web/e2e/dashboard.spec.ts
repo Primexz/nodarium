@@ -76,8 +76,8 @@ test('charts change range and all monitoring views are available', async ({ page
   await expect(page.getByText('No upload target configured')).toBeVisible();
   await navigate(page, 'Mempool');
   await expect(page.getByText('1,842', { exact: true })).toBeVisible();
-  await navigate(page, 'Recent blocks');
-  await expect(page.locator('tbody tr')).toHaveCount(10);
+  await navigate(page, 'Blocks');
+  await expect(page.locator('.virtual-block-strip li').first()).toBeVisible();
 });
 
 test('lost RPC connection is clearly marked while last readings remain visible', async ({
@@ -239,9 +239,9 @@ test('top bar switches the full dashboard to German and remembers the selection'
   await expect(page.getByRole('img', { name: 'Netzwerkverkehr für 1J' })).toBeVisible();
   await germanNavigate('Mempool');
   await expect(page.getByText('1.842', { exact: true })).toBeVisible();
-  await germanNavigate('Neueste Blöcke');
-  await expect(page.getByRole('columnheader', { name: 'Bestätigungen' })).toBeVisible();
-  await expect(page.locator('tbody tr')).toHaveCount(10);
+  await germanNavigate('Blöcke');
+  await expect(page.getByRole('heading', { name: 'Blöcke entdecken' })).toBeVisible();
+  await expect(page.locator('.virtual-block-strip li').first()).toBeVisible();
   await page.locator('.topbar').getByRole('combobox', { name: 'Sprache' }).selectOption('en');
   await expect(page.getByRole('heading', { name: 'The chain keeps growing.' })).toBeVisible();
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
@@ -287,71 +287,35 @@ test.describe('German browser preference', () => {
   });
 });
 
-test('recent blocks show compact amounts, exact details and transaction counts in both languages', async ({
+test('block tiles show transactions and details in both languages without a history table', async ({
   page,
-}, info) => {
+}) => {
   await signIn(page);
-  await navigate(page, 'Recent blocks');
-  await expect(page.getByRole('columnheader', { name: 'Total amount', exact: true })).toBeVisible();
-  const first = page.locator('tbody tr').first();
-  await expect(page.getByRole('columnheader', { name: 'Transactions', exact: true })).toBeVisible();
-  await expect(first.locator('td').nth(3)).toHaveText('2,500');
-  await expect(first.locator('summary')).toHaveText('1,234.57 BTC');
-  await expect(first.locator('.block-amount small')).not.toBeVisible();
-  await first.locator('summary').click();
-  await expect(first.locator('.block-amount small')).toHaveText('1,234.56789012 BTC');
-  await expect(first.locator('.block-amount small')).toBeVisible();
-  await first.locator('summary').press('Enter');
-  await expect(first.locator('.block-amount small')).not.toBeVisible();
+  await navigate(page, 'Blocks');
+  const first = page.getByRole('button', { name: 'Inspect block 900,123', exact: true });
+  await expect(first).toContainText('2,500 transactions');
+  await expect(page.locator('.block-history table')).toHaveCount(0);
+  await first.click();
+  await expect(page.locator('.selected-block-panel')).toContainText('0.12567890 BTC');
+  await page.getByLabel('Language', { exact: true }).selectOption('de');
   await expect(
-    page.getByText('Sum of transaction outputs, including change, excluding the block reward.', {
-      exact: false,
-    }),
-  ).toBeVisible();
+    page.getByRole('button', { name: 'Block 900.123 ansehen', exact: true }),
+  ).toContainText('2.500 Transaktionen');
 
-  await page.locator('.topbar').getByLabel('Language', { exact: true }).selectOption('de');
-  await expect(page.getByRole('columnheader', { name: 'Gesamtbetrag', exact: true })).toBeVisible();
-  await expect(first.locator('summary')).toHaveText('1.234,57 BTC');
-  await expect(
-    page.getByRole('columnheader', { name: 'Transaktionen', exact: true }),
-  ).toBeVisible();
-
-  await expect(first.locator('td').nth(3)).toHaveText('2.500');
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.screenshot({
-    path: `test-results/block-amounts-${info.project.name}.png`,
-    fullPage: true,
-  });
-
-  await page.route('**/api/1.0/blocks', async (route) => {
-    const response = await route.fetch();
-    const body = await response.json();
-    body.data[0].total_transaction_amount_sats = null;
-    body.data[0].transaction_count = null;
-    body.data[1].transaction_count = 1;
-    body.data[1].total_transaction_amount_sats = '0';
-    await route.fulfill({ json: body });
-  });
-
-  await page.getByRole('button', { name: 'Node-Daten aktualisieren' }).click();
-  await expect(page.locator('tbody tr').first()).toContainText('Nicht verfügbar');
-  await expect(page.locator('tbody tr').nth(1)).toContainText('0,00 BTC');
-  await expect(page.locator('tbody tr')).toHaveCount(10);
-  await expect(first.locator('td').nth(3)).toHaveText('—');
-  await expect(page.locator('tbody tr').nth(1).locator('td').nth(3)).toHaveText('1');
+  await expect(page.locator('.selected-block-panel')).toContainText('0,12567890 BTC');
 });
 
-test('block rows expand into responsive details and preserve selection across refreshes', async ({
+test('block tiles open into responsive details and preserve selection across refreshes', async ({
   page,
 }, info) => {
   await signIn(page);
-  await navigate(page, 'Recent blocks');
-  const toggle = page.getByRole('button', { name: 'Expand block 900,123', exact: true });
-  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await navigate(page, 'Blocks');
+  const toggle = page.getByRole('button', { name: 'Inspect block 900,123', exact: true });
+  await expect(toggle).toHaveAttribute('aria-pressed', 'false');
   await page.getByRole('button', { name: 'Inspect block 900,123', exact: true }).click();
   await expect(
-    page.getByRole('button', { name: 'Collapse block 900,123', exact: true }),
-  ).toHaveAttribute('aria-expanded', 'true');
+    page.getByRole('button', { name: 'Inspect block 900,123', exact: true }),
+  ).toHaveAttribute('aria-pressed', 'true');
 
   const panel = page.getByRole('region', { name: 'Block 900,123 details', exact: true });
   await expect(panel).toBeVisible();
@@ -360,8 +324,8 @@ test('block rows expand into responsive details and preserve selection across re
   await expect(panel.getByText('1.67 MiB', { exact: true })).toBeVisible();
   await expect(panel.getByText('3,800,000 WU', { exact: true })).toBeVisible();
   await expect(panel.getByRole('meter')).toHaveAttribute('aria-valuenow', '95');
-  await expect(page.locator('.block-summary-row')).toHaveCount(10);
-  await expect(page.locator('.block-detail-row')).toHaveCount(1);
+  await expect(page.locator('.block-history table')).toHaveCount(0);
+  await expect(page.locator('.selected-block-panel')).toHaveCount(1);
   const bounds = await panel.boundingBox();
   expect(bounds!.x).toBeGreaterThanOrEqual(0);
   expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
@@ -380,13 +344,13 @@ test('block rows expand into responsive details and preserve selection across re
     fullPage: true,
   });
 
-  await page.getByRole('button', { name: 'Block 900.123 zuklappen', exact: true }).press('Enter');
+  await page.getByRole('button', { name: 'Block 900.123 ansehen', exact: true }).press('Enter');
   await expect(german).toHaveCount(0);
-  await page.getByRole('button', { name: 'Block 900.123 aufklappen', exact: true }).press('Space');
+  await page.getByRole('button', { name: 'Block 900.123 ansehen', exact: true }).press('Space');
   await expect(german).toBeVisible();
-  await page.getByRole('button', { name: 'Block 900.122 aufklappen', exact: true }).click();
+  await page.getByRole('button', { name: 'Block 900.122 ansehen', exact: true }).click();
   await expect(german).toHaveCount(0);
-  await expect(page.locator('.block-detail-row')).toHaveCount(1);
+  await expect(page.locator('.selected-block-panel')).toHaveCount(1);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
@@ -394,26 +358,25 @@ test('block details distinguish missing data from zero and close after a reorg',
   page,
 }) => {
   let reorg = false;
-  await page.route('**/api/1.0/blocks', async (route) => {
+  await page.route(/\/api\/1\.0\/blocks\/[0-9a-f]{64}$/, async (route) => {
+    if (reorg) return route.fulfill({ status: 409, json: { error: 'Inactive block' } });
+
     const response = await route.fetch();
     const body = await response.json();
-    Object.assign(body.data[0], {
+    Object.assign(body, {
       total_fees_sats: '0',
       size_bytes: null,
       weight_units: null,
       capacity_percent: null,
+      stale: true,
     });
-
-    body.stale = true;
-
-    if (reorg) body.data[0].hash = 'f'.repeat(64);
 
     await route.fulfill({ json: body });
   });
 
   await signIn(page);
-  await navigate(page, 'Recent blocks');
-  await page.getByRole('button', { name: 'Expand block 900,123', exact: true }).click();
+  await navigate(page, 'Blocks');
+  await page.getByRole('button', { name: 'Inspect block 900,123', exact: true }).click();
   const panel = page.getByRole('region', { name: 'Block 900,123 details', exact: true });
   await expect(panel.getByText('0.00000000 BTC', { exact: true })).toBeVisible();
   await expect(panel.getByText('2,500', { exact: true })).toBeVisible();
@@ -427,7 +390,5 @@ test('block details distinguish missing data from zero and close after a reorg',
   reorg = true;
   await page.getByRole('button', { name: 'Refresh node data' }).click();
   await expect(panel).toHaveCount(0);
-  await expect(
-    page.getByRole('button', { name: 'Expand block 900,123', exact: true }),
-  ).toHaveAttribute('aria-expanded', 'false');
+  await expect(page.locator('.selected-block-panel')).toContainText('This block is no longer');
 });

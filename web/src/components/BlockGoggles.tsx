@@ -292,7 +292,13 @@ function Mosaic({
   );
 }
 
-export default function BlockGoggles({ hash }: { hash: string }) {
+export default function BlockGoggles({
+  hash,
+  showPool = true,
+}: {
+  hash: string;
+  showPool?: boolean;
+}) {
   const { t } = useTranslation();
   const [selected, setSelected] = useState<string | null>(null);
   const query = useQuery({
@@ -325,7 +331,7 @@ export default function BlockGoggles({ hash }: { hash: string }) {
         !inactive &&
         (transactions.length ? (
           <>
-            <BlockPool attribution={data.mining_pool} />
+            {showPool && <BlockPool attribution={data.mining_pool} />}
             <Mosaic transactions={transactions} selected={selected} onSelect={setSelected} />
             <ul className="mosaic-legend" aria-label={t('goggles.colors')}>
               {[

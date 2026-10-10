@@ -74,6 +74,13 @@ type baseline struct {
 	node   string
 }
 
+// PersistentBlocks is installed before Run. Indexing is asynchronous; the
+// collector reads only compact stored metadata after publishing Core health.
+type PersistentBlocks interface {
+	Observe(*rpc.Blockchain)
+	Latest(context.Context) ([]Block, error)
+}
+
 type Collector struct {
 	logger    *zap.Logger
 	rpc       rpc.Caller
@@ -85,6 +92,7 @@ type Collector struct {
 	previous  *baseline
 	blockTip  string
 	lastPrune time.Time
+	blocks    PersistentBlocks
 }
 
 func New(client rpc.Caller, store Store, endpoint string, interval time.Duration, logger *zap.Logger) *Collector {
@@ -97,6 +105,9 @@ func New(client rpc.Caller, store Store, endpoint string, interval time.Duration
 		snapshot: Snapshot{Status: "connecting"},
 	}
 }
+
+// SetBlockIndex must be called before starting collection.
+func (c *Collector) SetBlockIndex(blocks PersistentBlocks) { c.blocks = blocks }
 
 func (c *Collector) Snapshot() Snapshot {
 	c.mu.RLock()
@@ -277,7 +288,11 @@ func (c *Collector) Collect(ctx context.Context) {
 	s.Traffic = refresh(s.Traffic, &traffic, errs[3], now)
 
 	if errs[0] == nil {
-		if chain.BestBlockHash != c.blockTip || s.Blocks.Data == nil || s.Blocks.Stale {
+		if c.blocks != nil {
+			c.blocks.Observe(&chain)
+			blocks, err := c.blocks.Latest(rpcCtx)
+			s.Blocks = refresh(s.Blocks, &blocks, err, now)
+		} else if chain.BestBlockHash != c.blockTip || s.Blocks.Data == nil || s.Blocks.Stale {
 			blocks := []Block{}
 			hash := chain.BestBlockHash
 			var blockErr error
@@ -313,6 +328,11 @@ func (c *Collector) Collect(ctx context.Context) {
 			s.Blocks.Stale = false
 		}
 	} else {
+		if c.blocks != nil && s.Blocks.Data == nil {
+			if blocks, err := c.blocks.Latest(rpcCtx); err == nil {
+				s.Blocks.Data = &blocks
+			}
+		}
 		s.Blocks.Stale = true
 		s.Blocks.Error = "blockchain data unavailable"
 	}

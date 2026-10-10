@@ -3,6 +3,7 @@ package config
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -18,6 +19,7 @@ func TestConfig(t *testing.T) {
 		"DB_DSN":               "",
 		"DATA_DIR":             "/data",
 		"POLL_INTERVAL":        "",
+		"BLOCK_INDEX_DELAY":    "",
 		"COOKIE_SECURE":        "",
 		"NODE_IP":              "",
 		"NODE_LOCATION_NAME":   "",
@@ -32,6 +34,29 @@ func TestConfig(t *testing.T) {
 	if err != nil || c.LogLevel != zap.InfoLevel || c.DBDriver != "sqlite" || c.DBDSN != "/data/btc-monitor.db" {
 		t.Fatal(c, err)
 	}
+
+	if c.BlockIndexDelay != 0 {
+		t.Fatal("indexing should have no artificial delay by default")
+	}
+
+	for _, delay := range []string{"0s", "25ms", "100ms", "5s"} {
+		t.Setenv("BLOCK_INDEX_DELAY", delay)
+
+		want, _ := time.ParseDuration(delay)
+		if loaded, err := Load(); err != nil || loaded.BlockIndexDelay != want {
+			t.Fatal("valid indexing delay rejected", err)
+		}
+	}
+
+	for _, delay := range []string{"-1ms", "6s", "invalid"} {
+		t.Setenv("BLOCK_INDEX_DELAY", delay)
+
+		if _, err := Load(); err == nil {
+			t.Fatal("invalid indexing delay accepted")
+		}
+	}
+
+	t.Setenv("BLOCK_INDEX_DELAY", "")
 
 	for _, level := range []string{"debug", "INFO", "warn", "error"} {
 		t.Setenv("LOG_LEVEL", level)

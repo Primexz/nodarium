@@ -42,10 +42,12 @@ an alternative. No exclusive market or performance claims are established.
   English and German language selection.
 - The core workflow is to check the compact overview for health, key metrics,
   and recent blocks, then investigate node details, mining, peers, traffic,
-  mempool activity, or recent blocks on dedicated pages. Historical ranges support
+  mempool activity, or historical blocks on dedicated pages. Monitoring ranges support
   comparison over one hour, 24 hours, seven days, 30 days, and one year.
-- Collection continues independently of an open browser. History begins when
-  collection starts and cannot be backfilled from earlier node activity.
+- Collection continues independently of an open browser. Monitoring observations
+  begin when collection starts and cannot be backfilled from earlier node activity.
+  Compact block history is indexed from Core's active chain, independently of those
+  observations, and resumes after restart.
 
 ## Capabilities and Constraints
 
@@ -73,27 +75,51 @@ Implementation details are grounded in the repository's README and source.
   only when they match. Pause fee collection during blockchain synchronization.
 - Provide searchable and sortable peer connections, approximate peer locations,
   country counts from local GeoIP data, traffic rates and totals, mempool statistics,
-  and the latest ten blocks with
-  expandable details where Core has the necessary data. Render recent blocks as
-  inspectable tiles and provide an on-demand transaction mosaic sized by virtual
-  bytes and colored by fee rate. Tile selection and a keyboard-accessible data
-  table open transaction details, inputs, and outputs from the local node;
+  and the latest ten blocks on the overview. Browse persisted block summaries on
+  the Blocks page through one visual browser with horizontal infinite scrolling
+  and block-height search. Selected details occupy a separate panel below the
+  browser and above block economics, remaining available when their tile leaves
+  the loaded pages. Share inspectable tile geometry with the overview and provide
+  an on-demand transaction mosaic sized by virtual bytes and colored by fee rate.
+  Tile selection and a keyboard-accessible data table open transaction details,
+  inputs, and outputs from the local node;
   unavailable fees, prevouts, and pruned blocks remain explicitly unavailable.
+  Store headers, raw Core block statistics, and compact coinbase/pool evidence,
+  without archiving complete transactions, scripts, witnesses, or mosaic records.
+  One resumable background index works backwards through the whole active chain,
+  prioritizes new blocks, and pauses during initial synchronization. Preserve
+  collected statistics after pruning; keep header-only coverage and missing
+  statistics explicit. Exclude orphaned blocks after reorganizations and allow
+  stale stored summaries to be browsed when Core is offline. Block summaries have
+  no age-based retention limit and remain separated by network genesis hash.
 - Use contained virtual scrolling instead of pagination in peer lists, expanded
-  history readings, and block transaction tables. Keep sticky headers, native table
-  semantics, row totals, and keyboard access to every row. Preserve scroll during
-  refresh, reset it for search/sort or a different history range, and retain focus
-  when inspecting peers or transactions. Short tables remain fully rendered.
-- Compare the latest ten validated blocks on the Blocks page with subsidy and fees,
-  fee share of available reward, Core's average and weight-percentile median fee
+  history readings, and block transaction tables. Keep sticky headers, native
+  table semantics, row totals, and keyboard access to every row. Preserve scroll
+  during refresh, reset it for search/sort or a different history range, and retain
+  focus when inspecting peers or transactions. Short tables remain fully rendered.
+  The Blocks browser loads 50-block cursor pages in both directions through
+  horizontal scrolling, touch, or arrow controls, retaining at most ten pages
+  (500 summaries) and rendering visible tiles with overscan. Reload evicted pages
+  while preserving the visible block hash. Left/Right keys traverse blocks across
+  asynchronous page boundaries; Home/End and Tab reach loaded tiles. Height search
+  validates whole heights from genesis through the current tip. New blocks appear
+  through a return-to-latest control; reorganizations offer a restart at the visible
+  height. Closing selected details restores the invoking tile when it remains mounted.
+- Compare the latest ten validated blocks or persisted block history on the Blocks
+  page with subsidy and fees, fee share of available reward, Core's average and weight-percentile median fee
   rates, and full-block capacity utilization. Available reward means subsidy plus
-  fees, not the actual claimed coinbase payout. Use cached local block statistics,
-  exact satoshi amounts in expandable tables, and height-ordered plots. Missing
-  statistics leave gaps and are retried; syncing and stale readings remain explicit.
-  This is a recent-block comparison, not a persisted or backfilled economics history.
+  fees, not the actual claimed coinbase payout. Recent plots use height order and
+  exact satoshi amounts in expandable tables. Historical ranges cover 24 hours,
+  seven days, 30 days, one year, and all indexed history through bounded time buckets.
+  Historical amounts are BTC averages, not exact totals; fee-rate curves average
+  Core's per-block values and fee share uses summed fees divided by summed available
+  reward. Preserve per-metric sample counts, indexing coverage, partial and stale
+  states, and null gaps; missing statistics never count as zero.
 - Attribute mainnet coinbase transactions locally using bundled official
   mempool/mining-pools definitions. Show pool block shares for the latest 144 or
-  1,008 blocks and the attributed miner in block goggles. Keep unknown matches,
+  1,008 blocks using the same persisted block index, and the attributed miner in
+  block goggles. Retained coinbase evidence supports reclassification when the
+  definitions revision changes. Keep unknown matches,
   partial/pruned samples, backfill progress, stale data, and attribution methods
   explicit. Definitions update through an explicit fetch-and-validate command;
   block-share charts do not claim measured pool hash power.

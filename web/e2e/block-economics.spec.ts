@@ -15,7 +15,7 @@ test('Core block economics are exported through the existing authenticated block
   expect(section.data).toHaveLength(10);
   expect(section.data![0].subsidy_sats).toBe('312500000');
   expect(section.data![0].average_fee_rate).toBe(12);
-  await navigate(page, 'Recent blocks');
+  await navigate(page, 'Blocks');
   const panel = page.locator('.block-economics');
   await expect(panel.getByRole('img')).toHaveCount(4);
   await panel.locator('summary').first().click();
@@ -72,7 +72,7 @@ test('block economics preserve exact tables, gaps, zeroes, stale data and locali
 
   await signIn(page);
   await expect(page.locator('.block-economics')).toHaveCount(0);
-  await navigate(page, 'Recent blocks');
+  await navigate(page, 'Blocks');
   const panel = page.locator('.block-economics');
   await expect(panel.getByRole('img')).toHaveCount(4);
   await expect(panel.locator('.chart-empty')).toHaveCount(0);

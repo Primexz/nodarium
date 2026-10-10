@@ -12,6 +12,7 @@ type Blockchain struct {
 	InitialBlockDownload bool            `json:"initialblockdownload"`
 	SizeOnDisk           int64           `json:"size_on_disk"`
 	Pruned               bool            `json:"pruned"`
+	PruneHeight          int64           `json:"pruneheight"`
 	Warnings             json.RawMessage `json:"warnings"`
 }
 
@@ -105,6 +106,25 @@ type BlockStats struct {
 	Subsidy            *int64    `json:"subsidy"`
 	AverageFeeRate     *float64  `json:"avgfeerate"`
 	FeeRatePercentiles []float64 `json:"feerate_percentiles"`
+	AverageFee         *int64    `json:"avgfee"`
+	MinFee             *int64    `json:"minfee"`
+	MaxFee             *int64    `json:"maxfee"`
+	MedianFee          *int64    `json:"medianfee"`
+	MinFeeRate         *float64  `json:"minfeerate"`
+	MaxFeeRate         *float64  `json:"maxfeerate"`
+	AverageTxSize      *int64    `json:"avgtxsize"`
+	MedianTxSize       *int64    `json:"mediantxsize"`
+	MinTxSize          *int64    `json:"mintxsize"`
+	MaxTxSize          *int64    `json:"maxtxsize"`
+	Inputs             *int64    `json:"ins"`
+	Outputs            *int64    `json:"outs"`
+	SegwitTransactions *int64    `json:"swtxs"`
+	SegwitSize         *int64    `json:"swtotal_size"`
+	SegwitWeight       *int64    `json:"swtotal_weight"`
+	TotalSize          *int64    `json:"total_size"`
+	TotalWeight        *int64    `json:"total_weight"`
+	UTXOIncrease       *int64    `json:"utxo_increase"`
+	UTXOSizeIncrease   *int64    `json:"utxo_size_inc"`
 }
 
 // BlockMetadata decodes only full-block measurements from getblock verbosity 1.

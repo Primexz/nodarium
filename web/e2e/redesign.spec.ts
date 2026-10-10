@@ -21,7 +21,7 @@ test('system theme responds live and explicit preference persists across login a
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
 });
 
-test('block strip opens real block details and shares selection with the block table', async ({
+test('block strip opens real block details and opens a single selected block panel', async ({
   page,
 }) => {
   await mockMap(page);
@@ -31,11 +31,11 @@ test('block strip opens real block details and shares selection with the block t
     page.getByRole('region', { name: 'Block 900,123 details', exact: true }),
   ).toBeVisible();
 
-  await navigate(page, 'Recent blocks');
+  await navigate(page, 'Blocks');
   await page.getByRole('button', { name: 'Inspect block 900,122', exact: true }).click();
   await expect(
-    page.getByRole('button', { name: 'Collapse block 900,122', exact: true }),
-  ).toHaveAttribute('aria-expanded', 'true');
+    page.getByRole('button', { name: 'Inspect block 900,122', exact: true }),
+  ).toHaveAttribute('aria-pressed', 'true');
 
   await expect(
     page.getByRole('region', { name: 'Block 900,122 details', exact: true }),
@@ -146,7 +146,7 @@ test('redesign capture matrix covers themes, routes, German and reduced motion',
       'Connected peers',
       'Network traffic',
       'Mempool',
-      'Recent blocks',
+      'Blocks',
     ]) {
       await navigate(page, route);
       const heading = {
@@ -156,7 +156,7 @@ test('redesign capture matrix covers themes, routes, German and reduced motion',
         'Connected peers': 'Connected to the network.',
         'Network traffic': 'Every byte, accounted for.',
         Mempool: 'Waiting for the next block.',
-        'Recent blocks': 'The chain keeps growing.',
+        Blocks: 'The chain keeps growing.',
       }[route]!;
 
       await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
@@ -222,13 +222,13 @@ test('login and monitoring routes pass automated accessibility checks in both th
       'Connected peers',
       'Network traffic',
       'Mempool',
-      'Recent blocks',
+      'Blocks',
     ]) {
       await navigate(page, route);
       await expect(page.locator('.chart-empty.skeleton')).toHaveCount(0);
       await audit();
 
-      if (route === 'Recent blocks') {
+      if (route === 'Blocks') {
         await page.getByRole('button', { name: 'Inspect block 900,123', exact: true }).click();
         await audit();
       }

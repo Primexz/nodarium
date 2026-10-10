@@ -14,6 +14,7 @@ services:
       DB_DSN: ${DB_DSN:-}
       DATA_DIR: /data
       POLL_INTERVAL: ${POLL_INTERVAL:-10s}
+      BLOCK_INDEX_DELAY: ${BLOCK_INDEX_DELAY:-0s}
       LOG_LEVEL: ${LOG_LEVEL:-info}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
       NODE_IP: ${NODE_IP:-}

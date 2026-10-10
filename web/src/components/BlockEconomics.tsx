@@ -1,6 +1,16 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '../api';
 import { useTranslation } from 'react-i18next';
-import type { Block, Section } from '../types';
+import {
+  economicsRanges,
+  type Block,
+  type Section,
+  type EconomicsHistory,
+  type EconomicsPoint,
+  type EconomicsRange,
+} from '../types';
+import VirtualTable from './VirtualTable';
 import { availableReward, chartBitcoin, feeShare, rewardComplete } from '../blockEconomics';
 import { bitcoinAmount, dateTime, decimal, number } from '../format';
 import { useTheme } from '../theme';
@@ -12,6 +22,7 @@ type Series = {
   value: (block: Block) => number | null;
   text: (block: Block) => string;
   dashed?: boolean;
+  historyValue?: (point: EconomicsPoint) => number | null;
 };
 
 function EconomicsPlot({
@@ -22,6 +33,7 @@ function EconomicsPlot({
   unit,
   stacked,
   ceiling,
+  history,
 }: {
   title: string;
   description: string;
@@ -30,12 +42,18 @@ function EconomicsPlot({
   unit: 'btc' | 'fee' | 'percent';
   stacked?: boolean;
   ceiling?: number;
+  history?: EconomicsHistory;
 }) {
   const { t } = useTranslation();
   const { effective } = useTheme();
   const palette = chartPalette(effective === 'dark');
   const [showData, setShowData] = useState(false);
-  const hasData = series.some((item) => blocks.some((block) => item.value(block) != null));
+  const values = (item: Series) =>
+    history
+      ? history.points.map((point) => item.historyValue?.(point) ?? null)
+      : blocks.map(item.value);
+
+  const hasData = series.some((item) => values(item).some((value) => value != null));
   const format = (value: number, precise = false) =>
     unit === 'btc'
       ? `${decimal(value, precise ? 8 : 2)} BTC`
@@ -59,7 +77,9 @@ function EconomicsPlot({
     },
     xAxis: {
       type: 'category',
-      data: blocks.map((block) => number(block.height)),
+      data: history
+        ? history.points.map((point) => dateTime(point.at))
+        : blocks.map((block) => number(block.height)),
       axisLine: { lineStyle: { color: palette.rule } },
       axisTick: { show: false },
       axisLabel: { color: palette.text, fontSize: 12, hideOverlap: true },
@@ -83,7 +103,7 @@ function EconomicsPlot({
       showSymbol: true,
       symbolSize: 5,
       lineStyle: { width: 2, type: item.dashed ? 'dashed' : 'solid' },
-      data: blocks.map(item.value),
+      data: values(item),
     })),
   });
 
@@ -104,7 +124,7 @@ function EconomicsPlot({
           ref={element}
           className="chart"
           role="img"
-          aria-label={t('blockEconomics.plot', { title })}
+          aria-label={t(history ? 'blockEconomics.historyPlot' : 'blockEconomics.plot', { title })}
         />
         {!hasData && (
           <div className="chart-empty" role="status">
@@ -115,13 +135,46 @@ function EconomicsPlot({
       </div>
       <div className="chart-foot">
         <span>{t('blockEconomics.gaps')}</span>
-        <span>{t('blockEconomics.order')}</span>
+        <span>{t(history ? 'blockEconomics.timeOrder' : 'blockEconomics.order')}</span>
       </div>
       <details className="chart-data" onToggle={(event) => setShowData(event.currentTarget.open)}>
         <summary>
           {title} — {t('history.data')}
         </summary>
-        {showData && (
+        {showData && history && (
+          <VirtualTable
+            rows={history.points}
+            rowKey={(point) => point.at}
+            columns={series.length + 2}
+            label={`${title} — ${t('history.data')}`}
+            resetKey={history.range}
+            header={
+              <>
+                <th>{t('blocks.timestamp')}</th>
+                <th>{t('blockEconomics.sampleBlocks')}</th>
+                {series.map((item) => (
+                  <th key={item.label}>{item.label}</th>
+                ))}
+              </>
+            }
+            renderRow={(point) => (
+              <>
+                <td>{dateTime(point.at)}</td>
+                <td>{number(point.blocks)}</td>
+                {series.map((item) => {
+                  const value = item.historyValue?.(point);
+
+                  return (
+                    <td key={item.label}>
+                      {value == null ? t('history.noReading') : format(value, true)}
+                    </td>
+                  );
+                })}
+              </>
+            )}
+          />
+        )}
+        {showData && !history && (
           <div className="table-scroll">
             <table>
               <thead>
@@ -162,6 +215,15 @@ export default function BlockEconomics({
   syncing?: boolean;
 }) {
   const { t } = useTranslation();
+  const [range, setRange] = useState<EconomicsRange>('recent');
+  const query = useQuery({
+    queryKey: ['node', 'block-economics', range],
+    queryFn: ({ signal }) => api<EconomicsHistory>(`blocks/economics?range=${range}`, { signal }),
+    enabled: range !== 'recent',
+    refetchInterval: 30000,
+  });
+
+  const history = range === 'recent' ? undefined : query.data;
   const blocks = [...(section.data ?? [])].sort((a, b) => a.height - b.height);
   const missing = (value: number | null | undefined, unit: string) =>
     value == null ? t('history.noReading') : `${decimal(value)}${unit}`;
@@ -178,34 +240,74 @@ export default function BlockEconomics({
     <section className="block-economics" aria-label={t('blockEconomics.title')}>
       <SectionHeading
         title={t('blockEconomics.title')}
-        subtitle={t('blockEconomics.description', { total: number(blocks.length) })}
-      />
-      {section.stale && (
+        subtitle={t(
+          range === 'recent' ? 'blockEconomics.description' : 'blockEconomics.historyDescription',
+          { total: number(blocks.length) },
+        )}
+      >
+        <label className="economics-range">
+          {t('history.range')}
+          <select
+            value={range}
+            onChange={(event) => setRange(event.target.value as EconomicsRange)}
+          >
+            {economicsRanges.map((value) => (
+              <option key={value} value={value}>
+                {value === 'recent' || value === 'all'
+                  ? t(`blockEconomics.${value}`)
+                  : t(`range.${value}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+      </SectionHeading>
+      {range !== 'recent' && query.isPending && <Notice>{t('blockHistory.loading')}</Notice>}
+      {range !== 'recent' && query.isError && (
+        <Notice error>
+          {t('blockHistory.error')}
+          <button onClick={() => void query.refetch()}>{t('common.retry')}</button>
+        </Notice>
+      )}
+      {history?.partial && (
+        <Notice>
+          {t('blockEconomics.historyPartial', {
+            total: number(history.indexed_blocks),
+            target: number(history.target_blocks),
+          })}
+        </Notice>
+      )}
+      {history?.stale && <Notice error>{t('blockHistory.offline')}</Notice>}
+      {range === 'recent' && section.stale && (
         <Notice error>
           {t('blockEconomics.stale')}
           {section.updated_at ? ` ${dateTime(section.updated_at)}` : ''}
         </Notice>
       )}
       {syncing && <Notice>{t('blockEconomics.syncing')}</Notice>}
-      {partial && <Notice>{t('blockEconomics.partial')}</Notice>}
-      {!blocks.length ? (
+      {range === 'recent' && partial && <Notice>{t('blockEconomics.partial')}</Notice>}
+      {range !== 'recent' && !history ? null : !blocks.length && !history ? (
         <Empty title={t('blocks.empty')} description={t('blocks.emptyDescription')} />
       ) : (
         <div className="chart-grid">
           <EconomicsPlot
             title={t('blockEconomics.reward')}
-            description={t('blockEconomics.rewardDescription')}
+            description={t(
+              history ? 'blockEconomics.historyReward' : 'blockEconomics.rewardDescription',
+            )}
             blocks={blocks}
+            history={history}
             unit="btc"
             stacked
             series={[
               {
                 label: t('blockEconomics.subsidy'),
+                historyValue: (point) => point.subsidy_btc,
                 value: (block) => (rewardComplete(block) ? chartBitcoin(block.subsidy_sats) : null),
                 text: (block) => bitcoinAmount(block.subsidy_sats, 8),
               },
               {
                 label: t('blocks.totalFees'),
+                historyValue: (point) => point.fees_btc,
                 value: (block) =>
                   rewardComplete(block) ? chartBitcoin(block.total_fees_sats) : null,
                 text: (block) => bitcoinAmount(block.total_fees_sats, 8),
@@ -216,10 +318,12 @@ export default function BlockEconomics({
             title={t('blockEconomics.feeShare')}
             description={t('blockEconomics.feeShareDescription')}
             blocks={blocks}
+            history={history}
             unit="percent"
             series={[
               {
                 label: t('blockEconomics.feeShare'),
+                historyValue: (point) => point.fee_share,
                 value: feeShare,
                 text: (block) => missing(feeShare(block), '%'),
               },
@@ -227,17 +331,22 @@ export default function BlockEconomics({
           />
           <EconomicsPlot
             title={t('blockEconomics.feeRates')}
-            description={t('blockEconomics.feeRatesDescription')}
+            description={t(
+              history ? 'blockEconomics.historyRates' : 'blockEconomics.feeRatesDescription',
+            )}
             blocks={blocks}
+            history={history}
             unit="fee"
             series={[
               {
                 label: t('blockEconomics.averageRate'),
+                historyValue: (point) => point.average_fee_rate,
                 value: (block) => block.average_fee_rate ?? null,
                 text: (block) => missing(block.average_fee_rate, ' sat/vB'),
               },
               {
-                label: t('blocks.medianFee'),
+                label: t(history ? 'blockEconomics.meanMedian' : 'blocks.medianFee'),
+                historyValue: (point) => point.median_fee_rate,
                 value: (block) => block.median_fee_rate,
                 text: (block) => missing(block.median_fee_rate, ' sat/vB'),
                 dashed: true,
@@ -247,12 +356,16 @@ export default function BlockEconomics({
           <EconomicsPlot
             title={t('blockEconomics.fullness')}
             ceiling={100}
-            description={t('blockEconomics.fullnessDescription')}
+            description={t(
+              history ? 'blockEconomics.historyFullness' : 'blockEconomics.fullnessDescription',
+            )}
             blocks={blocks}
+            history={history}
             unit="percent"
             series={[
               {
                 label: t('blocks.capacity'),
+                historyValue: (point) => point.capacity_percent,
                 value: (block) => block.capacity_percent,
                 text: (block) => missing(block.capacity_percent, '%'),
               },

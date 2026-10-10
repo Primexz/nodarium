@@ -15,7 +15,8 @@ import MiningPools from '../components/MiningPools';
 import FeeEstimates, { FeeHistory } from '../components/FeeEstimates';
 import BlockEconomics from '../components/BlockEconomics';
 import PeerTable from '../components/PeerTable';
-import BlockTable, { BlockStrip } from '../components/BlockTable';
+import { BlockStrip } from '../components/BlockTable';
+import BlockHistory from '../components/BlockHistory';
 import { ArrowUpRight, ShieldCheck } from 'lucide-react';
 
 export default function Dashboard({
@@ -463,27 +464,13 @@ export default function Dashboard({
               }
             />
           </dl>
-          <BlockStrip
-            blocks={node.blocks.data ?? []}
-            stale={node.blocks.stale}
+          <BlockHistory
             selectedHash={blockHash}
             onSelect={setBlockHash}
+            recent={node.blocks.data ?? []}
+            stale={node.blocks.stale}
+            tipHeight={chain?.blocks}
           />
-          <section className="panel">
-            <SectionHeading
-              title={t('nav.blocks')}
-              subtitle={`${t('blocks.headers')} · ${t('blocks.expandHint')}`}
-            />
-            <p className="block-explanation">
-              {t('blocks.amountDescription')} {t('blocks.amountPrecision')}
-            </p>
-            <BlockTable
-              blocks={node.blocks.data ?? []}
-              stale={node.blocks.stale}
-              selectedHash={blockHash}
-              onSelect={setBlockHash}
-            />
-          </section>
           <BlockEconomics section={node.blocks} syncing={chain != null && !synced} />
         </>
       )}

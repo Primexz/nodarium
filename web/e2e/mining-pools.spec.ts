@@ -47,7 +47,15 @@ test('local coinbases build official pool shares for both block windows', async 
     'active',
   );
 
-  await expect(pools.locator('.pool-sample')).toContainText('1,008 / 1,008', { timeout: 45000 });
+  await expect(pools.locator('.pool-sample')).toContainText('/ 1,008');
+  const indexed: PoolDistribution = await (
+    await page.request.get('/api/1.0/mining/pools?blocks=1008')
+  ).json();
+
+  expect(indexed.target).toBe(1008);
+  expect(indexed.scanned).toBeGreaterThanOrEqual(144);
+  expect(['indexing', 'ready']).toContain(indexed.status);
+  expect(indexed.shares.reduce((total, share) => total + share.blocks, 0)).toBe(indexed.scanned);
   expect(outbound).toEqual([]);
   await navigate(page, 'Overview');
   await page.getByRole('button', { name: 'Inspect block 900,123', exact: true }).click();

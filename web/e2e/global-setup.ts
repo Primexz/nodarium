@@ -32,6 +32,18 @@ export default async function globalSetup(config: FullConfig) {
         },
       )
       .toBe(true);
+
+    await expect
+      .poll(
+        async () => {
+          const response = await api.get('/api/1.0/blocks');
+          const section = await response.json();
+
+          return section.data?.length ?? 0;
+        },
+        { timeout: 30000, message: 'The shared block index must warm the latest blocks' },
+      )
+      .toBe(10);
   } finally {
     try {
       await api.post('/api/1.0/auth/logout');

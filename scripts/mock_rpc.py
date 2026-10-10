@@ -50,7 +50,9 @@ class Handler(BaseHTTPRequestHandler):
             'getmempoolinfo': dict(loaded=True,size=1842,bytes=7*1024**2,usage=22*1024**2,maxmempool=300*1024**2,total_fee=.18640212,mempoolminfee=.00001,minrelaytxfee=.00001),
             'uptime': int(18*86400+7*3600+elapsed),
         }
-        if method == 'getnetworkhashps':
+        if method == 'getblockhash':
+            result = f"{req['params'][0]:064x}"
+        elif method == 'getnetworkhashps':
             result = 910e18 if req['params'][0] == 144 else 895e18
         elif method == 'estimatesmartfee':
             target = req['params'][0]

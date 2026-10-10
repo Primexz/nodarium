@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Primexz/nodarium/internal/auth"
+	"github.com/Primexz/nodarium/internal/blockindex"
 	"github.com/Primexz/nodarium/internal/collector"
 	"github.com/Primexz/nodarium/internal/explorer"
 	"github.com/Primexz/nodarium/internal/geoip"
@@ -52,6 +53,7 @@ func New(
 	blocks BlockExplorer,
 	pools PoolDistributions,
 	logger *zap.Logger,
+	indexes ...*blockindex.Service,
 ) http.Handler {
 	logger = logging.Component(logger, "http")
 	mux := http.NewServeMux()
@@ -69,6 +71,11 @@ func New(
 	})))
 
 	api := http.NewServeMux()
+	var index *blockindex.Service
+	if len(indexes) > 0 {
+		index = indexes[0]
+	}
+	registerBlockHistory(api, index)
 	api.HandleFunc("GET /api/1.0/overview", func(w http.ResponseWriter, r *http.Request) {
 		s := c.Snapshot()
 		jsonResponse(

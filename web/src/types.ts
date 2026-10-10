@@ -260,3 +260,63 @@ export interface PoolDistribution {
   shares: PoolShare[];
   definitions: { source: string; commit: string; sha256: string };
 }
+
+export const economicsRanges = ['recent', '24h', '7d', '30d', '1y', 'all'] as const;
+
+export type EconomicsRange = (typeof economicsRanges)[number];
+
+export interface BlockIndexStatus {
+  status: 'waiting' | 'syncing' | 'indexing' | 'ready' | 'paused' | 'offline';
+  height: number;
+  tip: string;
+  target: number;
+  headers: number;
+  statistics: number;
+  pools: number;
+  pruned: number;
+  oldest_height: number | null;
+  updated_at: string | null;
+  stale: boolean;
+  error?: string;
+}
+
+export interface BlockHistoryPage {
+  blocks: Block[];
+  older_cursor: string;
+  newer_cursor: string;
+  anchor_height: number;
+  total: number;
+  backfill_pending: boolean;
+  stale: boolean;
+}
+
+export interface IndexedBlock extends Block {
+  pool: PoolAttribution;
+  stale: boolean;
+  updated_at: string | null;
+}
+
+export interface EconomicsPoint {
+  at: number;
+  blocks: number;
+  reward_blocks: number;
+  rate_blocks: number;
+  median_blocks: number;
+  weight_blocks: number;
+  subsidy_btc: number | null;
+  fees_btc: number | null;
+  fee_share: number | null;
+  average_fee_rate: number | null;
+  median_fee_rate: number | null;
+  capacity_percent: number | null;
+}
+
+export interface EconomicsHistory {
+  range: EconomicsRange;
+  interval_seconds: number;
+  points: EconomicsPoint[];
+  indexed_blocks: number;
+  target_blocks: number;
+  partial: boolean;
+  stale: boolean;
+}
