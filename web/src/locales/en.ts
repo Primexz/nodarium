@@ -36,8 +36,7 @@ const en = {
   },
   app: {
     opening: 'Opening your node dashboard…',
-    direct: 'Direct from your Bitcoin Core node',
-    verification: 'Independent verification. Every block.',
+    version: 'Version {{version}}',
     interfaceError: 'This view could not load. Try again or refresh the page.',
   },
   login: {

@@ -38,8 +38,7 @@ const de = {
   },
   app: {
     opening: 'Dein Node-Dashboard wird geöffnet …',
-    direct: 'Direkt von deinem Bitcoin-Core-Node',
-    verification: 'Unabhängige Prüfung. Bei jedem Block.',
+    version: 'Version {{version}}',
     interfaceError:
       'Diese Ansicht konnte nicht geladen werden. Versuche es erneut oder lade die Seite neu.',
   },

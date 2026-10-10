@@ -73,8 +73,7 @@
 
 .sidebar :global(.brand > span:last-child),
 .sidebar nav span,
-.sidebar :global(.logout) span,
-.sidebar .navBottom p {
+.sidebar :global(.logout) span {
   opacity: 1;
   visibility: visible;
   clip-path: inset(0);
@@ -86,8 +85,7 @@
 
 .collapsed .sidebar :global(.brand > span:last-child),
 .collapsed .sidebar nav span,
-.collapsed .sidebar :global(.logout) span,
-.collapsed .sidebar .navBottom p {
+.collapsed .sidebar :global(.logout) span {
   opacity: 0;
   visibility: hidden;
   clip-path: inset(0 100% 0 0);
@@ -119,16 +117,6 @@
 .collapsed .sidebar :global(.logout) {
   min-height: 44px;
   padding-inline: 17px;
-}
-
-.sidebar .navBottom p {
-  max-height: 64px;
-  overflow: hidden;
-}
-
-.collapsed .sidebar .navBottom p {
-  max-height: 0;
-  margin-bottom: 0;
 }
 
 .main {
@@ -179,20 +167,10 @@
   padding-top: 32px;
 }
 
-.navBottom p {
-  font-size: 12px;
-  line-height: 1.6;
-  margin-bottom: 20px;
-}
-
-.navBottom p svg {
-  vertical-align: middle;
-  margin-right: 5px;
-}
-
 .footer {
   margin-top: auto;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 20px;
   padding: 24px 36px;
@@ -205,6 +183,11 @@
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.footer a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .login {

@@ -220,10 +220,6 @@ function Workspace() {
         ))}
       </nav>
       <div className={styles.navBottom}>
-        <p>
-          <ShieldCheck size={14} />
-          {t('login.hosted')}
-        </p>
         <button
           className="logout"
           aria-label={t('nav.signOut')}
@@ -345,11 +341,11 @@ function Workspace() {
           </Suspense>
         </ErrorBoundary>
         <footer className={styles.footer}>
-          <span>
-            <ShieldCheck size={13} />
-            {t('app.direct')}
-          </span>
-          <span>{t('app.verification')}</span>
+          <span>Nodarium @ {new Date(node.now).getFullYear()}</span>
+          <a href="https://github.com/Primexz/nodarium" target="_blank" rel="noopener noreferrer">
+            GitHub
+          </a>
+          <span>{t('app.version', { version: __APP_VERSION__ })}</span>
         </footer>
       </div>
     </div>
