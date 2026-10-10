@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router';
 import { api } from '../api';
 import type { PoolDistribution, PoolShare, PoolAttribution } from '../types';
 import { number, decimal } from '../format';
@@ -70,13 +71,7 @@ export function BlockPool({ attribution }: { attribution?: PoolAttribution }) {
       <strong>
         <PoolLogo name={pool?.name} />
         {pool ? (
-          pool.link ? (
-            <a href={pool.link} target="_blank" rel="noopener noreferrer">
-              {pool.name}
-            </a>
-          ) : (
-            pool.name
-          )
+          <Link to={`/mining/pools/${pool.id}`}>{pool.name}</Link>
         ) : (
           t(`pools.${status === 'identified' ? 'unknown' : status}`)
         )}
@@ -167,41 +162,33 @@ export default function MiningPools() {
               </p>
               <div className="pool-distribution">
                 <PoolPie shares={data.shares} count={data.scanned} />
-                <div className="table-scroll">
-                  <table className="pool-table">
-                    <caption className="sr-only">{t('pools.title')}</caption>
-                    <thead>
-                      <tr>
-                        <th>{t('pools.pool')}</th>
-                        <th>{t('pools.blocks')}</th>
-                        <th>{t('pools.share')}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.shares.map((share, index) => (
-                        <tr key={share.pool?.id ?? 'unknown'}>
-                          <th scope="row">
-                            <span className="pool-name">
-                              <span
-                                className="pool-swatch"
-                                aria-hidden
-                                style={{
-                                  backgroundColor: share.pool
-                                    ? palette.series[index % palette.series.length]
-                                    : palette.edge,
-                                }}
-                              />
-                              <PoolLogo name={share.pool?.name} />
-                              <span>{poolName(share, t('pools.unknown'))}</span>
-                            </span>
-                          </th>
-                          <td>{number(share.blocks)}</td>
-                          <td>{decimal(share.percent)}%</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <ul className="pool-pie-legend" aria-label={t('pools.title')}>
+                  {data.shares.map((share, index) => (
+                    <li key={share.pool?.id ?? 'unknown'}>
+                      <span className="pool-name">
+                        <span
+                          className="pool-swatch"
+                          aria-hidden
+                          style={{
+                            backgroundColor: share.pool
+                              ? palette.series[index % palette.series.length]
+                              : palette.edge,
+                          }}
+                        />
+                        <PoolLogo name={share.pool?.name} />
+                        {share.pool ? (
+                          <Link to={`/mining/pools/${share.pool.id}`}>{share.pool.name}</Link>
+                        ) : (
+                          <span>{t('pools.unknown')}</span>
+                        )}
+                        <span className="pool-legend-share">{decimal(share.percent)}%</span>
+                        <span className="sr-only">
+                          {t('pools.blockCount', { value: number(share.blocks) })}
+                        </span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </>
           )}

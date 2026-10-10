@@ -70,9 +70,9 @@ test('unknown and missing pool logos use local theme-aware fallbacks without cha
 
   await signIn(page);
   await navigate(page, 'Mining');
-  const table = page.locator('.pool-table');
-  const missing = table.getByRole('row').filter({ hasText: '../../New pool? #1' });
-  const unknown = table.getByRole('row').filter({ hasText: 'Unknown' });
+  const legend = page.locator('.pool-pie-legend');
+  const missing = legend.getByRole('listitem').filter({ hasText: '../../New pool? #1' });
+  const unknown = legend.getByRole('listitem').filter({ hasText: 'Unknown' });
 
   for (const theme of ['light', 'dark']) {
     await page.getByLabel('Theme', { exact: true }).selectOption(theme);
@@ -107,7 +107,11 @@ test('failed images fall back locally, hide broken images, and recover on a them
   await page.route('**/assets/foundryusa.light-*.svg', (route) => route.abort());
   await signIn(page);
   await navigate(page, 'Mining');
-  const foundry = page.locator('.pool-name').filter({ hasText: 'Foundry USA' });
+  const foundry = page
+    .getByRole('region', { name: 'Mining pools', exact: true })
+    .locator('.pool-name')
+    .filter({ hasText: 'Foundry USA' });
+
   await page.getByLabel('Theme', { exact: true }).selectOption('light');
   await expect(foundry.locator('img')).toHaveAttribute('src', /^\/assets\/foundryusa-[^/]+\.svg$/);
   await expect(foundry).toContainText('Foundry USA');

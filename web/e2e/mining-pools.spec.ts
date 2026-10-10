@@ -19,9 +19,9 @@ test('local coinbases build official pool shares for both block windows', async 
   );
 
   await expect(pools.locator('.pool-sample')).toContainText('144 / 144', { timeout: 30000 });
-  await expect(pools.locator('.pool-table')).toContainText('Unknown');
-  await expect(pools.locator('.pool-table')).toContainText('Foundry USA');
-  await expect(pools.locator('.pool-table')).toContainText('F2Pool');
+  await expect(pools.locator('.pool-pie-legend')).toContainText('Unknown');
+  await expect(pools.locator('.pool-pie-legend')).toContainText('Foundry USA');
+  await expect(pools.locator('.pool-pie-legend')).toContainText('F2Pool');
   await expect(
     pools.locator('.pool-name').filter({ hasText: 'F2Pool' }).locator('img'),
   ).toHaveAttribute('src', /^\/assets\/f2pool-[^/]+\.svg$/);
@@ -185,7 +185,7 @@ test('pool chart and block attribution support themes, German and accessible lay
   }
 
   await page.getByLabel('Language', { exact: true }).selectOption('de');
-  await expect(page.locator('.mining-pools .pool-table')).toContainText('Unbekannt');
+  await expect(page.locator('.mining-pools .pool-pie-legend')).toContainText('Unbekannt');
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({
     path: `../.impeccable/review/logos-${info.project.name}-german.png`,

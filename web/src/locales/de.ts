@@ -554,6 +554,53 @@ const de = {
     identificationNote:
       'Die Pool-Identität wird aus Coinbase-Daten abgeleitet; sie ist kein kryptografischer Beweis.',
   },
+  poolHistory: {
+    attributionMissing:
+      'Für {{total}} Blöcke im Zeitraum fehlt die Zuordnung. Sie bleiben in den beobachteten Anteilen enthalten.',
+    noBlocksDescription:
+      'Noch keine passenden Blöcke indexiert. Die Zuordnung ist möglicherweise nicht verfügbar oder die Indexierung läuft noch.',
+    title: 'Historische Mining-Pools',
+    description: 'Verfolge Blockanteile im Zeitverlauf und sieh dir einzelne Pools an.',
+    range: 'Zeitraum der Pool-Historie',
+    trend: 'Blockanteil im Zeitverlauf',
+    chartDescription:
+      'Anteil der indexierten Blöcke je Zeitintervall. Leere Intervalle bleiben Lücken.',
+    chartLabel:
+      'Historische Blockanteile der Mining-Pools; genaue Anzahlen und Prozentsätze stehen in der Datentabelle.',
+    other: 'Weitere erkannte Pools',
+    partial: 'Die Block-Indexierung ist unvollständig: {{total}} / {{target}} Blöcke indexiert.',
+    coverage:
+      '{{blocks}} indexierte Blöcke im Zeitraum · {{identified}} erkannt · {{classified}} mit lesbarer Zuordnung',
+    bucket: 'UTC-Intervalle von {{hours}} Stunden; Randintervalle können unvollständig sein',
+    denominator: 'Anteile beziehen sich auf alle indexierten Blöcke im Zeitraum.',
+    empty: 'Keine indexierten Blöcke im Zeitraum',
+    emptyDescription: 'Wähle einen längeren Zeitraum oder warte auf die weitere Indexierung.',
+    back: 'Zurück zu Mining',
+    detail: 'Mining-Pool',
+    detailDescription:
+      'Beobachtete Pool-Aktivität aus der indexierten aktiven Blockchain deines Nodes.',
+    website: 'Pool-Website',
+    notFound: 'Pool nicht gefunden',
+    notFoundDescription:
+      'Diese Pool-ID fehlt in den mitgelieferten Definitionen. Wähle einen Pool auf der Mining-Seite.',
+    performance: 'Pool-Aktivität',
+    performanceDescription:
+      'Statistiken im ausgewählten Zeitraum. Fehlende Daten zählen nicht als Messwerte.',
+    metricSample: '{{samples}} / {{total}} Blöcke mit Daten',
+    found: 'Gefundene Blöcke',
+    foundDescription: 'Im ausgewählten Zeitraum diesem Pool zugeordnet',
+    observedShare: 'Beobachteter Blockanteil',
+    emptyRate: 'Anteil leerer Blöcke',
+    emptyBlocks: 'Blöcke nur mit Coinbase',
+    utilization: 'Durchschnittliche Blockauslastung',
+    fees: 'Durchschnittliche Gebühren je Block',
+    metricsNote:
+      'Leere Blöcke enthalten nur die Coinbase-Transaktion. Die Auslastung bezieht sich auf das Limit von 4 Millionen Gewichtseinheiten. Gebühren schließen die Subvention aus; Mittelwerte verwenden nur verfügbare Daten.',
+    recent: 'Neueste Pool-Blöcke',
+    recentDescription:
+      'Die neuesten 20 indexierten Blöcke dieses Pools aus der gesamten Historie. Wähle einen Block für Details.',
+    noBlocks: 'Keine indexierten Blöcke diesem Pool zugeordnet',
+  },
   blockHistory: {
     title: 'Blöcke entdecken',
     description:

@@ -96,3 +96,32 @@ control rather than shifting historical tiles while the operator is reading.
 A block-height search jumps directly to stored history. Touch, horizontal scrolling,
 and arrow keys navigate the strip; selecting a tile opens its details and live
 transaction mosaic above the economics charts.
+
+## Mining-pool history
+
+`GET /api/1.0/mining/pools/history?range=30d` returns pool totals, metric sample
+counts, and at most 366 UTC buckets. Ranges are `24h`, `7d`, `30d` (default),
+`1y`, and `all`. The selected time boundaries are exact; the first and last
+buckets can be partial. All pool statistics come from canonical indexed blocks,
+with no additional Core requests or external services.
+
+Shares use every indexed block in the selected period, including Unknown and
+Unavailable attribution. An empty time bucket is a gap rather than a zero share.
+The chart shows the four leading pools, other identified pools, Unknown, and
+Unavailable; the expandable virtual chart data table retains the exact bucket
+counts. Pool links live in the chart legends rather than duplicate ranking tables. This denominator differs from the recent 144/1,008-block sample, which
+uses blocks with readable attribution. Neither measures pool hash power.
+
+`GET /api/1.0/mining/pools/{id}?range=30d` returns the pool identity, the same
+period history, and its latest 20 indexed blocks across all stored history.
+The UI provides shareable `/mining/pools/{id}?range=30d` pages, also accessible
+from pool names in distributions and goggles. Selecting a pool block opens the
+existing details and transaction mosaic; Core availability still applies.
+
+Empty-block frequency counts coinbase-only blocks among blocks with a known
+transaction count. Utilization averages known block weight against the four
+million weight-unit limit. Average fee revenue excludes subsidy and uses only
+blocks with known fees. Each metric exposes its own sample count; missing data
+never becomes zero. Definition IDs keep historical blocks together across name
+changes. Invalid pool IDs/ranges return 400, unknown definition IDs return 404,
+and unavailable storage returns 503. Routes require the existing admin session.

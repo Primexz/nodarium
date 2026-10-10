@@ -320,3 +320,52 @@ export interface EconomicsHistory {
   partial: boolean;
   stale: boolean;
 }
+
+export const poolHistoryRanges = ['24h', '7d', '30d', '1y', 'all'] as const;
+
+export type PoolHistoryRange = (typeof poolHistoryRanges)[number];
+
+export interface PoolMetrics {
+  pool: MiningPool | null;
+  key: string;
+  blocks: number;
+  share_percent: number | null;
+  transaction_blocks: number;
+  empty_blocks: number;
+  empty_percent: number | null;
+  weight_blocks: number;
+  capacity_percent: number | null;
+  fee_blocks: number;
+  average_fees_btc: number | null;
+}
+
+export interface PoolTrendPoint {
+  at: number;
+  blocks: number;
+  counts: Record<string, number>;
+}
+
+export interface PoolTrends {
+  range: PoolHistoryRange;
+  status: BlockIndexStatus['status'] | 'unsupported';
+  start: number;
+  end: number;
+  height: number;
+  interval_seconds: number;
+  blocks: number;
+  attributed_blocks: number;
+  classified_blocks: number;
+  indexed_blocks: number;
+  target_blocks: number;
+  partial: boolean;
+  stale: boolean;
+  pools: PoolMetrics[];
+  points: PoolTrendPoint[];
+  definitions: PoolDistribution['definitions'];
+}
+
+export interface PoolDetail {
+  pool: MiningPool;
+  history: PoolTrends;
+  recent_blocks: Block[];
+}

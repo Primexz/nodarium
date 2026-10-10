@@ -184,3 +184,15 @@ func (r *Registry) Identify(chain, coinbaseHex string, addresses []string) Attri
 
 	return Attribution{Status: "unknown"}
 }
+
+// Pool resolves a stable definition ID for local pool detail pages.
+func (r *Registry) Pool(id int) (Pool, bool) {
+	if r != nil {
+		for _, rule := range r.rules {
+			if rule.pool.ID == id {
+				return rule.pool, true
+			}
+		}
+	}
+	return Pool{}, false
+}

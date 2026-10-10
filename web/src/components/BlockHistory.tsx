@@ -288,7 +288,7 @@ export default function BlockHistory({
           className="panel selected-block-panel"
           aria-label={t('blockHistory.selected')}
         >
-          <div className="block-detail-heading">
+          <div className="panel-heading">
             <h2>{t('blockHistory.selected')}</h2>
             <button
               className="icon-button"

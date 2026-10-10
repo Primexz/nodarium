@@ -2136,26 +2136,35 @@ tbody tr:hover {
 }
 .pool-distribution {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  align-items: center;
-  gap: 32px;
+  gap: 12px;
   margin-top: 20px;
 }
 .pool-pie {
   height: 320px;
   width: 100%;
+  max-width: 520px;
   min-width: 0;
+  margin-inline: auto;
 }
-.pool-table {
-  width: 100%;
+.pool-pie-legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
 }
-.pool-table th[scope='row'] {
-  font-weight: 500;
-  color: var(--ink);
+.pool-pie-legend .pool-name {
+  flex-wrap: wrap;
+  overflow-wrap: anywhere;
 }
-.pool-table th:not(:first-child),
-.pool-table td {
-  text-align: right;
+.pool-pie-legend a {
+  text-underline-offset: 3px;
+}
+.pool-legend-share {
+  color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
 .pool-sample,
@@ -2276,8 +2285,16 @@ tbody tr:hover {
   margin: 16px 20px;
 }
 
-.selected-block-panel > .block-detail-heading {
-  margin: 20px 20px 0;
+.selected-block-panel > .panel-heading {
+  flex-wrap: nowrap;
+}
+
+.selected-block-panel > .panel-heading h2 {
+  min-width: 0;
+}
+
+.selected-block-panel > .panel-heading .icon-button {
+  flex-shrink: 0;
 }
 
 .selected-block-panel > .block-details {
@@ -2337,5 +2354,119 @@ tbody tr:hover {
   .block-browser-toolbar {
     align-items: flex-start;
     gap: 12px;
+  }
+}
+
+.pool-history {
+  margin-top: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--rule);
+}
+.pool-history > .panel-heading {
+  padding: 0;
+}
+.pool-trend-chart {
+  margin: 24px 0;
+}
+.pool-trend-legend {
+  padding: 0 24px;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+}
+.pool-trend-legend a {
+  text-underline-offset: 3px;
+}
+.pool-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.pool-detail-page > .panel-heading {
+  padding: 0 0 20px;
+}
+.pool-detail-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  overflow-wrap: anywhere;
+}
+.pool-detail-title .pool-logo,
+.pool-detail-title .pool-logo img {
+  width: 40px;
+  height: 40px;
+}
+.pool-detail-title .pool-logo {
+  flex-basis: 40px;
+}
+.pool-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 24px;
+}
+.pool-metrics > div {
+  padding-right: 16px;
+  min-width: 0;
+}
+.pool-metrics > .metric:nth-child(3n + 1) {
+  border-left: 0;
+  padding-left: 0;
+}
+.pool-metrics dt,
+.pool-metrics dd small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.pool-metrics dd {
+  margin: 8px 0 0;
+  font-size: 23px;
+  font-weight: 550;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.pool-metrics dd small {
+  display: block;
+  margin-top: 8px;
+  font-weight: 400;
+}
+.pool-recent {
+  margin-top: 32px;
+}
+@media (max-width: 1200px) {
+  .pool-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 767px) {
+  .pool-history > .panel-heading {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .pool-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 16px;
+  }
+  .pool-metrics > .metric {
+    border-left: 0;
+    padding-left: 0;
+  }
+  .pool-metrics > .metric:nth-child(even) {
+    border-left: 1px solid var(--rule);
+    padding-left: 16px;
+  }
+  .pool-metrics > .metric:last-child {
+    grid-column: 1 / -1;
+  }
+  .pool-metrics > .metric:last-child dd > span {
+    white-space: nowrap;
+  }
+  .pool-trend-legend {
+    padding: 0 20px;
+  }
+  .pool-trend-chart .chart-foot {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
   }
 }

@@ -531,6 +531,51 @@ const en = {
     identificationNote:
       'Pool identity is inferred from coinbase data; it is not cryptographic proof.',
   },
+  poolHistory: {
+    attributionMissing:
+      'Attribution is unavailable for {{total}} blocks in this period. They remain included in observed shares.',
+    noBlocksDescription:
+      'No matching blocks are indexed yet. Attribution may be unavailable or indexing may still be in progress.',
+    title: 'Historical mining pools',
+    description: 'Follow pool block shares over time and inspect each pool.',
+    range: 'Pool history range',
+    trend: 'Block share over time',
+    chartDescription: 'Share of indexed blocks in each time bucket. Empty buckets stay gaps.',
+    chartLabel:
+      'Historical mining-pool block shares; exact counts and percentages are available in the data table.',
+    other: 'Other identified pools',
+    partial: 'Block indexing is incomplete: {{total}} / {{target}} chain blocks indexed.',
+    coverage:
+      '{{blocks}} indexed blocks in this period · {{identified}} identified · {{classified}} with readable attribution',
+    bucket: '{{hours}}-hour UTC buckets; boundary buckets may be partial',
+    denominator: 'Shares include all indexed blocks in the period.',
+    empty: 'No indexed blocks in this period',
+    emptyDescription: 'Try a longer range, or wait for block indexing to continue.',
+    back: 'Back to mining',
+    detail: 'Mining pool',
+    detailDescription: 'Observed pool activity from your node’s indexed active chain.',
+    website: 'Pool website',
+    notFound: 'Pool not found',
+    notFoundDescription:
+      'This pool ID is not in the bundled definitions. Choose a pool from the mining page.',
+    performance: 'Pool activity',
+    performanceDescription:
+      'Statistics for the selected period. Metric samples exclude missing data.',
+    metricSample: '{{samples}} / {{total}} blocks with data',
+    found: 'Blocks found',
+    foundDescription: 'Attributed to this pool in the selected period',
+    observedShare: 'Observed block share',
+    emptyRate: 'Empty-block frequency',
+    emptyBlocks: 'coinbase-only blocks',
+    utilization: 'Average block utilization',
+    fees: 'Average fees per block',
+    metricsNote:
+      'Empty blocks contain only the coinbase transaction. Utilization uses the 4 million weight-unit limit. Fee revenue excludes subsidy; averages use only blocks with available data.',
+    recent: 'Latest pool blocks',
+    recentDescription:
+      'The latest 20 indexed blocks attributed to this pool, across all history. Select a block to inspect it.',
+    noBlocks: 'No indexed blocks attributed to this pool',
+  },
   blockHistory: {
     title: 'Browse blocks',
     description:

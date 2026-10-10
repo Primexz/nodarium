@@ -118,7 +118,22 @@ Implementation details are grounded in the repository's README and source.
 - Attribute mainnet coinbase transactions locally using bundled official
   mempool/mining-pools definitions. Show pool block shares for the latest 144 or
   1,008 blocks using the same persisted block index, and the attributed miner in
-  block goggles. Retained coinbase evidence supports reclassification when the
+  block goggles. Compare historical observed pool shares over 24 hours, seven
+  days, 30 days, one year, or all indexed history. Include every indexed
+  active-chain block within the exact selected period in share denominators;
+  keep Unknown and Unavailable separate, and leave buckets without blocks as
+  gaps. The historical chart shows the four leading identified pools, groups
+  other identified pools. The recent distribution uses a donut with a compact
+  clickable legend; duplicate pool ranking tables are omitted.
+  Pool detail pages preserve the selected historical range and show attributed
+  block counts, observed share, coinbase-only block frequency, average utilization
+  against the four-million weight-unit limit, and average fees excluding subsidy.
+  Each of the latter three metrics uses only blocks with its required data and
+  exposes its sample count; average fees retain eight BTC decimal places.
+  Detail pages include the pool's share trend and the latest 20 indexed blocks
+  attributed to it across all history, with tiles opening existing block goggles.
+  Coverage, incomplete attribution, indexing, synchronization, and stale states
+  remain explicit. Retained coinbase evidence supports reclassification when the
   definitions revision changes. Keep unknown matches,
   partial/pruned samples, backfill progress, stale data, and attribution methods
   explicit. Definitions update through an explicit fetch-and-validate command;

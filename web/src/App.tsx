@@ -28,6 +28,7 @@ import { duration } from './format';
 import { Brand, LanguagePicker, ThemePicker, Notice, ErrorBoundary } from './components/ui';
 
 const Dashboard = lazy(() => import('./views/Dashboard'));
+const PoolDetail = lazy(() => import('./views/PoolDetail'));
 import styles from './App.module.css';
 
 const sidebarStorageKey = 'nodarium-sidebar-collapsed';
@@ -167,7 +168,9 @@ function Workspace() {
     { path: 'blocks', icon: Globe2 },
   ] as const;
 
-  const page = links.find((link) => link.path === location.pathname.slice(1))?.path ?? 'overview';
+  const page =
+    links.find((link) => link.path === location.pathname.split('/')[1])?.path ?? 'overview';
+
   const title = t(`nav.${page}`);
 
   const brand = (
@@ -319,6 +322,7 @@ function Workspace() {
                   element={<Dashboard page={path} node={node} range={range} setRange={setRange} />}
                 />
               ))}
+              <Route path="/mining/pools/:id" element={<PoolDetail />} />
               <Route path="*" element={<Navigate to="/overview" replace />} />
             </Routes>
           </Suspense>

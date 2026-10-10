@@ -12,6 +12,7 @@ import PeerCountries from '../components/PeerCountries';
 import DifficultyPeriod from '../components/DifficultyPeriod';
 import MiningCharts from '../components/MiningCharts';
 import MiningPools from '../components/MiningPools';
+import PoolHistory from '../components/PoolHistory';
 import FeeEstimates, { FeeHistory } from '../components/FeeEstimates';
 import BlockEconomics from '../components/BlockEconomics';
 import PeerTable from '../components/PeerTable';
@@ -303,6 +304,7 @@ export default function Dashboard({
         <>
           <DifficultyPeriod section={node.overview?.overview} />
           <MiningPools />
+          <PoolHistory />
         </>
       )}
       {['mining', 'peers', 'traffic', 'mempool'].includes(page) && (

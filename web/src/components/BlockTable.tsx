@@ -111,11 +111,19 @@ export function BlockStrip({
   stale,
   selectedHash,
   onSelect,
+  title,
+  subtitle,
+  tipHeight,
+  fullTime,
 }: {
   blocks: Block[];
   stale: boolean;
   selectedHash?: string | null;
   onSelect?: (hash: string | null) => void;
+  title?: string;
+  subtitle?: string;
+  tipHeight?: number;
+  fullTime?: boolean;
 }) {
   const { t } = useTranslation();
   const [ownHash, setOwnHash] = useState<string | null>(null);
@@ -130,15 +138,16 @@ export function BlockStrip({
   return (
     <section className="block-sequence">
       <div className="block-sequence-heading">
-        <h2>{t('blockEconomics.recent')}</h2>
-        <span>{t('blocks.expandHint')}</span>
+        <h2>{title ?? t('blockEconomics.recent')}</h2>
+        <span>{subtitle ?? t('blocks.expandHint')}</span>
       </div>
       <div className="block-strip" role="group" aria-label={t('blocks.strip')}>
         {blocks.map((block, i) => (
           <BlockTile
             key={block.hash}
             block={block}
-            tip={i === 0}
+            tip={tipHeight == null ? i === 0 : block.height === tipHeight}
+            fullTime={fullTime}
             selected={selected?.hash === block.hash}
             onSelect={() => setHash(selected?.hash === block.hash ? null : block.hash)}
           />

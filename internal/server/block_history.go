@@ -25,6 +25,36 @@ func registerBlockHistory(api *http.ServeMux, index *blockindex.Service) {
 			action(ctx, w, r)
 		})
 	}
+	handle("GET /api/1.0/mining/pools/history", func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		period := r.URL.Query().Get("range")
+		if period == "" {
+			period = "30d"
+		}
+		history, err := index.PoolTrends(ctx, period, time.Now().UTC())
+		if err != nil {
+			blockHistoryError(w, err)
+			return
+		}
+		jsonResponse(w, 200, history)
+	})
+	handle("GET /api/1.0/mining/pools/{id}", func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		id, err := strconv.Atoi(r.PathValue("id"))
+		if err != nil {
+			blockHistoryError(w, explorer.ErrInvalid)
+			return
+		}
+		period := r.URL.Query().Get("range")
+		if period == "" {
+			period = "30d"
+		}
+		detail, err := index.PoolDetail(ctx, id, period, time.Now().UTC())
+		if err != nil {
+			blockHistoryError(w, err)
+			return
+		}
+		jsonResponse(w, 200, detail)
+	})
+
 	handle("GET /api/1.0/blocks/index", func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		status, err := index.Status(ctx)
 		if err != nil {

@@ -16,7 +16,7 @@
 
 - **Overview and node details:** health, synchronization, storage, uptime, and recent blocks.
 - **Peers and traffic:** searchable connections, a world map, country distribution, transfer rates, and history.
-- **Mining:** difficulty-period progress and estimated adjustment time, network hashrate, difficulty history, and pool shares over the latest 144 or 1,008 blocks.
+- **Mining:** difficulty-period progress and estimated adjustment time, network hashrate, difficulty history, and pool shares over the latest 144 or 1,008 blocks, historical pool trends, and pool detail pages with block activity and fee revenue.
 - **Mempool and blocks:** local fee estimates for 2, 3, and 6-block targets with history, mempool statistics, historical block economics charts, virtual-scrolling block history, and a transaction mosaic. Click a transaction to inspect its inputs, outputs, and fees.
 
 Nodarium monitors one node per instance; PostgreSQL is optional. Monitoring history begins when collection starts and is retained for up to a year. Block summaries are backfilled from Core and retained across restarts. No wallet features, peer controls, or host-resource monitoring.
