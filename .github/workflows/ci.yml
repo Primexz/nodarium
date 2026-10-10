@@ -38,7 +38,7 @@ jobs:
         working-directory: web
       - run: pnpm test:e2e
         working-directory: web
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: browser-test-results
