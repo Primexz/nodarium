@@ -164,7 +164,7 @@ func (s *Store) migrate(ctx context.Context) error {
 			return err
 		}
 
-		if current > 2 {
+		if current > 3 {
 			return errors.New("database schema newer than application")
 		}
 
@@ -179,11 +179,24 @@ func (s *Store) migrate(ctx context.Context) error {
 		}
 
 		if current < 2 {
-			if err := tx.AutoMigrate(&IndexedBlock{}, &CanonicalBlock{}, &BlockIndexState{}); err != nil {
+			// New installations create the consolidated schema directly.
+			if err := tx.AutoMigrate(&IndexedBlock{}, &BlockIndexState{}); err != nil {
 				return err
 			}
 
-			return tx.Create(&migration{Version: 2, AppliedAt: time.Now().UTC()}).Error
+			if err := tx.Create(&migration{Version: 2, AppliedAt: time.Now().UTC()}).Error; err != nil {
+				return err
+			}
+		}
+
+		if current < 3 {
+			if current == 2 {
+				if err := consolidateBlocks(tx); err != nil {
+					return err
+				}
+			}
+
+			return tx.Create(&migration{Version: 3, AppliedAt: time.Now().UTC()}).Error
 		}
 
 		return nil

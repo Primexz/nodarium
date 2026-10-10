@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
+	"slices"
 	"time"
 
 	"gorm.io/gorm"
@@ -12,10 +13,12 @@ import (
 // IndexedBlock keeps compact metadata, never decoded transactions. Statistics
 // contains Core's additional getblockstats fields for future views. Dedicated
 // columns support bounded history and economics queries without decoding JSON.
+// Canonical marks membership in Core's active chain; stale blocks stay stored.
 type IndexedBlock struct {
-	Network             string `gorm:"primaryKey;size:64;index:idx_block_time,priority:1;index:idx_block_retry,priority:1"`
+	Network             string `gorm:"primaryKey;size:64;index:idx_block_time,priority:1;index:idx_block_retry,priority:1;uniqueIndex:idx_blocks_canonical_height,priority:1,where:canonical = true"`
 	Hash                string `gorm:"primaryKey;size:64"`
-	Height              int64
+	Height              int64  `gorm:"uniqueIndex:idx_blocks_canonical_height,priority:2,where:canonical = true"`
+	Canonical           bool   `gorm:"not null;default:false"`
 	Previous            string
 	Time                int64 `gorm:"index:idx_block_time,priority:2"`
 	MedianTime          int64
@@ -46,13 +49,7 @@ type IndexedBlock struct {
 	UpdatedAt           time.Time
 }
 
-// Separate canonical membership allows retaining an orphan by hash while
-// enforcing exactly one active block per network and height on both databases.
-type CanonicalBlock struct {
-	Network string `gorm:"primaryKey;size:64"`
-	Height  int64  `gorm:"primaryKey;autoIncrement:false"`
-	Hash    string `gorm:"size:64;index"`
-}
+func (IndexedBlock) TableName() string { return "blocks" }
 
 type BlockIndexState struct {
 	Network             string `gorm:"primaryKey;size:64"`
@@ -88,7 +85,7 @@ func (s *Store) BlockState(ctx context.Context, network string) (BlockIndexState
 }
 
 // CommitBlockIndex updates canonical membership and its checkpoint atomically.
-// forkHeight removes only the disconnected suffix; rows by hash remain reusable.
+// forkHeight deactivates only the disconnected suffix; rows by hash remain reusable.
 func (s *Store) CommitBlockIndex(ctx context.Context, state BlockIndexState, blocks []IndexedBlock, forkHeight *int64) error {
 	return s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var previous BlockIndexState
@@ -98,21 +95,19 @@ func (s *Store) CommitBlockIndex(ctx context.Context, state BlockIndexState, blo
 		}
 		state.BlockCoverage, state.Revision = previous.BlockCoverage, previous.Revision+1
 		canonical := func() *gorm.DB {
-			return tx.Model(&IndexedBlock{}).
-				Joins("JOIN canonical_blocks c ON c.network = indexed_blocks.network AND c.hash = indexed_blocks.hash").
-				Where("indexed_blocks.network = ?", state.Network)
+			return canonicalBlocks(tx, state.Network)
 		}
 		if forkHeight != nil {
 			var removed BlockCoverage
-			if err := canonical().Where("c.height > ?", *forkHeight).Select(coverageSQL).Scan(&removed).Error; err != nil {
+			if err := canonical().Where("height > ?", *forkHeight).Select(coverageSQL).Scan(&removed).Error; err != nil {
 				return err
 			}
 			adjustCoverage(&state.BlockCoverage, removed, -1)
-			if err := tx.Where("network = ? AND height > ?", state.Network, *forkHeight).Delete(&CanonicalBlock{}).Error; err != nil {
+			if err := canonical().Where("height > ?", *forkHeight).UpdateColumn("canonical", false).Error; err != nil {
 				return err
 			}
-			var oldest []CanonicalBlock
-			if err := tx.Where("network = ?", state.Network).Order("height ASC").Limit(1).Find(&oldest).Error; err != nil {
+			var oldest []IndexedBlock
+			if err := canonical().Select("height").Order("height ASC").Limit(1).Find(&oldest).Error; err != nil {
 				return err
 			}
 			state.OldestHeight = nil
@@ -125,24 +120,26 @@ func (s *Store) CommitBlockIndex(ctx context.Context, state BlockIndexState, blo
 				return errors.New("invalid block index batch")
 			}
 			var old []IndexedBlock
-			if err := canonical().Where("c.height = ?", block.Height).Select("indexed_blocks.*").Limit(1).Find(&old).Error; err != nil {
+			if err := canonical().Where("height = ?", block.Height).Limit(1).Find(&old).Error; err != nil {
 				return err
 			}
 			if len(old) > 0 {
 				adjustCoverage(&state.BlockCoverage, rowCoverage(old[0]), -1)
+				// Release the height before activating its replacement.
+				if old[0].Hash != block.Hash {
+					if err := canonical().Where("height = ?", block.Height).UpdateColumn("canonical", false).Error; err != nil {
+						return err
+					}
+				}
 			}
+			block.Canonical = true
 			block.NeedsRetry = block.MetadataStatus == "partial" || (block.Height > 0 && (block.StatisticsStatus == "partial" || (block.PoolStatus == "unavailable" && block.MetadataStatus != "pruned")))
 			if err := tx.Clauses(clause.OnConflict{UpdateAll: true}).Create(&block).Error; err != nil {
 				return err
 			}
-			row := CanonicalBlock{Network: state.Network, Height: block.Height, Hash: block.Hash}
-			if err := tx.Clauses(clause.OnConflict{UpdateAll: true}).Create(&row).Error; err != nil {
-				return err
-			}
 			adjustCoverage(&state.BlockCoverage, rowCoverage(block), 1)
 			if state.OldestHeight == nil || block.Height < *state.OldestHeight {
-				height := block.Height
-				state.OldestHeight = &height
+				state.OldestHeight = new(block.Height)
 			}
 		}
 		state.UpdatedAt = time.Now().UTC()
@@ -176,10 +173,12 @@ func adjustCoverage(total *BlockCoverage, change BlockCoverage, sign int64) {
 	total.Pruned += sign * change.Pruned
 }
 
+func canonicalBlocks(db *gorm.DB, network string) *gorm.DB {
+	return db.Model(&IndexedBlock{}).Where("network = ?", network).Where("canonical = true")
+}
+
 func (s *Store) canonical(ctx context.Context, network string) *gorm.DB {
-	return s.db.WithContext(ctx).Model(&IndexedBlock{}).
-		Joins("JOIN canonical_blocks c ON c.network = indexed_blocks.network AND c.hash = indexed_blocks.hash").
-		Where("indexed_blocks.network = ?", network)
+	return canonicalBlocks(s.db.WithContext(ctx), network)
 }
 
 // Coverage counters are maintained with canonical membership, avoiding a full
@@ -190,8 +189,8 @@ func (s *Store) BlockCoverage(ctx context.Context, network string) (BlockCoverag
 }
 
 func (s *Store) CanonicalHash(ctx context.Context, network string, height int64) (string, error) {
-	var row CanonicalBlock
-	err := s.db.WithContext(ctx).First(&row, "network = ? AND height = ?", network, height).Error
+	var row IndexedBlock
+	err := s.canonical(ctx, network).Select("hash").Where("height = ?", height).Take(&row).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return "", nil
 	}
@@ -210,28 +209,26 @@ func (s *Store) IndexedBlock(ctx context.Context, network, hash string) (Indexed
 // BlockPage uses a height keyset, not an OFFSET that grows with chain length.
 func (s *Store) BlockPage(ctx context.Context, network string, height int64, newer bool, limit int) ([]IndexedBlock, error) {
 	rows := []IndexedBlock{}
-	query := s.canonical(ctx, network).Select("indexed_blocks.*")
+	query := s.canonical(ctx, network)
 	if newer {
-		query = query.Where("c.height > ?", height).Order("c.height ASC")
+		query = query.Where("height > ?", height).Order("height ASC")
 	} else {
-		query = query.Where("c.height <= ?", height).Order("c.height DESC")
+		query = query.Where("height <= ?", height).Order("height DESC")
 	}
 	if err := query.Limit(limit).Find(&rows).Error; err != nil {
 		return nil, err
 	}
 	if newer {
-		for left, right := 0, len(rows)-1; left < right; left, right = left+1, right-1 {
-			rows[left], rows[right] = rows[right], rows[left]
-		}
+		slices.Reverse(rows)
 	}
 	return rows, nil
 }
 
 func (s *Store) NextBlockRetry(ctx context.Context, network string, now time.Time) (*IndexedBlock, error) {
 	var rows []IndexedBlock
-	err := s.canonical(ctx, network).Select("indexed_blocks.*").
+	err := s.canonical(ctx, network).
 		Where("needs_retry = ? AND retry_at <= ?", true, now).
-		Order("retry_at ASC, c.height DESC").Limit(1).Find(&rows).Error
+		Order("retry_at ASC, height DESC").Limit(1).Find(&rows).Error
 	if err != nil || len(rows) == 0 {
 		return nil, err
 	}
@@ -257,8 +254,8 @@ type EconomicsBucket struct {
 func (s *Store) BlockEconomics(ctx context.Context, network string, start, end, interval int64) ([]EconomicsBucket, error) {
 	rows := []EconomicsBucket{}
 	err := s.canonical(ctx, network).
-		Where("indexed_blocks.time >= ? AND indexed_blocks.time <= ?", start, end).
-		Select(`(indexed_blocks.time / ?) * ? AS at, COUNT(*) AS blocks,
+		Where("time >= ? AND time <= ?", start, end).
+		Select(`(time / ?) * ? AS at, COUNT(*) AS blocks,
 		SUM(CASE WHEN subsidy_sats IS NOT NULL AND total_fees_sats IS NOT NULL THEN 1 ELSE 0 END) AS reward_blocks,
 		COALESCE(SUM(CASE WHEN subsidy_sats IS NOT NULL AND total_fees_sats IS NOT NULL THEN CAST(subsidy_sats AS DOUBLE PRECISION) ELSE 0 END), 0) AS subsidy,
 		COALESCE(SUM(CASE WHEN subsidy_sats IS NOT NULL AND total_fees_sats IS NOT NULL THEN CAST(total_fees_sats AS DOUBLE PRECISION) ELSE 0 END), 0) AS fees,
@@ -271,7 +268,7 @@ func (s *Store) BlockEconomics(ctx context.Context, network string, start, end, 
 
 func (s *Store) BlockTimeBounds(ctx context.Context, network string) (int64, int64, error) {
 	var result struct{ Start, End int64 }
-	err := s.canonical(ctx, network).Select("COALESCE(MIN(indexed_blocks.time), 0) AS start, COALESCE(MAX(indexed_blocks.time), 0) AS end").Scan(&result).Error
+	err := s.canonical(ctx, network).Select("COALESCE(MIN(time), 0) AS start, COALESCE(MAX(time), 0) AS end").Scan(&result).Error
 	return result.Start, result.End, err
 }
 
