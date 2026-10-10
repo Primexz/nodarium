@@ -230,7 +230,7 @@ Peer search, direction filters, and sort changes return the list to the beginnin
 
 The rail provides Overview, Node details, Mining, Peers, Traffic, Mempool, and Blocks destinations, each with a quiet icon and sentence-case label. Active items use orange wash and orange ink, with weight (600); hover uses a surface fill. Links have a minimum (44px) height. Mobile uses the same navigation inside a modal drawer with the theme scrim and shadow.
 
-A toggle beside the desktop brand switches the (256px) rail to a (76px) icon rail. Collapsed navigation and sign-out controls keep accessible names and localized hover titles; the toggle exposes its expanded state and retains keyboard focus. The preference persists locally when browser storage is available. The mobile drawer always retains full labels, independent of the desktop preference; short desktop viewports allow the rail to scroll.
+A toggle beside the desktop brand switches the (256px) rail to a (76px) icon rail. Collapsed navigation and sign-out controls keep accessible names and localized hover titles; the toggle exposes its expanded state and retains keyboard focus. The preference persists locally when browser storage is available. The mobile drawer always retains full labels, independent of the desktop preference; short desktop viewports allow the rail to scroll. Desktop expansion takes (280ms) and collapse (220ms), with a decelerating grid resize, clipped fading labels, and a moving toggle. The mobile drawer slides in over (280ms) and exits over (180ms), with a short scrim fade. Interrupted transitions continue from the current position; reduced motion switches navigation immediately while retaining focus and state feedback.
 
 ### Metrics and status
 

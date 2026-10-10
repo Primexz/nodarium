@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, type FormEvent } from 'react';
+import { lazy, Suspense, useRef, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, Link, Navigate, Route, Routes, useLocation } from 'react-router';
 import * as Dialog from '@radix-ui/react-dialog';
@@ -138,6 +138,8 @@ function Workspace() {
   const location = useLocation();
 
   const [menu, setMenu] = useState(false);
+  const drawer = useRef<HTMLDivElement>(null);
+  const drawerOverlay = useRef<HTMLDivElement>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [range, setRange] = useState<HistoryRange>('24h');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -147,6 +149,19 @@ function Workspace() {
       return false;
     }
   });
+
+  function changeMenu(open: boolean) {
+    const content = drawer.current;
+    const overlay = drawerOverlay.current;
+    const transform = content ? getComputedStyle(content).transform : undefined;
+    const opacity = overlay ? getComputedStyle(overlay).opacity : undefined;
+
+    if (content && transform) content.style.setProperty('--drawer-start', transform);
+
+    if (overlay && opacity) overlay.style.setProperty('--drawer-opacity', opacity);
+
+    setMenu(open);
+  }
 
   function toggleSidebar() {
     const collapsed = !sidebarCollapsed;
@@ -179,7 +194,7 @@ function Workspace() {
       to="/overview"
       aria-label={`Nodarium · ${t('nav.overview')}`}
       title="Nodarium"
-      onClick={() => setMenu(false)}
+      onClick={() => changeMenu(false)}
     >
       <Brand />
     </Link>
@@ -194,7 +209,7 @@ function Workspace() {
             key={path}
             aria-label={t(`nav.${path}`)}
             title={t(`nav.${path}`)}
-            onClick={() => setMenu(false)}
+            onClick={() => changeMenu(false)}
           >
             <Icon size={18} aria-hidden />
             <span>{t(`nav.${path}`)}</span>
@@ -262,15 +277,15 @@ function Workspace() {
       <div className={styles.main}>
         <header className={`${styles.topbar} topbar`}>
           <div className={styles.context}>
-            <Dialog.Root open={menu} onOpenChange={setMenu}>
+            <Dialog.Root open={menu} onOpenChange={changeMenu}>
               <Dialog.Trigger asChild>
                 <button className={`icon-button ${styles.mobileMenu}`} aria-label={t('nav.open')}>
                   <Menu size={20} />
                 </button>
               </Dialog.Trigger>
               <Dialog.Portal>
-                <Dialog.Overlay className="drawer-overlay" />
-                <Dialog.Content className="navigation-drawer">
+                <Dialog.Overlay ref={drawerOverlay} className="drawer-overlay" />
+                <Dialog.Content ref={drawer} className="navigation-drawer">
                   <Dialog.Title className="sr-only">{t('nav.workspace')}</Dialog.Title>
                   <Dialog.Description className="sr-only">{t('login.hosted')}</Dialog.Description>
                   <Dialog.Close asChild>

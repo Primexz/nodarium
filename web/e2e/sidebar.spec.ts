@@ -121,3 +121,130 @@ test('sidebar toggling still works when browser preference storage is unavailabl
   await page.getByRole('button', { name: 'Expand sidebar', exact: true }).click();
   await expect(page.locator('#workspace-sidebar')).toHaveCSS('width', '256px');
 });
+
+test('desktop rail moves continuously, reverses during motion and respects reduced motion', async ({
+  page,
+}, info) => {
+  test.skip(info.project.name === 'mobile', 'Mobile navigation uses the drawer.');
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await signIn(page);
+  const sidebar = page.locator('#workspace-sidebar');
+
+  const widths = await sidebar.evaluate(async (rail) => {
+    const samples: number[] = [];
+    rail.querySelector<HTMLButtonElement>('button[aria-controls="workspace-sidebar"]')!.click();
+    const start = performance.now();
+
+    await new Promise<void>((resolve) => {
+      function frame() {
+        samples.push(rail.getBoundingClientRect().width);
+
+        if (performance.now() - start < 320) requestAnimationFrame(frame);
+        else resolve();
+      }
+
+      requestAnimationFrame(frame);
+    });
+
+    return samples;
+  });
+
+  expect(widths.some((width) => width > 80 && width < 250)).toBe(true);
+  await expect(sidebar).toHaveCSS('width', '76px');
+  await page.getByRole('button', { name: 'Expand sidebar', exact: true }).focus();
+  await page.keyboard.press('Space');
+  await page.waitForTimeout(60);
+  await page.keyboard.press('Space');
+  await expect(sidebar).toHaveCSS('width', '76px');
+  await expect(page.getByRole('button', { name: 'Expand sidebar', exact: true })).toBeFocused();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+
+  await page.getByRole('button', { name: 'Expand sidebar', exact: true }).click();
+  await page.evaluate(() => {
+    for (const animation of document.getAnimations()) {
+      animation.pause();
+      animation.currentTime = 80;
+    }
+  });
+
+  await page.screenshot({ path: `../.impeccable/review/sidebar-motion-desktop-mid.png` });
+  await page.evaluate(() => {
+    for (const animation of document.getAnimations()) animation.finish();
+  });
+
+  await expect(sidebar).toHaveCSS('width', '256px');
+  await page.screenshot({ path: `../.impeccable/review/sidebar-motion-desktop-expanded.png` });
+
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const reducedWidth = await sidebar.evaluate(async (rail) => {
+    rail.querySelector<HTMLButtonElement>('button[aria-controls="workspace-sidebar"]')!.click();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+    return rail.getBoundingClientRect().width;
+  });
+
+  expect(reducedWidth).toBe(76);
+});
+
+test('mobile drawer slides on open and close and restores focus, with an instant reduced-motion path', async ({
+  page,
+}, info) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await signIn(page);
+  const open = page.getByRole('button', { name: 'Open navigation', exact: true });
+  const drawer = page.getByRole('dialog', { name: 'Workspace', exact: true });
+  await open.click();
+  await page.evaluate(() => {
+    for (const animation of document.getAnimations()) {
+      animation.pause();
+      animation.currentTime = 70;
+    }
+  });
+
+  const bounds = (await drawer.boundingBox())!;
+
+  expect(bounds.x).toBeLessThan(0);
+  expect(bounds.x).toBeGreaterThan(-300);
+
+  await page.screenshot({
+    path: `../.impeccable/review/sidebar-drawer-${info.project.name}-mid.png`,
+  });
+
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => {
+    for (const animation of document.getAnimations()) {
+      animation.pause();
+      animation.currentTime = 0;
+    }
+  });
+
+  const closingBounds = (await page.locator('.navigation-drawer').boundingBox())!;
+
+  expect(Math.abs(closingBounds.x - bounds.x)).toBeLessThan(2);
+
+  await page.evaluate(() => {
+    for (const animation of document.getAnimations()) animation.finish();
+  });
+
+  await expect(drawer).toHaveCount(0);
+  await expect(open).toBeFocused();
+  await open.click();
+  await page.evaluate(() => {
+    for (const animation of document.getAnimations()) animation.finish();
+  });
+
+  await expect(drawer).toHaveCSS('transform', 'none');
+  await page.screenshot({
+    path: `../.impeccable/review/sidebar-drawer-${info.project.name}-open.png`,
+  });
+
+  await page.keyboard.press('Escape');
+  await expect(drawer).toHaveCount(0);
+  await expect(open).toBeFocused();
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await open.click();
+  await expect(drawer).toHaveCSS('animation-name', 'none');
+  await drawer.getByRole('button', { name: 'Close navigation', exact: true }).click();
+  await expect(drawer).toHaveCount(0);
+});
