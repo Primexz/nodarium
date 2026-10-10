@@ -94,7 +94,7 @@ func TestCollectorRecovery(t *testing.T) {
 
 	db := &memoryStore{}
 	c := New(f, db, "http://node:8332", 10*time.Second, nil)
-	ctx := context.Background()
+	ctx := t.Context()
 	c.Collect(ctx)
 	s := c.Snapshot()
 
@@ -179,18 +179,18 @@ func TestCollectorRecovery(t *testing.T) {
 func TestLongGapAndChainIsolation(t *testing.T) {
 	f := &fakeRPC{fail: map[string]bool{}, chain: "regtest", tip: "a", uptime: 100}
 	c := New(f, &memoryStore{}, "node", 10*time.Second, nil)
-	c.Collect(context.Background())
+	c.Collect(t.Context())
 	old := c.Snapshot().Node
 	c.previous.at = time.Now().Add(-time.Hour)
 	f.received = 100
-	c.Collect(context.Background())
+	c.Collect(t.Context())
 
 	if c.Snapshot().Traffic.Data.ReceiveRate != nil {
 		t.Fatal("long gap bridged")
 	}
 
 	f.chain = "signet"
-	c.Collect(context.Background())
+	c.Collect(t.Context())
 
 	if c.Snapshot().Node == old || c.Snapshot().Traffic.Data.ReceiveRate != nil {
 		t.Fatal("chains mixed")

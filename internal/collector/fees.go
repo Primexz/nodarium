@@ -55,12 +55,9 @@ func (c *Collector) collectFees(ctx context.Context, chain rpc.Blockchain, chain
 	var wg sync.WaitGroup
 
 	for i, target := range feeTargets {
-		wg.Add(1)
-		go func(i, target int) {
-			defer wg.Done()
-
+		wg.Go(func() {
 			errs[i] = c.rpc.Call(ctx, "estimatesmartfee", []any{target, "CONSERVATIVE"}, &estimates[i])
-		}(i, target)
+		})
 	}
 
 	wg.Wait()

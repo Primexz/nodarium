@@ -95,7 +95,7 @@ func TestCompactCacheAndReorgChecks(t *testing.T) {
 	}))
 
 	for i := range 2 {
-		block, err := e.Block(context.Background(), blockID)
+		block, err := e.Block(t.Context(), blockID)
 
 		if err != nil {
 			t.Fatal(err)
@@ -119,7 +119,7 @@ func TestCompactCacheAndReorgChecks(t *testing.T) {
 
 	confirmations = -1
 
-	if _, err := e.Block(context.Background(), blockID); !errors.Is(err, ErrInactive) {
+	if _, err := e.Block(t.Context(), blockID); !errors.Is(err, ErrInactive) {
 		t.Fatal("orphaned cache returned", err)
 	}
 }
@@ -137,7 +137,7 @@ func TestTransactionLookupUsesBlockHashAndExactPrevouts(t *testing.T) {
 		return fixture(t, method, result, 3)
 	}))
 
-	tx, err := e.Transaction(context.Background(), blockID, txID)
+	tx, err := e.Transaction(t.Context(), blockID, txID)
 
 	if err != nil {
 		t.Fatal(err)
@@ -205,15 +205,15 @@ func TestInvalidUnavailableAndMismatchedResponses(t *testing.T) {
 		return errors.New("private RPC error")
 	}))
 
-	if _, err := e.Block(context.Background(), "bad"); !errors.Is(err, ErrInvalid) || calls != 0 {
+	if _, err := e.Block(t.Context(), "bad"); !errors.Is(err, ErrInvalid) || calls != 0 {
 		t.Fatal(err, calls)
 	}
 
-	if _, err := e.Transaction(context.Background(), blockID, "bad"); !errors.Is(err, ErrInvalid) || calls != 0 {
+	if _, err := e.Transaction(t.Context(), blockID, "bad"); !errors.Is(err, ErrInvalid) || calls != 0 {
 		t.Fatal(err, calls)
 	}
 
-	if _, err := e.Block(context.Background(), blockID); !errors.Is(err, ErrUnavailable) {
+	if _, err := e.Block(t.Context(), blockID); !errors.Is(err, ErrUnavailable) {
 		t.Fatal(err)
 	}
 
@@ -229,7 +229,7 @@ func TestInvalidUnavailableAndMismatchedResponses(t *testing.T) {
 		return nil
 	}))
 
-	if _, err := e.Transaction(context.Background(), blockID, txID); !errors.Is(err, ErrNotFound) {
+	if _, err := e.Transaction(t.Context(), blockID, txID); !errors.Is(err, ErrNotFound) {
 		t.Fatal(err)
 	}
 
@@ -252,7 +252,7 @@ func TestParallelReadersAndCancelledWaiter(t *testing.T) {
 
 	for range 20 {
 		wg.Go(func() {
-			if _, err := e.Block(context.Background(), blockID); err != nil {
+			if _, err := e.Block(t.Context(), blockID); err != nil {
 				t.Error(err)
 			}
 		})
@@ -264,7 +264,7 @@ func TestParallelReadersAndCancelledWaiter(t *testing.T) {
 		t.Fatal("parallel requests duplicated cache entries")
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 	e.slots <- struct{}{}
 	e.slots <- struct{}{}
@@ -291,7 +291,7 @@ func TestCacheEvictsOldBlocks(t *testing.T) {
 	}))
 
 	for i := range 12 {
-		if _, err := e.Block(context.Background(), fmt.Sprintf("%064x", i+1)); err != nil {
+		if _, err := e.Block(t.Context(), fmt.Sprintf("%064x", i+1)); err != nil {
 			t.Fatal(err)
 		}
 	}

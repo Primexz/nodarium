@@ -40,16 +40,13 @@ func (c *Collector) collectMining(ctx context.Context, chain rpc.Blockchain, cha
 	var wg sync.WaitGroup
 
 	for i, window := range []int{144, 1008} {
-		wg.Add(1)
-		go func(i, window int) {
-			defer wg.Done()
-
+		wg.Go(func() {
 			errs[i] = c.rpc.Call(ctx, "getnetworkhashps", []any{window, chain.Blocks}, &estimates[i])
 
 			if errs[i] == nil && (estimates[i] <= 0 || math.IsNaN(estimates[i]) || math.IsInf(estimates[i], 0)) {
 				errs[i] = errors.New("Network hashrate estimate is unavailable.")
 			}
-		}(i, window)
+		})
 	}
 
 	wg.Wait()

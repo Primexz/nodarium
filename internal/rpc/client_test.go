@@ -1,7 +1,6 @@
 package rpc
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -56,7 +55,7 @@ func TestClient(t *testing.T) {
 
 			core, logs := observer.New(zap.DebugLevel)
 			err := New(s.URL+"/private-endpoint", "user", "secret", zap.New(core)).Call(
-				context.Background(),
+				t.Context(),
 				"getblockchaininfo",
 				[]string{"private-parameter"},
 				&chain,
@@ -121,7 +120,7 @@ func TestVerboseResponseSizeLimits(t *testing.T) {
 				Padding string `json:"padding"`
 			}
 
-			err := New(server.URL, "user", "secret", nil).Call(context.Background(), method, nil, &result)
+			err := New(server.URL, "user", "secret", nil).Call(t.Context(), method, nil, &result)
 
 			if method == "getblockchaininfo" {
 				if err == nil {

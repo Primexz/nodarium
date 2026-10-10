@@ -29,9 +29,9 @@ func (f latencyRPC) Call(ctx context.Context, method string, params any, out any
 }
 
 func BenchmarkIndexerBackfill(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		b.StopTimer()
-		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+		ctx, cancel := context.WithTimeout(b.Context(), time.Minute)
 		db, err := storage.Open(ctx, "sqlite", filepath.Join(b.TempDir(), "blocks.db"))
 		if err != nil {
 			b.Fatal(err)
@@ -65,6 +65,7 @@ func BenchmarkIndexerBackfill(b *testing.B) {
 		b.StopTimer()
 		cancel()
 		db.Close()
+		b.StartTimer()
 	}
 	b.ReportMetric(32, "blocks/op")
 	b.ReportMetric(float64(32*b.N)/b.Elapsed().Seconds(), "blocks/s")

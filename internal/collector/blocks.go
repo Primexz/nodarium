@@ -3,6 +3,7 @@ package collector
 import (
 	"context"
 	"math"
+	"slices"
 	"strconv"
 	"sync"
 
@@ -24,7 +25,12 @@ func completeStatistics(block Block) bool {
 // avoids re-reading nine old blocks, while a reorg cannot reuse another hash's statistics.
 // Copy the slice before enrichment: snapshots may still be read by HTTP handlers.
 func (c *Collector) blockStatistics(ctx context.Context, blocks []Block, previous *[]Block) []Block {
-	result := append([]Block{}, blocks...)
+	result := slices.Clone(blocks)
+
+	// Empty block snapshots are JSON arrays, including when Core has no data.
+	if result == nil {
+		result = []Block{}
+	}
 	cached := map[string]Block{}
 
 	if previous != nil {
@@ -80,8 +86,7 @@ func (c *Collector) blockStatistics(ctx context.Context, blocks []Block, previou
 
 				if err == nil && stats.BlockHash == block.Hash {
 					if stats.Subsidy != nil && *stats.Subsidy >= 0 && *stats.Subsidy <= 5_000_000_000 {
-						subsidy := strconv.FormatInt(*stats.Subsidy, 10)
-						block.SubsidySats = &subsidy
+						block.SubsidySats = new(strconv.FormatInt(*stats.Subsidy, 10))
 					}
 
 					if stats.AverageFeeRate != nil && *stats.AverageFeeRate >= 0 && !math.IsNaN(*stats.AverageFeeRate) && !math.IsInf(*stats.AverageFeeRate, 0) {
@@ -97,13 +102,11 @@ func (c *Collector) blockStatistics(ctx context.Context, blocks []Block, previou
 					}
 
 					if stats.TotalOut != nil && *stats.TotalOut >= 0 {
-						amount := strconv.FormatInt(*stats.TotalOut, 10)
-						block.TotalTransactionAmountSats = &amount
+						block.TotalTransactionAmountSats = new(strconv.FormatInt(*stats.TotalOut, 10))
 					}
 
 					if stats.TotalFee != nil && *stats.TotalFee >= 0 {
-						fees := strconv.FormatInt(*stats.TotalFee, 10)
-						block.TotalFeesSats = &fees
+						block.TotalFeesSats = new(strconv.FormatInt(*stats.TotalFee, 10))
 					}
 
 					if stats.Transactions != nil && *stats.Transactions > 0 {
@@ -126,8 +129,7 @@ func (c *Collector) blockStatistics(ctx context.Context, blocks []Block, previou
 
 					if meta.Weight != nil && *meta.Weight > 0 && *meta.Weight <= maxBlockWeight {
 						block.WeightUnits = meta.Weight
-						capacity := float64(*meta.Weight) / float64(maxBlockWeight) * 100
-						block.CapacityPercent = &capacity
+						block.CapacityPercent = new(float64(*meta.Weight) / float64(maxBlockWeight) * 100)
 					}
 
 					if meta.Transactions != nil && *meta.Transactions > 0 {

@@ -22,7 +22,7 @@ func TestStorageBackends(t *testing.T) {
 				}
 			}
 
-			ctx := context.Background()
+			ctx := t.Context()
 			s, err := Open(ctx, driver, dsn)
 
 			if err != nil {
@@ -41,7 +41,7 @@ func TestStorageBackends(t *testing.T) {
 
 			first := map[string]Measurement{"rx_rate": {Value: 10, Weight: 10, Total: 100}, "peers": {Value: 2, Weight: 10}}
 
-			for i := 0; i < 2; i++ {
+			for range 2 {
 				if err := s.Save(ctx, node, now.Add(-20*time.Second), first); err != nil {
 					t.Fatal(err)
 				}
@@ -283,7 +283,7 @@ func TestStorageBackends(t *testing.T) {
 }
 
 func TestUnknownDatabase(t *testing.T) {
-	if _, err := Open(context.Background(), "mysql", "secret-password"); err == nil {
+	if _, err := Open(t.Context(), "mysql", "secret-password"); err == nil {
 		t.Fatal("unsupported driver accepted")
 	}
 }

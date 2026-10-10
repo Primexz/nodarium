@@ -25,7 +25,7 @@ func TestConfiguredPacingAndCancellation(t *testing.T) {
 		t.Run(delay.String(), func(t *testing.T) {
 			fake := headerTimingRPC{newRPC(2), make(chan time.Time, 8)}
 			s := testService(t, fake.indexRPC, nil)
-			index := New(context.Background(), fake, s.db, s.registry, zap.NewNop(), Options{BlockDelay: delay})
+			index := New(t.Context(), fake, s.db, s.registry, zap.NewNop(), Options{BlockDelay: delay})
 			t.Cleanup(index.Close)
 			chain := fake.chain()
 			index.Observe(&chain)

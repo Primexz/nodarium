@@ -1,7 +1,6 @@
 package blockindex
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -18,14 +17,14 @@ func TestProgressLogsCommittedCountsWithoutBatchSpam(t *testing.T) {
 	now := time.Unix(1700000000, 0)
 
 	s.logProgress(chain, now)
-	if err := s.step(context.Background(), chain); err != nil {
+	if err := s.step(t.Context(), chain); err != nil {
 		t.Fatal(err)
 	}
 	s.logProgress(chain, now.Add(time.Second))
 	if logs.Len() != 1 {
 		t.Fatal("each batch must not generate an info log")
 	}
-	if err := s.step(context.Background(), chain); err != nil {
+	if err := s.step(t.Context(), chain); err != nil {
 		t.Fatal(err)
 	}
 	s.logProgress(chain, now.Add(30*time.Second))
@@ -41,7 +40,7 @@ func TestProgressLogsCommittedCountsWithoutBatchSpam(t *testing.T) {
 	if fields["blocks_per_second"] != float64(32)/30 {
 		t.Fatal("processing rate must use committed progress over elapsed time")
 	}
-	if err := s.step(context.Background(), chain); err != nil {
+	if err := s.step(t.Context(), chain); err != nil {
 		t.Fatal(err)
 	}
 	s.logProgress(chain, now.Add(31*time.Second))
@@ -55,7 +54,7 @@ func TestProgressLogsCommittedCountsWithoutBatchSpam(t *testing.T) {
 func TestProgressLogsResumeWithStoredCoverage(t *testing.T) {
 	fake := newRPC(39)
 	s := testService(t, fake, nil)
-	if err := s.step(context.Background(), fake.chain()); err != nil {
+	if err := s.step(t.Context(), fake.chain()); err != nil {
 		t.Fatal(err)
 	}
 	s = testService(t, fake, s.db)

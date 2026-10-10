@@ -101,7 +101,7 @@ func testService(t *testing.T, fake *indexRPC, db *storage.Store) *Service {
 	t.Helper()
 	if db == nil {
 		var err error
-		db, err = storage.Open(context.Background(), "sqlite", filepath.Join(t.TempDir(), "blocks.db"))
+		db, err = storage.Open(t.Context(), "sqlite", filepath.Join(t.TempDir(), "blocks.db"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -112,12 +112,12 @@ func testService(t *testing.T, fake *indexRPC, db *storage.Store) *Service {
 		t.Fatal(err)
 	}
 	registry.Source.SHA256 = "first-revision"
-	state, err := db.BlockState(context.Background(), fake.active[0])
+	state, err := db.BlockState(t.Context(), fake.active[0])
 	if err != nil {
 		t.Fatal(err)
 	}
 	state.Chain = "main"
-	service := &Service{client: fake, db: db, registry: registry, logger: zap.NewNop(), ctx: context.Background(), network: fake.active[0], state: state, wake: make(chan struct{}, 1)}
+	service := &Service{client: fake, db: db, registry: registry, logger: zap.NewNop(), ctx: t.Context(), network: fake.active[0], state: state, wake: make(chan struct{}, 1)}
 	chain := fake.chain()
 	service.Observe(&chain)
 	return service
@@ -125,13 +125,13 @@ func testService(t *testing.T, fake *indexRPC, db *storage.Store) *Service {
 
 func indexAll(t *testing.T, s *Service, fake *indexRPC) {
 	t.Helper()
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		chain := fake.chain()
 		s.Observe(&chain)
-		if err := s.step(context.Background(), chain); err != nil {
+		if err := s.step(t.Context(), chain); err != nil {
 			t.Fatal(err)
 		}
-		coverage, err := s.db.BlockCoverage(context.Background(), s.network)
+		coverage, err := s.db.BlockCoverage(t.Context(), s.network)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -145,10 +145,10 @@ func indexAll(t *testing.T, s *Service, fake *indexRPC) {
 func TestBackfillResumeAndLivePriority(t *testing.T) {
 	fake := newRPC(39)
 	s := testService(t, fake, nil)
-	if err := s.step(context.Background(), fake.chain()); err != nil {
+	if err := s.step(t.Context(), fake.chain()); err != nil {
 		t.Fatal(err)
 	}
-	coverage, _ := s.db.BlockCoverage(context.Background(), s.network)
+	coverage, _ := s.db.BlockCoverage(t.Context(), s.network)
 	if coverage.Headers != 16 || *coverage.OldestHeight != 24 {
 		t.Fatalf("first batch: %+v", coverage)
 	}
@@ -157,14 +157,14 @@ func TestBackfillResumeAndLivePriority(t *testing.T) {
 	fake.active = append(fake.active, hash(40))
 	chain := fake.chain()
 	s.Observe(&chain)
-	if err := s.step(context.Background(), chain); err != nil {
+	if err := s.step(t.Context(), chain); err != nil {
 		t.Fatal(err)
 	}
 	if fake.calls["getblock"]-before != 1 {
 		t.Fatal("live block did not take priority over backfill")
 	}
 	indexAll(t, s, fake)
-	latest, err := s.Latest(context.Background())
+	latest, err := s.Latest(t.Context())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -172,7 +172,7 @@ func TestBackfillResumeAndLivePriority(t *testing.T) {
 		t.Fatalf("latest: %+v", latest)
 	}
 	before = fake.calls["getblock"]
-	if err := s.step(context.Background(), fake.chain()); err != nil {
+	if err := s.step(t.Context(), fake.chain()); err != nil {
 		t.Fatal(err)
 	}
 	if fake.calls["getblock"] != before {
@@ -189,12 +189,12 @@ func TestHistoryDuringFirstBatch(t *testing.T) {
 	s := testService(t, fake, nil)
 	s.batchDelay = 10 * time.Millisecond
 	finished := make(chan error, 1)
-	go func() { finished <- s.step(context.Background(), fake.chain()) }()
+	go func() { finished <- s.step(t.Context(), fake.chain()) }()
 
 	// A connected node can serve the first history request before any batch
 	// has committed. Empty progress must remain a valid response, not a 503.
-	for i := 0; i < 10; i++ {
-		page, err := s.History(context.Background(), "", nil, 50)
+	for range 10 {
+		page, err := s.History(t.Context(), "", nil, 50)
 		if err != nil {
 			t.Fatalf("history unavailable during initial indexing: %v", err)
 		}
@@ -206,7 +206,7 @@ func TestHistoryDuringFirstBatch(t *testing.T) {
 	if err := <-finished; err != nil {
 		t.Fatal(err)
 	}
-	page, err := s.History(context.Background(), "", nil, 50)
+	page, err := s.History(t.Context(), "", nil, 50)
 	if err != nil || len(page.Blocks) != 16 {
 		t.Fatalf("history after first commit: blocks=%d, err=%v", len(page.Blocks), err)
 	}
@@ -216,7 +216,7 @@ func TestReorgInvalidatesHistoryAndEconomics(t *testing.T) {
 	fake := newRPC(35)
 	s := testService(t, fake, nil)
 	indexAll(t, s, fake)
-	page, err := s.History(context.Background(), "", nil, 10)
+	page, err := s.History(t.Context(), "", nil, 10)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -225,17 +225,17 @@ func TestReorgInvalidatesHistoryAndEconomics(t *testing.T) {
 		fake.active[i] = hash(int64(i + 1000))
 	}
 	indexAll(t, s, fake)
-	if _, err := s.History(context.Background(), page.Older, nil, 10); !errors.Is(err, ErrCursor) {
+	if _, err := s.History(t.Context(), page.Older, nil, 10); !errors.Is(err, ErrCursor) {
 		t.Fatalf("old cursor: %v", err)
 	}
-	if _, _, err := s.Block(context.Background(), old); !errors.Is(err, explorer.ErrInactive) {
+	if _, _, err := s.Block(t.Context(), old); !errors.Is(err, explorer.ErrInactive) {
 		t.Fatalf("orphan: %v", err)
 	}
-	coverage, _ := s.db.BlockCoverage(context.Background(), s.network)
+	coverage, _ := s.db.BlockCoverage(t.Context(), s.network)
 	if coverage.Headers != 36 {
 		t.Fatalf("reorg double counted: %+v", coverage)
 	}
-	economics, err := s.Economics(context.Background(), "all", time.Unix(1700100000, 0))
+	economics, err := s.Economics(t.Context(), "all", time.Unix(1700100000, 0))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -253,14 +253,14 @@ func TestPrunedHeadersAndDefinitionUpdates(t *testing.T) {
 	fake.pruneHeight = 10
 	s := testService(t, fake, nil)
 	indexAll(t, s, fake)
-	coverage, _ := s.db.BlockCoverage(context.Background(), s.network)
+	coverage, _ := s.db.BlockCoverage(t.Context(), s.network)
 	if coverage.Headers != 21 || coverage.Pruned != 10 || coverage.Statistics != 11 {
 		t.Fatalf("pruned coverage: %+v", coverage)
 	}
 	if fake.calls["getblock"] != 11 {
 		t.Fatal("tried to read pruned block bodies")
 	}
-	block, _, err := s.Block(context.Background(), fake.active[0])
+	block, _, err := s.Block(t.Context(), fake.active[0])
 	if err != nil || block.TotalFeesSats != nil {
 		t.Fatalf("missing statistics fabricated: %+v %v", block, err)
 	}
@@ -268,10 +268,10 @@ func TestPrunedHeadersAndDefinitionUpdates(t *testing.T) {
 	registry.Source.SHA256 = "second-revision"
 	s.registry = registry
 	before := fake.calls["getblock"]
-	if err := s.reattribute(context.Background()); err != nil {
+	if err := s.reattribute(t.Context()); err != nil {
 		t.Fatal(err)
 	}
-	_, pool, err := s.Block(context.Background(), fake.active[20])
+	_, pool, err := s.Block(t.Context(), fake.active[20])
 	if err != nil || pool.Pool == nil || pool.Pool.ID != 2 {
 		t.Fatalf("reattribution: %+v %v", pool, err)
 	}
@@ -286,26 +286,26 @@ func TestTransientStatisticsAndGenesis(t *testing.T) {
 	s := testService(t, fake, nil)
 	indexAll(t, s, fake)
 	for _, id := range fake.active {
-		row, _, _ := s.db.IndexedBlock(context.Background(), s.network, id)
+		row, _, _ := s.db.IndexedBlock(t.Context(), s.network, id)
 		row.RetryAt = time.Now().Add(-time.Hour)
-		if err := s.db.CommitBlockIndex(context.Background(), s.state, []storage.IndexedBlock{row}, nil); err != nil {
+		if err := s.db.CommitBlockIndex(t.Context(), s.state, []storage.IndexedBlock{row}, nil); err != nil {
 			t.Fatal(err)
 		}
 	}
 	fake.failStats = false
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		s.retryAt = time.Time{}
-		if err := s.retry(context.Background(), fake.chain()); err != nil {
+		if err := s.retry(t.Context(), fake.chain()); err != nil {
 			t.Fatal(err)
 		}
 	}
-	coverage, _ := s.db.BlockCoverage(context.Background(), s.network)
+	coverage, _ := s.db.BlockCoverage(t.Context(), s.network)
 	if coverage.Statistics != 5 {
 		t.Fatalf("retry coverage: %+v", coverage)
 	}
 	s.retryAt = time.Time{}
 	before := fake.calls["getblockstats"]
-	if err := s.retry(context.Background(), fake.chain()); err != nil {
+	if err := s.retry(t.Context(), fake.chain()); err != nil {
 		t.Fatal(err)
 	}
 	if fake.calls["getblockstats"] != before {
@@ -317,32 +317,32 @@ func TestCursorBoundsAndTipAnchor(t *testing.T) {
 	fake := newRPC(60)
 	s := testService(t, fake, nil)
 	indexAll(t, s, fake)
-	page, err := s.History(context.Background(), "", nil, 10)
+	page, err := s.History(t.Context(), "", nil, 10)
 	if err != nil {
 		t.Fatal(err)
 	}
 	fake.active = append(fake.active, hash(61))
 	indexAll(t, s, fake)
-	older, err := s.History(context.Background(), page.Older, nil, 10)
+	older, err := s.History(t.Context(), page.Older, nil, 10)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if older.Blocks[0].Height != 50 || older.AnchorHeight != 60 {
 		t.Fatalf("unstable cursor: %+v", older)
 	}
-	newer, err := s.History(context.Background(), older.Newer, nil, 10)
+	newer, err := s.History(t.Context(), older.Newer, nil, 10)
 	if err != nil || newer.Blocks[0].Height != 60 {
 		t.Fatalf("newer cursor: %+v %v", newer, err)
 	}
 	for _, bad := range []string{"bad", strings.Repeat("x", 513), encodeCursor(cursor{Network: s.network, Tip: hash(0), TipHeight: 0, Height: 3})} {
-		if _, err := s.History(context.Background(), bad, nil, 10); !errors.Is(err, explorer.ErrInvalid) {
+		if _, err := s.History(t.Context(), bad, nil, 10); !errors.Is(err, explorer.ErrInvalid) {
 			t.Fatalf("accepted malformed cursor: %v", err)
 		}
 	}
-	if _, err := s.History(context.Background(), "", nil, 101); !errors.Is(err, explorer.ErrInvalid) {
+	if _, err := s.History(t.Context(), "", nil, 101); !errors.Is(err, explorer.ErrInvalid) {
 		t.Fatal("unbounded page accepted")
 	}
-	if _, err := s.Economics(context.Background(), "invalid", time.Now()); !errors.Is(err, explorer.ErrInvalid) {
+	if _, err := s.Economics(t.Context(), "invalid", time.Now()); !errors.Is(err, explorer.ErrInvalid) {
 		t.Fatal("invalid economics range accepted")
 	}
 }
@@ -352,11 +352,11 @@ func TestOfflineReadsAndBoundedChartResponse(t *testing.T) {
 	s := testService(t, fake, nil)
 	indexAll(t, s, fake)
 	s.observed = time.Now().Add(-time.Hour)
-	page, err := s.History(context.Background(), "", nil, 50)
+	page, err := s.History(t.Context(), "", nil, 50)
 	if err != nil || !page.Stale || len(page.Blocks) != 3 {
 		t.Fatalf("offline history %+v %v", page, err)
 	}
-	history, err := s.Economics(context.Background(), "all", time.Now())
+	history, err := s.Economics(t.Context(), "all", time.Now())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -372,17 +372,17 @@ func TestOfflineReadsAndBoundedChartResponse(t *testing.T) {
 
 func TestIndexerShutdownAndSyncGate(t *testing.T) {
 	fake := newRPC(2)
-	db, err := storage.Open(context.Background(), "sqlite", filepath.Join(t.TempDir(), "shutdown.db"))
+	db, err := storage.Open(t.Context(), "sqlite", filepath.Join(t.TempDir(), "shutdown.db"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer db.Close()
 	registry, _ := miningpool.Load()
-	s := New(context.Background(), fake, db, registry, zap.NewNop())
+	s := New(t.Context(), fake, db, registry, zap.NewNop())
 	chain := fake.chain()
 	chain.InitialBlockDownload = true
 	s.Observe(&chain)
-	status, err := s.Status(context.Background())
+	status, err := s.Status(t.Context())
 	if err != nil || status.Status != "syncing" {
 		t.Fatalf("sync gate %+v %v", status, err)
 	}
@@ -399,13 +399,13 @@ func TestOfflineStartupRestoresStoredNetwork(t *testing.T) {
 	fake := newRPC(3)
 	s := testService(t, fake, nil)
 	indexAll(t, s, fake)
-	index := New(context.Background(), fake, s.db, s.registry, zap.NewNop())
+	index := New(t.Context(), fake, s.db, s.registry, zap.NewNop())
 	defer index.Close()
-	page, err := index.History(context.Background(), "", nil, 50)
+	page, err := index.History(t.Context(), "", nil, 50)
 	if err != nil || !page.Stale || len(page.Blocks) != 4 {
 		t.Fatalf("offline restart %+v %v", page, err)
 	}
-	status, err := index.Status(context.Background())
+	status, err := index.Status(t.Context())
 	if err != nil || status.Status != "offline" {
 		t.Fatalf("offline status %+v %v", status, err)
 	}
@@ -417,7 +417,7 @@ func TestOfflineStartupRestoresStoredNetwork(t *testing.T) {
 	chain.Chain = "test"
 	chain.InitialBlockDownload = true
 	s.Observe(&chain)
-	latest, err := s.Latest(context.Background())
+	latest, err := s.Latest(t.Context())
 	if err != nil || len(latest) != 0 {
 		t.Fatalf("network mixed old blocks %+v %v", latest, err)
 	}

@@ -186,12 +186,9 @@ func (c *Collector) Collect(ctx context.Context) {
 	var wg sync.WaitGroup
 
 	for i := range methods {
-		wg.Add(1)
-		go func(i int) {
-			defer wg.Done()
-
+		wg.Go(func() {
 			errs[i] = c.rpc.Call(rpcCtx, methods[i], nil, outputs[i])
-		}(i)
+		})
 	}
 
 	wg.Wait()
@@ -340,17 +337,12 @@ func (c *Collector) Collect(ctx context.Context) {
 	// Optional estimates run after core readings so a timeout cannot
 	// consume the block collection's deadline or replace node-health data.
 	var miningValues, feeValues map[string]storage.Measurement
-	wg.Add(2)
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		s.Mining, miningValues = c.collectMining(rpcCtx, chain, errs[0], s.Mining, now)
-	}()
-	go func() {
-		defer wg.Done()
-
+	})
+	wg.Go(func() {
 		s.Fees, feeValues = c.collectFees(rpcCtx, chain, errs[0], s.Fees, now)
-	}()
+	})
 	wg.Wait()
 
 	for _, measurements := range []map[string]storage.Measurement{miningValues, feeValues} {

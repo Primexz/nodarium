@@ -3,7 +3,6 @@ package geoip
 import (
 	"bytes"
 	"compress/gzip"
-	"context"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -244,7 +243,7 @@ func TestDownloadAtomicReplacement(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	good := append([]byte(nil), compressed.Bytes()...)
+	good := bytes.Clone(compressed.Bytes())
 	var invalidDB bytes.Buffer
 
 	invalidGzip := gzip.NewWriter(&invalidDB)
@@ -288,7 +287,7 @@ func TestDownloadAtomicReplacement(t *testing.T) {
 				}
 			})
 
-			err = s.download(context.Background(), server.URL)
+			err = s.download(t.Context(), server.URL)
 			readers.Wait()
 
 			if (err == nil) != tc.valid {

@@ -1,7 +1,6 @@
 package collector
 
 import (
-	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -16,7 +15,7 @@ func TestLogsTransitionsAndPersistenceWithoutSecrets(t *testing.T) {
 	f := &fakeRPC{fail: map[string]bool{}, chain: "regtest"}
 	db := &memoryStore{}
 	c := New(f, db, "http://private-endpoint", 10*time.Second, zap.New(core))
-	ctx := context.Background()
+	ctx := t.Context()
 	c.Collect(ctx)
 	c.Collect(ctx)
 

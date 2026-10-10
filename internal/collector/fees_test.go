@@ -25,7 +25,7 @@ func newFeeRPC() *feeRPC {
 	f := &feeRPC{miningRPC: newMiningRPC(), estimates: map[int]rpc.SmartFee{}}
 
 	for target, rate := range map[int]float64{2: .00012, 3: .00008, 6: .00004} {
-		f.estimates[target] = rpc.SmartFee{FeeRate: pointer(rate), Blocks: target}
+		f.estimates[target] = rpc.SmartFee{FeeRate: new(rate), Blocks: target}
 	}
 
 	return f
@@ -65,7 +65,7 @@ func TestFeeCollectionAndIndependentRecovery(t *testing.T) {
 	f := newFeeRPC()
 	db := &memoryStore{}
 	c := New(f, db, "node", 10*time.Second, nil)
-	c.Collect(context.Background())
+	c.Collect(t.Context())
 	s := c.Snapshot()
 
 	if s.Fees.Data == nil || s.Fees.Stale || s.Fees.Data.Mode != "conservative" || len(s.Fees.Data.Targets) != 3 {
@@ -97,8 +97,8 @@ func TestFeeCollectionAndIndependentRecovery(t *testing.T) {
 	}
 
 	f.fail = 3
-	f.estimates[6] = rpc.SmartFee{FeeRate: pointer(.00002), Blocks: 6}
-	c.Collect(context.Background())
+	f.estimates[6] = rpc.SmartFee{FeeRate: new(.00002), Blocks: 6}
+	c.Collect(t.Context())
 	updated := c.Snapshot().Fees.Data.Targets
 
 	if !updated[1].Stale || updated[1].Data != s.Fees.Data.Targets[1].Data || !updated[1].UpdatedAt.Equal(*s.Fees.Data.Targets[1].UpdatedAt) || updated[1].Error == "" {
@@ -114,13 +114,13 @@ func TestFeeCollectionAndIndependentRecovery(t *testing.T) {
 	}
 
 	f.fail = 0
-	c.Collect(context.Background())
+	c.Collect(t.Context())
 
 	if target := c.Snapshot().Fees.Data.Targets[1]; target.Stale || target.Error != "" || target.Data == nil {
 		t.Fatal("fee target did not recover")
 	}
 
-	c.snapshot.CheckedAt = pointer(time.Now().Add(-time.Hour))
+	c.snapshot.CheckedAt = new(time.Now().Add(-time.Hour))
 
 	if !c.Snapshot().Fees.Stale {
 		t.Fatal("expired fees not marked stale")
@@ -128,7 +128,7 @@ func TestFeeCollectionAndIndependentRecovery(t *testing.T) {
 
 	// A fresh insufficient-data response must clear the old valid estimate.
 	f.estimates[3] = rpc.SmartFee{Blocks: 3, Errors: []string{"untrusted node text"}}
-	c.Collect(context.Background())
+	c.Collect(t.Context())
 	target := c.Snapshot().Fees.Data.Targets[1]
 
 	if target.Data != nil || target.Stale || target.Error != "Not enough data to estimate this fee rate." {
@@ -139,19 +139,19 @@ func TestFeeCollectionAndIndependentRecovery(t *testing.T) {
 func TestFeeHistoryRejectsInvalidAndClampedTargets(t *testing.T) {
 	for _, sample := range []rpc.SmartFee{
 		{Blocks: 2},
-		{FeeRate: pointer(0.0), Blocks: 2},
-		{FeeRate: pointer(-1.0), Blocks: 2},
-		{FeeRate: pointer(math.NaN()), Blocks: 2},
-		{FeeRate: pointer(math.Inf(1)), Blocks: 2},
-		{FeeRate: pointer(math.MaxFloat64), Blocks: 2},
-		{FeeRate: pointer(.00001), Blocks: 0},
-		{FeeRate: pointer(.00001), Blocks: 1009},
-		{FeeRate: pointer(.00001), Blocks: 2, Errors: []string{"node error"}},
+		{FeeRate: new(0.0), Blocks: 2},
+		{FeeRate: new(-1.0), Blocks: 2},
+		{FeeRate: new(math.NaN()), Blocks: 2},
+		{FeeRate: new(math.Inf(1)), Blocks: 2},
+		{FeeRate: new(math.MaxFloat64), Blocks: 2},
+		{FeeRate: new(.00001), Blocks: 0},
+		{FeeRate: new(.00001), Blocks: 1009},
+		{FeeRate: new(.00001), Blocks: 2, Errors: []string{"node error"}},
 	} {
 		f := newFeeRPC()
 		f.estimates[2] = sample
 		c := New(f, &memoryStore{}, "node", 10*time.Second, nil)
-		section, values := c.collectFees(context.Background(), f.blockchain, nil, Section[Fees]{}, time.Now())
+		section, values := c.collectFees(t.Context(), f.blockchain, nil, Section[Fees]{}, time.Now())
 
 		if section.Data.Targets[0].Data != nil || section.Data.Targets[0].Error == "" {
 			t.Fatalf("invalid estimate exposed: %+v", sample)
@@ -163,9 +163,9 @@ func TestFeeHistoryRejectsInvalidAndClampedTargets(t *testing.T) {
 	}
 
 	f := newFeeRPC()
-	f.estimates[6] = rpc.SmartFee{FeeRate: pointer(.00003), Blocks: 3}
+	f.estimates[6] = rpc.SmartFee{FeeRate: new(.00003), Blocks: 3}
 	c := New(f, &memoryStore{}, "node", 10*time.Second, nil)
-	section, values := c.collectFees(context.Background(), f.blockchain, nil, Section[Fees]{}, time.Now())
+	section, values := c.collectFees(t.Context(), f.blockchain, nil, Section[Fees]{}, time.Now())
 
 	if target := section.Data.Targets[2]; target.Data == nil || target.Data.Blocks != 3 || target.Data.Rate != 3 || target.Target != 6 {
 		t.Fatal("returned target was not preserved")
@@ -184,14 +184,14 @@ func TestFeesUnavailableDuringSyncAndChainFailure(t *testing.T) {
 		{InitialBlockDownload: true},
 		{Blocks: 1, Headers: 2},
 	} {
-		section, values := c.collectFees(context.Background(), chain, nil, Section[Fees]{}, time.Now())
+		section, values := c.collectFees(t.Context(), chain, nil, Section[Fees]{}, time.Now())
 
 		if section.Data != nil || section.Error == "" || len(values) != 0 || len(f.calls) != 0 {
 			t.Fatal("syncing produced fee estimates or history")
 		}
 	}
 
-	section, values := c.collectFees(context.Background(), f.blockchain, errors.New("chain unavailable"), Section[Fees]{}, time.Now())
+	section, values := c.collectFees(t.Context(), f.blockchain, errors.New("chain unavailable"), Section[Fees]{}, time.Now())
 
 	if section.Data != nil || !section.Stale || len(values) != 0 || len(f.calls) != 0 {
 		t.Fatal("missing blockchain reading produced fees")
@@ -204,7 +204,7 @@ func TestFeeTimeoutPreservesCoreAndMiningReadings(t *testing.T) {
 	f.fakeRPC.tip = "a"
 	f.wait = true
 	c := New(f, &memoryStore{}, "node", 100*time.Millisecond, nil)
-	c.Collect(context.Background())
+	c.Collect(t.Context())
 	s := c.Snapshot()
 
 	if s.Status != "connected" || s.Overview.Stale || s.Blocks.Stale || s.Mining.Data == nil || s.Mining.Stale {

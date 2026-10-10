@@ -2,13 +2,14 @@
 package geoip
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"math"
 	"net"
 	"net/netip"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -343,9 +344,9 @@ func (s *Service) Map(peers []rpc.Peer, addresses []rpc.LocalAddress) MapData {
 		return result
 	}
 
-	candidates := append([]rpc.LocalAddress(nil), addresses...)
-	sort.SliceStable(candidates, func(i, j int) bool {
-		return candidates[i].Score > candidates[j].Score
+	candidates := slices.Clone(addresses)
+	slices.SortStableFunc(candidates, func(a, b rpc.LocalAddress) int {
+		return cmp.Compare(b.Score, a.Score)
 	})
 
 	if s.db != nil {

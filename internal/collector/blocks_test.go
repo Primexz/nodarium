@@ -123,9 +123,7 @@ func (f *statsRPC) subsidy(hash string) *int64 {
 		return value
 	}
 
-	value := int64(312500000)
-
-	return &value
+	return new(int64(312500000))
 }
 
 func (f *statsRPC) rate(hash string) *float64 {
@@ -133,9 +131,7 @@ func (f *statsRPC) rate(hash string) *float64 {
 		return value
 	}
 
-	value := float64(8)
-
-	return &value
+	return new(float64(8))
 }
 
 func newStatsRPC() *statsRPC {
@@ -154,7 +150,7 @@ func TestBlockAmountsRetryCacheAndChainIsolation(t *testing.T) {
 	f.totals["a"] = &amount
 	f.failStats = true
 	c := New(f, &memoryStore{}, "node", 10*time.Second, nil)
-	ctx := context.Background()
+	ctx := t.Context()
 	c.Collect(ctx)
 	before := c.Snapshot()
 
@@ -220,9 +216,9 @@ func TestBlockAmountValidationAndOverlappingHeaders(t *testing.T) {
 	negative := int64(-1)
 	f.totals = map[string]*int64{"a": &value, "b": &value, "invalid": &negative}
 	c := New(f, &memoryStore{}, "node", 10*time.Second, nil)
-	first := c.blockStatistics(context.Background(), []Block{{Block: rpc.Block{Hash: "a"}}}, nil)
+	first := c.blockStatistics(t.Context(), []Block{{Block: rpc.Block{Hash: "a"}}}, nil)
 	second := c.blockStatistics(
-		context.Background(),
+		t.Context(),
 		[]Block{
 			{Block: rpc.Block{Hash: "b"}},
 			{Block: rpc.Block{Hash: "a"}},
@@ -245,7 +241,7 @@ func TestBlockAmountValidationAndOverlappingHeaders(t *testing.T) {
 
 	f.wrongHash = true
 
-	if got := c.blockStatistics(context.Background(), first, nil); got[0].TotalTransactionAmountSats != nil {
+	if got := c.blockStatistics(t.Context(), first, nil); got[0].TotalTransactionAmountSats != nil {
 		t.Fatal("mismatched statistics accepted")
 	}
 }
@@ -255,7 +251,7 @@ func TestTransactionCountValidationAndPartialRetry(t *testing.T) {
 		f := newStatsRPC()
 		f.counts = map[string]*int64{"a": &value}
 		c := New(f, &memoryStore{}, "node", 10*time.Second, nil)
-		result := c.blockStatistics(context.Background(), []Block{{Block: rpc.Block{Hash: "a"}}}, nil)
+		result := c.blockStatistics(t.Context(), []Block{{Block: rpc.Block{Hash: "a"}}}, nil)
 
 		if value <= 0 && result[0].TransactionCount != nil {
 			t.Fatal("invalid transaction count accepted")
@@ -271,14 +267,14 @@ func TestTransactionCountValidationAndPartialRetry(t *testing.T) {
 	f.totals["a"] = &amount
 	f.counts = map[string]*int64{"a": nil}
 	c := New(f, &memoryStore{}, "node", 10*time.Second, nil)
-	first := c.blockStatistics(context.Background(), []Block{{Block: rpc.Block{Hash: "a"}}}, nil)
+	first := c.blockStatistics(t.Context(), []Block{{Block: rpc.Block{Hash: "a"}}}, nil)
 
 	if first[0].TransactionCount != nil || first[0].TotalTransactionAmountSats == nil {
 		t.Fatal("missing count hid available amount")
 	}
 
 	f.failStats = true
-	second := c.blockStatistics(context.Background(), first, &first)
+	second := c.blockStatistics(t.Context(), first, &first)
 
 	if second[0].TotalTransactionAmountSats == nil || second[0].TransactionCount != nil {
 		t.Fatal("retry failure lost previously available statistics")
@@ -287,20 +283,20 @@ func TestTransactionCountValidationAndPartialRetry(t *testing.T) {
 	f.failStats = false
 	count := int64(1)
 	f.counts["a"] = &count
-	third := c.blockStatistics(context.Background(), second, &second)
+	third := c.blockStatistics(t.Context(), second, &second)
 
 	if third[0].TransactionCount == nil || *third[0].TransactionCount != 1 || f.calls["a"] != 3 {
 		t.Fatal("missing count not retried")
 	}
 
-	c.blockStatistics(context.Background(), third, &third)
+	c.blockStatistics(t.Context(), third, &third)
 
 	if f.calls["a"] != 3 {
 		t.Fatal("complete statistics not cached")
 	}
 
 	f.wrongHash = true
-	result := c.blockStatistics(context.Background(), third, nil)
+	result := c.blockStatistics(t.Context(), third, nil)
 
 	if result[0].TransactionCount != nil {
 		t.Fatal("count from wrong hash accepted")
@@ -315,7 +311,7 @@ func TestFullBlockDetailsCacheAndIndependentRecovery(t *testing.T) {
 	f.failBlock = true
 	c := New(f, &memoryStore{}, "node", 10*time.Second, nil)
 	blocks := []Block{{Block: rpc.Block{Hash: "a"}}}
-	first := c.blockStatistics(context.Background(), blocks, nil)
+	first := c.blockStatistics(t.Context(), blocks, nil)
 
 	if first[0].TotalFeesSats == nil ||
 		*first[0].TotalFeesSats != "12567890" ||
@@ -325,7 +321,7 @@ func TestFullBlockDetailsCacheAndIndependentRecovery(t *testing.T) {
 	}
 
 	f.failBlock = false
-	second := c.blockStatistics(context.Background(), blocks, &first)
+	second := c.blockStatistics(t.Context(), blocks, &first)
 
 	if second[0].SizeBytes == nil ||
 		*second[0].SizeBytes != 1750000 ||
@@ -340,7 +336,7 @@ func TestFullBlockDetailsCacheAndIndependentRecovery(t *testing.T) {
 		t.Fatal("unnecessary stats retry or old snapshot mutated")
 	}
 
-	c.blockStatistics(context.Background(), blocks, &second)
+	c.blockStatistics(t.Context(), blocks, &second)
 
 	if f.blockCalls["a"] != 2 || f.calls["a"] != 1 {
 		t.Fatal("complete details not cached")
@@ -349,7 +345,7 @@ func TestFullBlockDetailsCacheAndIndependentRecovery(t *testing.T) {
 	f.failStats = true
 	count := int64(1)
 	f.metadata = &rpc.BlockMetadata{Transactions: &count}
-	third := c.blockStatistics(context.Background(), blocks, nil)
+	third := c.blockStatistics(t.Context(), blocks, nil)
 
 	if third[0].TransactionCount == nil || *third[0].TransactionCount != 1 || third[0].TotalFeesSats != nil {
 		t.Fatal("metadata count fallback failed")
@@ -363,7 +359,7 @@ func TestBlockDetailValidation(t *testing.T) {
 		f.fees = map[string]*int64{"a": &negativeFee}
 		f.metadata = &rpc.BlockMetadata{Size: &value, Weight: &value}
 		c := New(f, &memoryStore{}, "node", 10*time.Second, nil)
-		block := c.blockStatistics(context.Background(), []Block{{Block: rpc.Block{Hash: "a"}}}, nil)[0]
+		block := c.blockStatistics(t.Context(), []Block{{Block: rpc.Block{Hash: "a"}}}, nil)[0]
 
 		if block.TotalFeesSats != nil ||
 			block.SizeBytes != nil ||
@@ -377,7 +373,7 @@ func TestBlockDetailValidation(t *testing.T) {
 	size, weight := int64(1000000), int64(4000000)
 	f.metadata = &rpc.BlockMetadata{Size: &size, Weight: &weight}
 	c := New(f, &memoryStore{}, "node", 10*time.Second, nil)
-	block := c.blockStatistics(context.Background(), []Block{{Block: rpc.Block{Hash: "a"}}}, nil)[0]
+	block := c.blockStatistics(t.Context(), []Block{{Block: rpc.Block{Hash: "a"}}}, nil)[0]
 
 	if block.CapacityPercent == nil ||
 		*block.CapacityPercent != 100 ||
@@ -387,7 +383,7 @@ func TestBlockDetailValidation(t *testing.T) {
 	}
 
 	f.wrongHash = true
-	block = c.blockStatistics(context.Background(), []Block{{Block: rpc.Block{Hash: "a"}}}, nil)[0]
+	block = c.blockStatistics(t.Context(), []Block{{Block: rpc.Block{Hash: "a"}}}, nil)[0]
 
 	if block.TotalFeesSats != nil || block.SizeBytes != nil || block.WeightUnits != nil {
 		t.Fatal("details from a different block accepted")
@@ -399,7 +395,7 @@ func TestBlockMedianFeeRateIsOptionalAndCached(t *testing.T) {
 		f := newStatsRPC()
 		f.percentiles = percentiles
 		c := New(f, &memoryStore{}, "node", 10*time.Second, nil)
-		c.Collect(context.Background())
+		c.Collect(t.Context())
 		got := (*c.Snapshot().Blocks.Data)[0].MedianFeeRate
 		valid := len(percentiles) == 5 && percentiles[2] >= 0
 
@@ -411,7 +407,7 @@ func TestBlockMedianFeeRateIsOptionalAndCached(t *testing.T) {
 			t.Fatal("unavailable median fabricated", got)
 		}
 
-		c.Collect(context.Background())
+		c.Collect(t.Context())
 		cached := (*c.Snapshot().Blocks.Data)[0].MedianFeeRate
 
 		if valid && (cached == nil || *cached != *got) {
@@ -427,14 +423,14 @@ func TestBlockEconomicsRetryAndCache(t *testing.T) {
 	f.rates = map[string]*float64{"a": nil}
 	c := New(f, &memoryStore{}, "node", 10*time.Second, nil)
 	blocks := []Block{{Block: rpc.Block{Hash: "a"}}}
-	first := c.blockStatistics(context.Background(), blocks, nil)
+	first := c.blockStatistics(t.Context(), blocks, nil)
 
 	if first[0].SubsidySats == nil || *first[0].SubsidySats != "312500000" || first[0].AverageFeeRate != nil {
 		t.Fatal("partial economics statistics lost or fabricated")
 	}
 
 	f.failStats = true
-	second := c.blockStatistics(context.Background(), blocks, &first)
+	second := c.blockStatistics(t.Context(), blocks, &first)
 
 	if second[0].SubsidySats == nil || *second[0].SubsidySats != "312500000" || second[0].AverageFeeRate != nil {
 		t.Fatal("retry failure erased the available subsidy")
@@ -443,7 +439,7 @@ func TestBlockEconomicsRetryAndCache(t *testing.T) {
 	f.failStats = false
 	zeroRate := float64(0)
 	f.rates["a"] = &zeroRate
-	third := c.blockStatistics(context.Background(), blocks, &second)
+	third := c.blockStatistics(t.Context(), blocks, &second)
 
 	if third[0].AverageFeeRate == nil || *third[0].AverageFeeRate != 0 || f.calls["a"] != 3 || f.blockCalls["a"] != 1 {
 		t.Fatal("missing rate not retried independently of cached metadata")
@@ -453,7 +449,7 @@ func TestBlockEconomicsRetryAndCache(t *testing.T) {
 		t.Fatal("enrichment mutated an already published snapshot")
 	}
 
-	c.blockStatistics(context.Background(), blocks, &third)
+	c.blockStatistics(t.Context(), blocks, &third)
 
 	if f.calls["a"] != 3 {
 		t.Fatal("complete zero-valued rate not cached")
@@ -463,7 +459,7 @@ func TestBlockEconomicsRetryAndCache(t *testing.T) {
 	zeroSubsidy := int64(0)
 	f.totals["b"] = &amount
 	f.subsidies = map[string]*int64{"b": &zeroSubsidy}
-	replacement := c.blockStatistics(context.Background(), []Block{{Block: rpc.Block{Hash: "b"}}}, &third)
+	replacement := c.blockStatistics(t.Context(), []Block{{Block: rpc.Block{Hash: "b"}}}, &third)
 
 	if replacement[0].SubsidySats == nil || *replacement[0].SubsidySats != "0" {
 		t.Fatal("real zero subsidy lost or reorg reused old economics")
@@ -477,7 +473,7 @@ func TestBlockEconomicsValidation(t *testing.T) {
 		f.subsidies = map[string]*int64{"a": &subsidy}
 		f.rates = map[string]*float64{"a": &negativeRate}
 		c := New(f, &memoryStore{}, "node", 10*time.Second, nil)
-		got := c.blockStatistics(context.Background(), []Block{{Block: rpc.Block{Hash: "a"}}}, nil)[0]
+		got := c.blockStatistics(t.Context(), []Block{{Block: rpc.Block{Hash: "a"}}}, nil)[0]
 		valid := subsidy >= 0 && subsidy <= 5000000000
 
 		if valid != (got.SubsidySats != nil) || got.AverageFeeRate != nil {
@@ -488,7 +484,7 @@ func TestBlockEconomicsValidation(t *testing.T) {
 	f := newStatsRPC()
 	f.wrongHash = true
 	c := New(f, &memoryStore{}, "node", 10*time.Second, nil)
-	got := c.blockStatistics(context.Background(), []Block{{Block: rpc.Block{Hash: "a"}}}, nil)[0]
+	got := c.blockStatistics(t.Context(), []Block{{Block: rpc.Block{Hash: "a"}}}, nil)[0]
 
 	if got.SubsidySats != nil || got.AverageFeeRate != nil {
 		t.Fatal("economics from a different block hash accepted")

@@ -3,12 +3,14 @@
 package blockindex
 
 import (
+	"cmp"
 	"context"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"maps"
 	"math"
-	"sort"
+	"slices"
 	"strconv"
 	"sync"
 	"time"
@@ -92,8 +94,7 @@ func (s *Service) Observe(chain *rpc.Blockchain) {
 	if s.chain != nil && s.chain.Chain != chain.Chain {
 		s.network = ""
 	}
-	copy := *chain
-	s.chain, s.observed = &copy, time.Now()
+	s.chain, s.observed = new(*chain), time.Now()
 	s.mu.Unlock()
 	select {
 	case s.wake <- struct{}{}:
@@ -107,8 +108,7 @@ func (s *Service) current() (*rpc.Blockchain, string, time.Time) {
 	if s.chain == nil {
 		return nil, s.network, s.observed
 	}
-	copy := *s.chain
-	return &copy, s.network, s.observed
+	return new(*s.chain), s.network, s.observed
 }
 
 func (s *Service) stale(observed time.Time) bool {
@@ -549,15 +549,13 @@ func sats(value *int64) *string {
 	if value == nil {
 		return nil
 	}
-	text := strconv.FormatInt(*value, 10)
-	return &text
+	return new(strconv.FormatInt(*value, 10))
 }
 
 func view(block storage.IndexedBlock, tip int64) collector.Block {
 	result := collector.Block{Block: rpc.Block{Hash: block.Hash, Height: block.Height, Time: block.Time, Previous: block.Previous, Confirmations: max(int64(0), tip-block.Height+1)}, TotalTransactionAmountSats: sats(block.TotalOutputSats), TransactionCount: block.TransactionCount, TotalFeesSats: sats(block.TotalFeesSats), SubsidySats: sats(block.SubsidySats), SizeBytes: block.SizeBytes, WeightUnits: block.WeightUnits, MedianFeeRate: block.MedianFeeRate, AverageFeeRate: block.AverageFeeRate}
 	if block.WeightUnits != nil {
-		capacity := float64(*block.WeightUnits) / 4_000_000 * 100
-		result.CapacityPercent = &capacity
+		result.CapacityPercent = new(float64(*block.WeightUnits) / 4_000_000 * 100)
 	}
 	return result
 }
@@ -672,22 +670,22 @@ func (s *Service) Snapshot(chain *rpc.Blockchain, stale bool, window int) mining
 		counts[id] = share
 		result.Scanned++
 	}
-	for _, share := range counts {
+	for share := range maps.Values(counts) {
 		share.Percent = float64(share.Blocks) / float64(result.Scanned) * 100
 		result.Shares = append(result.Shares, share)
 	}
-	sort.Slice(result.Shares, func(i, j int) bool {
-		if result.Shares[i].Blocks != result.Shares[j].Blocks {
-			return result.Shares[i].Blocks > result.Shares[j].Blocks
+	slices.SortFunc(result.Shares, func(a, b miningpool.Share) int {
+		if order := cmp.Compare(b.Blocks, a.Blocks); order != 0 {
+			return order
 		}
 		left, right := 0, 0
-		if result.Shares[i].Pool != nil {
-			left = result.Shares[i].Pool.ID
+		if a.Pool != nil {
+			left = a.Pool.ID
 		}
-		if result.Shares[j].Pool != nil {
-			right = result.Shares[j].Pool.ID
+		if b.Pool != nil {
+			right = b.Pool.ID
 		}
-		return left < right
+		return cmp.Compare(left, right)
 	})
 	result.Status = "indexing"
 	if result.Scanned == result.Target {
@@ -696,8 +694,7 @@ func (s *Service) Snapshot(chain *rpc.Blockchain, stale bool, window int) mining
 		result.Status = "partial"
 	}
 	if len(rows) > 0 {
-		at := rows[0].UpdatedAt
-		result.UpdatedAt = &at
+		result.UpdatedAt = new(rows[0].UpdatedAt)
 	}
 	result.Stale = stale || len(rows) == 0 || rows[0].Hash != chain.BestBlockHash
 	if stale {

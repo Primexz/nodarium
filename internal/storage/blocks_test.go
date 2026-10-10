@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -19,7 +18,7 @@ func TestPersistentBlockStorage(t *testing.T) {
 					t.Skip("TEST_POSTGRES_DSN not set")
 				}
 			}
-			ctx := context.Background()
+			ctx := t.Context()
 			s, err := Open(ctx, driver, dsn)
 			if err != nil {
 				t.Fatal(err)
@@ -35,7 +34,7 @@ func TestPersistentBlockStorage(t *testing.T) {
 				{Network: network, Hash: "h2", Height: 2, Time: 7200, MetadataStatus: "pruned", StatisticsStatus: "pruned"},
 				{Network: network, Hash: "h3", Height: 3, Time: 10800, MetadataStatus: "partial", StatisticsStatus: "partial"},
 			}
-			for i := 0; i < 2; i++ {
+			for range 2 {
 				if err := s.CommitBlockIndex(ctx, state, rows, nil); err != nil {
 					t.Fatal(err)
 				}
@@ -88,7 +87,7 @@ func TestPersistentBlockStorage(t *testing.T) {
 }
 
 func TestUpgradeVersionOneKeepsMonitoringHistory(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	s, err := Open(ctx, "sqlite", filepath.Join(t.TempDir(), "old.db"))
 	if err != nil {
 		t.Fatal(err)

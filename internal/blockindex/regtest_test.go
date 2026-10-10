@@ -17,7 +17,7 @@ func TestCoreRegtestIndex(t *testing.T) {
 	if endpoint == "" {
 		t.Skip("TEST_BITCOIN_RPC_URL not set")
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(t.Context(), 15*time.Second)
 	defer cancel()
 	client := rpc.New(endpoint, "monitor", "integration-only", nil)
 	var chain rpc.Blockchain

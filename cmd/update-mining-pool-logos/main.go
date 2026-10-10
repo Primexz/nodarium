@@ -114,8 +114,8 @@ func localReference(value string) bool {
 	// Some upstream SVGs include their original PNG artwork. Only inert,
 	// embedded raster bytes are allowed; never an external or nested SVG URL.
 	for _, prefix := range []string{"data:image/png;base64,", "data:image/jpeg;base64,"} {
-		if strings.HasPrefix(value, prefix) {
-			encoded := strings.Join(strings.Fields(strings.TrimPrefix(value, prefix)), "")
+		if encoded, ok := strings.CutPrefix(value, prefix); ok {
+			encoded = strings.Join(strings.Fields(encoded), "")
 			_, err := base64.StdEncoding.DecodeString(encoded)
 
 			return err == nil
@@ -251,10 +251,7 @@ func downloadLogos(ctx context.Context, client *http.Client, commit string, entr
 	jobs := make(chan entry)
 
 	for range 4 {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
+		wg.Go(func() {
 			for item := range jobs {
 				raw, err := fetch(ctx, client, "https://raw.githubusercontent.com/mempool/mining-pool-logos/"+commit+"/"+item.Path)
 
@@ -280,7 +277,7 @@ func downloadLogos(ctx context.Context, client *http.Client, commit string, entr
 
 				lock.Unlock()
 			}
-		}()
+		})
 	}
 
 	for _, item := range entries {

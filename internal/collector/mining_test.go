@@ -70,7 +70,7 @@ func TestMiningCollectionAndRecovery(t *testing.T) {
 	f := newMiningRPC()
 	db := &memoryStore{}
 	c := New(f, db, "node", 10*time.Second, nil)
-	c.Collect(context.Background())
+	c.Collect(t.Context())
 	s := c.Snapshot()
 
 	if s.Mining.Data == nil ||
@@ -103,7 +103,7 @@ func TestMiningCollectionAndRecovery(t *testing.T) {
 
 	f.failWindow = 144
 	f.estimates[1008] = 900e18
-	c.Collect(context.Background())
+	c.Collect(t.Context())
 
 	if failed := c.Snapshot().Mining; !failed.Stale || failed.Data != s.Mining.Data || failed.Error == "" {
 		t.Fatalf("last complete estimate lost: %+v", failed)
@@ -118,13 +118,13 @@ func TestMiningCollectionAndRecovery(t *testing.T) {
 	}
 
 	f.failWindow = 0
-	c.Collect(context.Background())
+	c.Collect(t.Context())
 
 	if recovered := c.Snapshot().Mining; recovered.Stale || recovered.Error != "" || recovered.Data.Hashrate1008 != 900e18 {
 		t.Fatal("mining did not recover")
 	}
 
-	c.snapshot.CheckedAt = pointer(time.Now().Add(-time.Hour))
+	c.snapshot.CheckedAt = new(time.Now().Add(-time.Hour))
 
 	if !c.Snapshot().Mining.Stale {
 		t.Fatal("expired estimate not marked stale")
@@ -138,7 +138,7 @@ func TestMiningUnavailableDoesNotCreateHistory(t *testing.T) {
 	} {
 		f := newMiningRPC()
 		c := New(f, &memoryStore{}, "node", 10*time.Second, nil)
-		section, values := c.collectMining(context.Background(), syncing, nil, Section[Mining]{}, time.Now())
+		section, values := c.collectMining(t.Context(), syncing, nil, Section[Mining]{}, time.Now())
 
 		if section.Data != nil || section.Error == "" || len(values) != 0 || len(f.calls) != 0 {
 			t.Fatal("syncing polluted network history")
@@ -149,7 +149,7 @@ func TestMiningUnavailableDoesNotCreateHistory(t *testing.T) {
 		f := newMiningRPC()
 		f.estimates[144] = invalid
 		c := New(f, &memoryStore{}, "node", 10*time.Second, nil)
-		section, values := c.collectMining(context.Background(), f.blockchain, nil, Section[Mining]{}, time.Now())
+		section, values := c.collectMining(t.Context(), f.blockchain, nil, Section[Mining]{}, time.Now())
 
 		if section.Data != nil || section.Error == "" {
 			t.Fatal("invalid estimate exposed")
@@ -163,7 +163,7 @@ func TestMiningUnavailableDoesNotCreateHistory(t *testing.T) {
 	f := newMiningRPC()
 	c := New(f, &memoryStore{}, "node", 10*time.Second, nil)
 	section, values := c.collectMining(
-		context.Background(),
+		t.Context(),
 		f.blockchain,
 		errors.New("node unavailable"),
 		Section[Mining]{},
@@ -175,17 +175,13 @@ func TestMiningUnavailableDoesNotCreateHistory(t *testing.T) {
 	}
 }
 
-func pointer[T any](value T) *T {
-	return &value
-}
-
 func TestMiningTimeoutPreservesCoreReadings(t *testing.T) {
 	f := newMiningRPC()
 	f.blockchain.BestBlockHash = "a"
 	f.fakeRPC.tip = "a"
 	f.waitForTimeout = true
 	c := New(f, &memoryStore{}, "node", 25*time.Millisecond, nil)
-	c.Collect(context.Background())
+	c.Collect(t.Context())
 	s := c.Snapshot()
 
 	if s.Status != "connected" ||

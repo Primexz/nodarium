@@ -1,7 +1,6 @@
 package collector
 
 import (
-	"context"
 	"github.com/Primexz/nodarium/internal/rpc"
 	"os"
 	"strconv"
@@ -17,7 +16,7 @@ func TestRegtest(t *testing.T) {
 	}
 
 	c := New(rpc.New(endpoint, "monitor", "integration-only", nil), &memoryStore{}, endpoint, 10*time.Second, nil)
-	c.Collect(context.Background())
+	c.Collect(t.Context())
 	s := c.Snapshot()
 
 	if s.Status != "connected" {
@@ -38,7 +37,7 @@ func TestRegtest(t *testing.T) {
 	client := rpc.New(endpoint, "monitor", "integration-only", nil)
 
 	if err := client.Call(
-		context.Background(),
+		t.Context(),
 		"getblockstats",
 		[]any{first.Hash, []string{"blockhash", "total_out", "txs", "totalfee", "subsidy", "avgfeerate"}},
 		&stats,
@@ -77,7 +76,7 @@ func TestRegtest(t *testing.T) {
 
 	var metadata rpc.BlockMetadata
 
-	if err := client.Call(context.Background(), "getblock", []any{first.Hash, 1}, &metadata); err != nil {
+	if err := client.Call(t.Context(), "getblock", []any{first.Hash, 1}, &metadata); err != nil {
 		t.Fatal(err)
 	}
 
@@ -99,7 +98,7 @@ func TestRegtest(t *testing.T) {
 	for _, target := range feeTargets {
 		var estimate rpc.SmartFee
 
-		if err := client.Call(context.Background(), "estimatesmartfee", []any{target, "CONSERVATIVE"}, &estimate); err != nil {
+		if err := client.Call(t.Context(), "estimatesmartfee", []any{target, "CONSERVATIVE"}, &estimate); err != nil {
 			t.Fatal("real fee estimation RPC failed:", err)
 		}
 

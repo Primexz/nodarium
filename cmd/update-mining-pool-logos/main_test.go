@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/hex"
@@ -12,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -135,7 +135,7 @@ func TestPinnedDownloadIntegrityAndLimits(t *testing.T) {
 		return &http.Response{StatusCode: 200, Body: io.NopCloser(bytes.NewReader(raw))}, nil
 	})}
 
-	files, err := downloadLogos(context.Background(), client, "pinned-commit", entries)
+	files, err := downloadLogos(t.Context(), client, "pinned-commit", entries)
 
 	if err != nil || len(files) != 4 {
 		t.Fatalf("valid download failed: %v", err)
@@ -149,10 +149,10 @@ func TestPinnedDownloadIntegrityAndLimits(t *testing.T) {
 		func(e []entry) { e[0].Path = e[1].Path },
 		func(e []entry) { e[0].Size = 1 << 20 },
 	} {
-		broken := append([]entry(nil), entries...)
+		broken := slices.Clone(entries)
 		mutate(broken)
 
-		if _, err := downloadLogos(context.Background(), client, "pinned-commit", broken); err == nil {
+		if _, err := downloadLogos(t.Context(), client, "pinned-commit", broken); err == nil {
 			t.Fatal("accepted a corrupt or unsafe tree")
 		}
 	}
@@ -162,7 +162,7 @@ func TestPinnedDownloadIntegrityAndLimits(t *testing.T) {
 			return &http.Response{StatusCode: status, Body: io.NopCloser(strings.NewReader("unavailable"))}, nil
 		})
 
-		if _, err := downloadLogos(context.Background(), client, "pinned-commit", entries); err == nil {
+		if _, err := downloadLogos(t.Context(), client, "pinned-commit", entries); err == nil {
 			t.Fatal("accepted a failed download")
 		}
 	}
@@ -171,7 +171,7 @@ func TestPinnedDownloadIntegrityAndLimits(t *testing.T) {
 		return &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(strings.Repeat("x", maxDownload+1)))}, nil
 	})
 
-	if _, err := fetch(context.Background(), client, "https://example.com"); err == nil {
+	if _, err := fetch(t.Context(), client, "https://example.com"); err == nil {
 		t.Fatal("accepted oversized download")
 	}
 }

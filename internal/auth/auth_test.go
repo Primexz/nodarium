@@ -81,7 +81,7 @@ func TestCSRFAndRateLimit(t *testing.T) {
 		t.Fatal("cross-origin accepted")
 	}
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		if w := login(m, "wrong", ""); w.Code != 401 {
 			t.Fatal(w.Code)
 		}
