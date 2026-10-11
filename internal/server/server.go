@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Primexz/nodarium/internal/activity"
 	"github.com/Primexz/nodarium/internal/auth"
 	"github.com/Primexz/nodarium/internal/blockindex"
 	"github.com/Primexz/nodarium/internal/collector"
@@ -55,6 +56,14 @@ func New(
 	logger *zap.Logger,
 	indexes ...*blockindex.Service,
 ) http.Handler {
+	return newServer(a, c, db, assets, mapper, blocks, pools, logger, nil, indexes...)
+}
+
+func NewWithActivity(a *auth.Manager, c Snapshots, db HistoryStore, assets fs.FS, mapper PeerMapper, blocks BlockExplorer, pools PoolDistributions, logger *zap.Logger, events *activity.Service, indexes ...*blockindex.Service) http.Handler {
+	return newServer(a, c, db, assets, mapper, blocks, pools, logger, events, indexes...)
+}
+
+func newServer(a *auth.Manager, c Snapshots, db HistoryStore, assets fs.FS, mapper PeerMapper, blocks BlockExplorer, pools PoolDistributions, logger *zap.Logger, events *activity.Service, indexes ...*blockindex.Service) http.Handler {
 	logger = logging.Component(logger, "http")
 	mux := http.NewServeMux()
 	mux.HandleFunc(
@@ -71,6 +80,9 @@ func New(
 	})))
 
 	api := http.NewServeMux()
+	if events != nil {
+		registerActivity(api, a, events)
+	}
 	var index *blockindex.Service
 	if len(indexes) > 0 {
 		index = indexes[0]

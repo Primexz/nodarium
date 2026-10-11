@@ -1,5 +1,5 @@
-// Package explorer reads confirmed block transactions on demand. It is separate
-// from polling so decoding a large block cannot hold up node-health collection.
+// Package explorer reads transaction data on demand. It is separate from
+// polling so decoding a large block cannot hold up node-health collection.
 package explorer
 
 import (
@@ -193,6 +193,23 @@ func summarize(tx rawTransaction) (Summary, error) {
 	return result, nil
 }
 
+// MempoolSummary reads a pending transaction without requiring txindex. Amounts
+// remain exact decimal satoshis, and output totals include change. Verbosity one
+// avoids fetching previous outputs; the activity worker obtains fees separately.
+func MempoolSummary(ctx context.Context, client rpc.Caller, txid string) (Summary, error) {
+	var raw rawTransaction
+
+	if err := client.Call(ctx, "getrawtransaction", []any{txid, 1}, &raw); err != nil {
+		return Summary{}, ErrUnavailable
+	}
+
+	if raw.TXID != txid {
+		return Summary{}, ErrNotFound
+	}
+
+	return summarize(raw)
+}
+
 // Cache only compact immutable summaries for eight blocks, never raw scripts,
 // hex or witnesses. Header checks keep confirmations and reorg state current.
 type Explorer struct {
@@ -299,7 +316,9 @@ func (e *Explorer) Block(ctx context.Context, hash string) (Block, error) {
 	result.MiningPool = miningpool.Attribution{Status: "unavailable"}
 	var chain rpc.Blockchain
 
-	if err := e.client.Call(ctx, "getblockchaininfo", nil, &chain); err == nil {
+	attributionReady := e.client.Call(ctx, "getblockchaininfo", nil, &chain) == nil
+
+	if attributionReady {
 		coinbase := raw.Transactions[0]
 		addresses := make([]string, 0, len(coinbase.Outputs))
 
@@ -323,6 +342,12 @@ func (e *Explorer) Block(ctx context.Context, hash string) (Block, error) {
 
 		seen[summary.TXID] = true
 		result.Transactions = append(result.Transactions, summary)
+	}
+
+	// A cancelled inspector request may interrupt the network lookup after
+	// decoding the block. Do not retain this temporary attribution failure.
+	if !attributionReady {
+		return result, nil
 	}
 
 	e.mu.Lock()

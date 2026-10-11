@@ -16,6 +16,7 @@ import (
 )
 
 type Config struct {
+	ZMQSequenceURL                         string
 	LogLevel                               zapcore.Level
 	GeoIP                                  geoip.Config
 	AdminKey, RPCURL, RPCUser, RPCPassword string
@@ -27,13 +28,25 @@ type Config struct {
 
 func Load() (Config, error) {
 	c := Config{
-		AdminKey:    os.Getenv("ADMIN_KEY"),
-		RPCURL:      os.Getenv("BITCOIN_RPC_URL"),
-		RPCUser:     os.Getenv("BITCOIN_RPC_USER"),
-		RPCPassword: os.Getenv("BITCOIN_RPC_PASSWORD"),
-		DBDriver:    env("DB_DRIVER", "sqlite"),
-		DataDir:     env("DATA_DIR", "/data"),
-		ListenAddr:  env("LISTEN_ADDR", ":8080"),
+		AdminKey:       os.Getenv("ADMIN_KEY"),
+		ZMQSequenceURL: os.Getenv("BITCOIN_ZMQ_SEQUENCE_URL"),
+		RPCURL:         os.Getenv("BITCOIN_RPC_URL"),
+		RPCUser:        os.Getenv("BITCOIN_RPC_USER"),
+		RPCPassword:    os.Getenv("BITCOIN_RPC_PASSWORD"),
+		DBDriver:       env("DB_DRIVER", "sqlite"),
+		DataDir:        env("DATA_DIR", "/data"),
+		ListenAddr:     env("LISTEN_ADDR", ":8080"),
+	}
+
+	if c.ZMQSequenceURL != "" {
+		endpoint, err := url.Parse(c.ZMQSequenceURL)
+		port := 0
+		if err == nil {
+			port, _ = strconv.Atoi(endpoint.Port())
+		}
+		if err != nil || endpoint.Scheme != "tcp" || endpoint.Hostname() == "" || (port < 1 || port > 65535) || endpoint.User != nil || endpoint.Path != "" || endpoint.RawQuery != "" || endpoint.Fragment != "" {
+			return c, errors.New("BITCOIN_ZMQ_SEQUENCE_URL must be a TCP endpoint with host and port")
+		}
 	}
 
 	var err error

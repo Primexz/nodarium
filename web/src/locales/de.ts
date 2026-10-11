@@ -2,6 +2,7 @@ import type { Translations } from './schema';
 
 const de = {
   nav: {
+    activity: 'Aktivit\u00e4t',
     overview: 'Übersicht',
     peers: 'Verbundene Peers',
     traffic: 'Netzwerkverkehr',
@@ -35,6 +36,70 @@ const de = {
     offline: 'Block-Indexierung offline',
     stale: 'Indexierungsfortschritt möglicherweise veraltet',
     unavailable: 'Indexierungsstatus nicht verfügbar',
+  },
+  activity: {
+    title: 'Aktivität, während sie passiert.',
+    description:
+      'Verfolge Transaktionen vom Mempool deines Nodes in Blöcke oder prüfe die letzten Node-Ereignisse.',
+    view: 'Aktivitätsansicht',
+    live: 'Live',
+    timeline: 'Ereignisse',
+    paused: 'Pausiert',
+    reconnecting: 'Verbindung zum Ereignisstream wird hergestellt …',
+    zmq: 'ZMQ · Live-Ereignisse',
+    rpc: 'RPC · Beobachtung alle 5 Sekunden',
+    resume: 'Fortsetzen',
+    pause: 'Pausieren',
+    persistenceError:
+      'Der Ereignisverlauf konnte nicht gespeichert werden. Live-Beobachtungen bleiben verfügbar.',
+    waiting: 'Warten auf eine aktuelle Node-Beobachtung.',
+    resynchronizing:
+      'Neue Synchronisierung nach einer Beobachtungslücke. Bestehende Transaktionen werden nicht als neue Zugänge abgespielt.',
+    unavailable:
+      'Live-Aktivität ist nicht verfügbar, wenn der Node offline ist, synchronisiert oder eine RPC-Abfrage fehlschlägt.',
+    capacity:
+      'Der Mempool überschreitet die begrenzte Kapazität der Live-Ansicht. Andere Messwerte bleiben verfügbar.',
+    mempoolCount: 'Beobachteter Mempool',
+    observedCount: 'Transaktions-IDs im letzten Live-Ausgangszustand',
+    arrivals: 'Beobachtete Zugänge',
+    sinceBaseline: 'Seit Beginn dieser Live-Beobachtung',
+    sampleCount: 'Angezeigte Stichprobe',
+    sampleLimit: 'Bis zu 500 Transaktionen',
+    waitingTransactions: 'Wartende Transaktionen',
+    latestBlock: 'Zuletzt beobachteter Block',
+    scene: 'Transaktionsstichprobe beim Warten und beim Übergang in einen bestätigten Block',
+    emptyScene: 'Warten auf beobachtete Transaktionen.',
+    inspectBlock: 'Block {{height}} ansehen',
+    sampleExplanation:
+      'Dies ist eine Stichprobe, nicht der gesamte Mempool. Die Kachelfläche zeigt die virtuelle Größe, falls bekannt; neutrale Platzhalter haben keine Größenbedeutung. Die Farbe zeigt die Gebührenrate. Nur bestätigte Block-Aufnahmen bewegen sich in einen Block. Polling kann Transaktionen zwischen Beobachtungen verpassen.',
+    sampleDetails: 'Details der Transaktionsstichprobe',
+    amount: 'Betrag',
+    amountNote:
+      'Beträge sind die Summe aller Ausgänge, einschließlich Wechselgeld und ohne Gebühren.',
+    transaction: 'Transaktion',
+    vsize: 'Virtuelle Größe',
+    feeRate: 'Gebührenrate',
+    pending: 'Metadaten ausstehend',
+    category: 'Ereigniskategorie',
+    all: 'Alle Ereignisse',
+    connections: 'Node-Verbindungen',
+    blocks: 'Neue Blöcke',
+    reorgs: 'Reorganisationen',
+    newEvents: 'Neue Ereignisse anzeigen',
+    retention:
+      'Ereignisse bleiben 30 Tage gespeichert, bis zu 100.000 je Node. Der Verlauf beginnt mit Nodariums Beobachtungen; Ausfallzeiten und die initiale Synchronisierung werden nicht nachgetragen.',
+    loading: 'Aktivität wird geladen …',
+    historyError: 'Der Ereignisverlauf konnte nicht geladen werden.',
+    emptyHistory:
+      'Noch keine Ereignisse beobachtet. Node-Verbindungsänderungen, neue Blöcke und Reorganisationen erscheinen hier.',
+    observedAt: 'Beobachtet am',
+    event: 'Ereignis',
+    block: 'Block',
+    connectionEvent: '{{status}}',
+    blockEvent: 'Neuer Block {{height}}',
+    reorgEvent: 'Blockchain auf {{height}} reorganisiert · Tiefe {{depth}}',
+    unknown: 'unbekannt',
+    close: 'Blockdetails schließen',
   },
   app: {
     opening: 'Dein Node-Dashboard wird geöffnet …',

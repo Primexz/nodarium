@@ -50,7 +50,15 @@ class Handler(BaseHTTPRequestHandler):
             'getmempoolinfo': dict(loaded=True,size=1842,bytes=7*1024**2,usage=22*1024**2,maxmempool=300*1024**2,total_fee=.18640212,mempoolminfee=.00001,minrelaytxfee=.00001),
             'uptime': int(18*86400+7*3600+elapsed),
         }
-        if method == 'getblockhash':
+        if method == 'getbestblockhash':
+            result = f'{tip:064x}'
+        elif method == 'getrawmempool':
+            count = 50 + int(elapsed / 5) % 10
+            result = dict(txids=[f'{100000000+i:064x}' for i in range(count)], mempool_sequence=100 + int(elapsed / 5))
+        elif method == 'getmempoolentry':
+            i = int(req['params'][0], 16) % 100
+            result = dict(vsize=150 + i*50, fees=dict(base=(150 + i*50)*[2,8,25][i%3]/1e8))
+        elif method == 'getblockhash':
             result = f"{req['params'][0]:064x}"
         elif method == 'getnetworkhashps':
             result = 910e18 if req['params'][0] == 144 else 895e18
@@ -69,9 +77,13 @@ class Handler(BaseHTTPRequestHandler):
             if req['params'][1] == 2:
                 result['tx'] = [transaction(height, i) for i in range(result['nTx'])]
         elif method == 'getrawtransaction':
-            height=int(req['params'][2],16)
-            index=int(req['params'][0],16)-height*100000
-            result=transaction(height,index)
+            if len(req['params']) == 2:
+                result=transaction(1000,int(req['params'][0],16)-100000000)
+                result.pop('blockhash')
+            else:
+                height=int(req['params'][2],16)
+                index=int(req['params'][0],16)-height*100000
+                result=transaction(height,index)
         elif method == 'getblockstats':
             height=int(req['params'][0],16)
             result=dict(blockhash=req['params'][0], total_out=123456789012 + (tip-height)*100000000, txs=2500 + (tip-height), totalfee=12567890, feerate_percentiles=[1,3,8,25,40], subsidy=312500000, avgfeerate=12)

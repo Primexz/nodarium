@@ -3,6 +3,7 @@ module github.com/Primexz/nodarium
 go 1.26.2
 
 require (
+	github.com/go-zeromq/zmq4 v0.17.0
 	github.com/maxmind/mmdbwriter v1.2.0
 	github.com/oschwald/maxminddb-golang/v2 v2.7.0
 	go.uber.org/zap v1.28.0
@@ -12,6 +13,7 @@ require (
 )
 
 require (
+	github.com/go-zeromq/goczmq/v4 v4.2.2 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/pgx/v5 v5.10.0 // indirect

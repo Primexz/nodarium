@@ -4,6 +4,7 @@ import { NavLink, Link, Navigate, Route, Routes, useLocation } from 'react-route
 import * as Dialog from '@radix-ui/react-dialog';
 import {
   Activity,
+  Radio,
   Blocks,
   LayoutDashboard,
   Network,
@@ -28,6 +29,7 @@ import { duration } from './format';
 import { Brand, LanguagePicker, ThemePicker, Notice, ErrorBoundary } from './components/ui';
 import BlockIndexProgress from './components/BlockIndexProgress';
 
+const ActivityView = lazy(() => import('./views/Activity'));
 const Dashboard = lazy(() => import('./views/Dashboard'));
 const PoolDetail = lazy(() => import('./views/PoolDetail'));
 import styles from './App.module.css';
@@ -182,6 +184,7 @@ function Workspace() {
     { path: 'traffic', icon: Activity },
     { path: 'mempool', icon: Blocks },
     { path: 'blocks', icon: Globe2 },
+    { path: 'activity', icon: Radio },
   ] as const;
 
   const page =
@@ -332,7 +335,13 @@ function Workspace() {
                 <Route
                   key={path}
                   path={`/${path}`}
-                  element={<Dashboard page={path} node={node} range={range} setRange={setRange} />}
+                  element={
+                    path === 'activity' ? (
+                      <ActivityView />
+                    ) : (
+                      <Dashboard page={path} node={node} range={range} setRange={setRange} />
+                    )
+                  }
                 />
               ))}
               <Route path="/mining/pools/:id" element={<PoolDetail />} />
