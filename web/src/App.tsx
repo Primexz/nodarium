@@ -342,8 +342,14 @@ function Workspace() {
         </ErrorBoundary>
         <footer className={styles.footer}>
           <span>Nodarium @ {new Date(node.now).getFullYear()}</span>
-          <a href="https://github.com/Primexz/nodarium" target="_blank" rel="noopener noreferrer">
-            GitHub
+          <a
+            href="https://github.com/Primexz/nodarium"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <span className={styles.githubIcon} aria-hidden="true" />
           </a>
           <span>{t('app.version', { version: __APP_VERSION__ })}</span>
         </footer>
