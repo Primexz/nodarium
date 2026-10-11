@@ -19,7 +19,7 @@
 - **Mining:** difficulty-period progress and estimated adjustment time, network hashrate, difficulty history, and pool shares over the latest 144 or 1,008 blocks, historical pool trends, and pool detail pages with block activity and fee revenue.
 - **Mempool and blocks:** local fee estimates for 2, 3, and 6-block targets with history, mempool statistics, historical block economics charts, virtual-scrolling block history, and a transaction mosaic. Click a transaction to inspect its inputs, outputs, and fees.
 
-Nodarium monitors one node per instance; PostgreSQL is optional. Monitoring history begins when collection starts and is retained for up to a year. Block summaries are backfilled from Core and retained across restarts. No wallet features, peer controls, or host-resource monitoring.
+Nodarium monitors one node per instance; PostgreSQL is optional. Monitoring history begins when collection starts and is retained for up to a year. Block summaries are backfilled from Core and retained across restarts. The Activity page adds sampled live transactions and a 30-day node-event timeline, using optional ZMQ with RPC fallback and SSE updates. See [Activity setup and coverage](docs/activity.md). No wallet features, peer controls, or host-resource monitoring.
 
 ## Quick start
 
@@ -64,6 +64,7 @@ See [.env.example](.env.example) for settings. Apply changes with `docker compos
 | `NODE_IP`, `NODE_LOCATION_NAME` | Public IP and label for your node on the map. Without an IP, Core's advertised addresses are tried. |
 | `DB_DRIVER`, `DB_DSN` | Defaults to SQLite. For PostgreSQL, set `DB_DRIVER=postgres` and a connection string. Changing databases does not migrate history. |
 | `GEOIP_DB_PATH`, `GEOIP_AUTO_DOWNLOAD` | Custom city MMDB file or automatic DB-IP City Lite downloads. |
+| `BITCOIN_ZMQ_SEQUENCE_URL` | Optional Core sequence endpoint, e.g. `tcp://host.docker.internal:28332`; enables instant activity events with RPC fallback. |
 | `POLL_INTERVAL` | Collection interval; defaults to `10s`. |
 | `BLOCK_INDEX_DELAY` | Optional pause between indexed blocks; defaults to `0s`. Increase it, e.g. `25ms`, to reduce indexing load. |
 | `LOG_LEVEL` | `debug`, `info`, `warn`, or `error`; defaults to `info`. |

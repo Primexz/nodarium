@@ -306,3 +306,27 @@ func TestCacheEvictsOldBlocks(t *testing.T) {
 }
 
 var _ rpc.Caller = callerFunc(nil)
+
+func TestInterruptedAttributionDoesNotPoisonBlockCache(t *testing.T) {
+	chainCalls := 0
+	e := newExplorer(callerFunc(func(ctx context.Context, method string, params, result any) error {
+		if method == "getblockchaininfo" {
+			chainCalls++
+			if chainCalls == 1 {
+				return context.Canceled
+			}
+		}
+		return fixture(t, method, result, 1)
+	}))
+
+	first, err := e.Block(t.Context(), blockID)
+	if err != nil || first.MiningPool.Status != "unavailable" {
+		t.Fatalf("partial block: %s, %v", first.MiningPool.Status, err)
+	}
+	if _, err := e.Block(t.Context(), blockID); err != nil {
+		t.Fatal(err)
+	}
+	if chainCalls != 2 {
+		t.Fatal("interrupted attribution was cached permanently")
+	}
+}

@@ -105,9 +105,15 @@ func (c *Client) Call(ctx context.Context, method string, params any, out any) (
 	limit := int64(8 << 20)
 
 	// Verbose decoded blocks include transaction hex and scripts in addition
-	// to the original block bytes. Keep this bounded, but allow full blocks.
-	if method == "getblock" || method == "getrawtransaction" {
+	// to the original block bytes. Mempool ID snapshots can also exceed 8 MiB.
+	// Keep both bounded while allowing a full block or a large membership set.
+	if method == "getblock" || method == "getrawtransaction" || method == "getrawmempool" {
 		limit = 32 << 20
+	}
+	// A verbose mempool snapshot contains dependencies and fee metadata for
+	// every entry. Keep the response bounded without imposing the ID-only cap.
+	if method == "getrawmempool" {
+		limit = 128 << 20
 	}
 
 	if err := json.NewDecoder(io.LimitReader(res.Body, limit)).Decode(&response); err != nil {

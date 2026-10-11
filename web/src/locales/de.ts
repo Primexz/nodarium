@@ -2,6 +2,7 @@ import type { Translations } from './schema';
 
 const de = {
   nav: {
+    activity: 'Aktivit\u00e4t',
     overview: 'Übersicht',
     peers: 'Verbundene Peers',
     traffic: 'Netzwerkverkehr',
@@ -35,6 +36,95 @@ const de = {
     offline: 'Block-Indexierung offline',
     stale: 'Indexierungsfortschritt möglicherweise veraltet',
     unavailable: 'Indexierungsstatus nicht verfügbar',
+  },
+  activity: {
+    title: 'Aktivität, während sie passiert.',
+    description:
+      'Sieh, was als Nächstes bestätigt werden könnte, beobachte neue Transaktionen und prüfe die letzten Node-Ereignisse.',
+    view: 'Aktivitätsansicht',
+    live: 'Live',
+    timeline: 'Ereignisse',
+    paused: 'Pausiert',
+    reconnecting: 'Verbindung zum Ereignisstream wird hergestellt …',
+    zmq: 'ZMQ · Live-Ereignisse',
+    rpc: 'RPC · Beobachtung alle 5 Sekunden',
+    resume: 'Fortsetzen',
+    pause: 'Pausieren',
+    persistenceError:
+      'Der Ereignisverlauf konnte nicht gespeichert werden. Live-Beobachtungen bleiben verfügbar.',
+    waiting: 'Warten auf eine aktuelle Node-Beobachtung.',
+    resynchronizing:
+      'Neue Synchronisierung nach einer Beobachtungslücke. Bestehende Transaktionen werden nicht als neue Zugänge abgespielt.',
+    unavailable:
+      'Live-Aktivität ist nicht verfügbar, wenn der Node offline ist, synchronisiert oder eine RPC-Abfrage fehlschlägt.',
+    capacity:
+      'Der Mempool überschreitet die begrenzte Kapazität der Live-Ansicht. Andere Messwerte bleiben verfügbar.',
+    arrivals: 'Beobachtete Zugänge',
+    sinceBaseline: 'Seit Beginn dieser Live-Beobachtung',
+    sampleCount: 'Angezeigte Stichprobe',
+    sampleLimit: 'Bis zu 500 Transaktionen',
+    sampleExplanation:
+      'Neue Zugänge sind eine Stichprobe von bis zu 500 Transaktionen, getrennt von den Prognosen des gesamten Mempools oben. Beginnt mit bis zu 50 bestehenden Einträgen. Polling kann Transaktionen zwischen Beobachtungen verpassen.',
+    projectedBlocks: 'Prognose der nächsten Blöcke',
+    emptyMempool:
+      'Der Mempool deines Nodes ist leer. Es gibt keinen Transaktionsrückstau für eine Prognose.',
+    projectionHeld: 'Snapshot beibehalten',
+    projectionExplanation:
+      'Aus dem gesamten Mempool deines Nodes geschätzt. Pakete mit unbestätigten Vorgängern werden nach effektiver Gebührenrate priorisiert. Jede Kachel bündelt Transaktionen mit ähnlichen Gebühren; die Fläche zeigt ihre gemeinsame virtuelle Größe. Freie Fläche ist verfügbare virtuelle Kapazität. Miner-Regeln und neue Transaktionen können das Ergebnis verändern.',
+    backlog: 'Mempool-Rückstau',
+    backlogSize: '{{size}} virtuelle Transaktionsdaten',
+    blockEquivalent: 'Blockäquivalente',
+    capacityExplanation: 'Virtuelle Größe ÷ 999.000 vB; Kapazitätsschätzung, keine Wartezeit',
+    mempoolFeeRange: 'Gebührenspanne im Mempool',
+    fullSnapshot: 'Einzelne modifizierte Gebührenraten im gesamten Snapshot',
+    projectionUpdated: 'Snapshot: {{time}} · Aktualisierung alle 10 Sekunden',
+    projectionLoading: 'Gesamter Mempool für die Blockprognose wird geladen …',
+    projectionError:
+      'Prognose nicht verfügbar. Node-Abfrage oder begrenzte Berechnung fehlgeschlagen; wird automatisch erneut versucht.',
+    projectionStale:
+      'Letzte erfolgreiche Prognose. Aktualisierung fehlgeschlagen; wird automatisch erneut versucht.',
+    nextBlock: 'Nächster Block',
+    projectedPosition: 'Prognoseblock {{position}}',
+    medianPackageRate: 'Median der effektiven Paket-Gebührenrate',
+    projectionMosaic:
+      'Prognoseblock {{position}}: {{total}} Transaktionen, {{size}} virtuelle Größe. Kacheln bündeln Transaktionen nach effektiver Gebührenrate.',
+    feeGroup: '{{total}} Transaktionen · {{min}}–{{max}} sat/vB effektive Paket-Gebührenrate',
+    effectiveRange: 'Effektive Gebührenspanne',
+    transactions: 'Transaktionen',
+    emptyProjection:
+      'Keine Transaktionen passen in die Prognoseblöcke. Ein leerer Mempool hat keinen Rückstau; Einträge über der reservierten Blockkapazität bleiben im Rückstau.',
+    remainingBacklog:
+      '{{total}} Transaktionen ({{size}} virtuelle Größe) liegen hinter diesen Prognosen oder passen nicht in die reservierte Kapazität.',
+    sampleDetails: 'Details der Transaktionsstichprobe',
+    amount: 'Betrag',
+    metadataWaiting:
+      '{{total}} Transaktionen der Stichprobe warten auf Metadaten. Zeilen erscheinen, sobald Betrag, Größe und Gebührenrate verfügbar sind.',
+    amountNote:
+      'Beträge sind die Summe aller Ausgänge, einschließlich Wechselgeld und ohne Gebühren.',
+    transaction: 'Transaktion',
+    vsize: 'Virtuelle Größe',
+    feeRate: 'Gebührenrate',
+    pending: 'Metadaten ausstehend',
+    category: 'Ereigniskategorie',
+    all: 'Alle Ereignisse',
+    connections: 'Node-Verbindungen',
+    blocks: 'Neue Blöcke',
+    reorgs: 'Reorganisationen',
+    newEvents: 'Neue Ereignisse anzeigen',
+    retention:
+      'Ereignisse bleiben 30 Tage gespeichert, bis zu 100.000 je Node. Der Verlauf beginnt mit Nodariums Beobachtungen; Ausfallzeiten und die initiale Synchronisierung werden nicht nachgetragen.',
+    loading: 'Aktivität wird geladen …',
+    historyError: 'Der Ereignisverlauf konnte nicht geladen werden.',
+    emptyHistory:
+      'Noch keine Ereignisse beobachtet. Node-Verbindungsänderungen, neue Blöcke und Reorganisationen erscheinen hier.',
+    observedAt: 'Beobachtet am',
+    event: 'Ereignis',
+    block: 'Block',
+    connectionEvent: '{{status}}',
+    blockEvent: 'Neuer Block {{height}}',
+    reorgEvent: 'Blockchain auf {{height}} reorganisiert · Tiefe {{depth}}',
+    unknown: 'unbekannt',
+    close: 'Blockdetails schließen',
   },
   app: {
     opening: 'Dein Node-Dashboard wird geöffnet …',

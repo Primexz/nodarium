@@ -51,7 +51,9 @@ test('peers can be searched, filtered, sorted and inspected', async ({ page }) =
   await expect(page.getByRole('dialog')).toBeVisible();
   await expect(page.getByRole('dialog')).toContainText('WITNESS');
   await page.getByLabel('Close peer details').click();
+  await expect(page.getByRole('dialog')).toBeHidden();
   await page.getByLabel('Search peers').fill('');
+  await expect(page.getByLabel('Search peers')).toHaveValue('');
   await page.getByLabel('Filter peer direction').selectOption('outbound');
   await expect(page.locator('tbody tr')).toHaveCount(4);
   await page.getByRole('button', { name: 'Latency' }).click();
@@ -220,13 +222,7 @@ test('top bar switches the full dashboard to German and remembers the selection'
     'de',
   );
 
-  const germanNavigate = async (name: string) => {
-    const menu = page.getByRole('button', { name: 'Navigation öffnen' });
-
-    if (await menu.isVisible()) await menu.click();
-
-    await page.getByRole('navigation').getByRole('link', { name }).click();
-  };
+  const germanNavigate = (name: string) => navigate(page, name);
 
   await germanNavigate('Verbundene Peers');
   await page.getByLabel('Peers suchen', { exact: true }).fill('192.0.2.12');

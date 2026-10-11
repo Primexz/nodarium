@@ -1,5 +1,6 @@
 const en = {
   nav: {
+    activity: 'Activity',
     overview: 'Overview',
     peers: 'Connected peers',
     traffic: 'Network traffic',
@@ -33,6 +34,92 @@ const en = {
     offline: 'Block indexing offline',
     stale: 'Indexing progress may be outdated',
     unavailable: 'Indexing status unavailable',
+  },
+  activity: {
+    title: 'Activity, as it happens.',
+    description:
+      'See what may confirm next, watch transaction arrivals, and review recent node events.',
+    view: 'Activity view',
+    live: 'Live',
+    timeline: 'Timeline',
+    paused: 'Paused',
+    reconnecting: 'Connecting to activity stream…',
+    zmq: 'ZMQ · live events',
+    rpc: 'RPC · observed every 5 seconds',
+    resume: 'Resume',
+    pause: 'Pause',
+    persistenceError: 'Event history could not be saved. Live observations remain available.',
+    waiting: 'Waiting for a current node observation.',
+    resynchronizing:
+      'Resynchronizing after an observation gap. Existing transactions will not replay as new arrivals.',
+    unavailable:
+      'Live activity is unavailable while the node is offline, synchronizing, or an RPC request fails.',
+    capacity:
+      'The mempool exceeds the live view’s bounded capacity. Other monitoring remains available.',
+    arrivals: 'Observed arrivals',
+    sinceBaseline: 'Since this live observation began',
+    sampleCount: 'Displayed sample',
+    sampleLimit: 'Up to 500 transactions',
+    sampleExplanation:
+      'Recent arrivals are a sample of up to 500 transactions, separate from the full-mempool projections above. Starts with up to 50 existing entries. Polling can miss transactions between observations.',
+    projectedBlocks: 'Projected next blocks',
+    emptyMempool: 'Your node’s mempool is empty. There is no transaction backlog to project.',
+    projectionHeld: 'Snapshot retained',
+    projectionExplanation:
+      'Estimated from your node’s full mempool, prioritizing ancestor packages by effective fee rate. Each tile groups transactions in a similar fee band; area shows their combined virtual size. Unfilled space is spare virtual capacity. Miner policies and new transactions can change the result.',
+    backlog: 'Mempool backlog',
+    backlogSize: '{{size}} of virtual transaction data',
+    blockEquivalent: 'Block equivalents',
+    capacityExplanation: 'Virtual size ÷ 999,000 vB; capacity estimate, not a wait time',
+    mempoolFeeRange: 'Mempool fee range',
+    fullSnapshot: 'Individual modified fee rates across the full snapshot',
+    projectionUpdated: 'Snapshot: {{time}} · refreshes every 10 seconds',
+    projectionLoading: 'Loading the full mempool to project next blocks…',
+    projectionError:
+      'Projections could not load. The node request or bounded calculation failed; retrying automatically.',
+    projectionStale:
+      'Showing the last successful projection. Refresh failed; retrying automatically.',
+    nextBlock: 'Next block',
+    projectedPosition: 'Projected block {{position}}',
+    medianPackageRate: 'Median effective package fee rate',
+    projectionMosaic:
+      'Projected block {{position}}: {{total}} transactions, {{size}} virtual size. Tiles group transactions by effective fee rate.',
+    feeGroup: '{{total}} transactions · {{min}}–{{max}} sat/vB effective package rate',
+    effectiveRange: 'Effective fee range',
+    transactions: 'Transactions',
+    emptyProjection:
+      'No transactions fit the projected blocks. An empty mempool has no backlog; entries exceeding the reserved block capacity remain in the backlog.',
+    remainingBacklog:
+      '{{total}} transactions ({{size}} virtual size) remain beyond these projections or do not fit the reserved capacity.',
+    sampleDetails: 'Sampled transaction details',
+    amount: 'Amount',
+    amountNote: 'Amounts sum all outputs, including change, and exclude fees.',
+    metadataWaiting:
+      '{{total}} sampled transactions waiting for metadata. Rows appear once amount, size and fee rate are available.',
+    transaction: 'Transaction',
+    vsize: 'Virtual size',
+    feeRate: 'Fee rate',
+    pending: 'Metadata pending',
+    category: 'Event category',
+    all: 'All events',
+    connections: 'Node connections',
+    blocks: 'New blocks',
+    reorgs: 'Reorganizations',
+    newEvents: 'Show new events',
+    retention:
+      'Events are kept for 30 days, up to 100,000 per node. History begins with Nodarium’s observations; downtime and initial synchronization are not backfilled.',
+    loading: 'Loading activity…',
+    historyError: 'Activity history could not load.',
+    emptyHistory:
+      'No events observed yet. Node connection changes, new blocks, and reorganizations will appear here.',
+    observedAt: 'Observed at',
+    event: 'Event',
+    block: 'Block',
+    connectionEvent: '{{status}}',
+    blockEvent: 'New block {{height}}',
+    reorgEvent: 'Chain reorganized to {{height}} · depth {{depth}}',
+    unknown: 'unknown',
+    close: 'Close block details',
   },
   app: {
     opening: 'Opening your node dashboard…',

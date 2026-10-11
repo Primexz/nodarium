@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Primexz/nodarium/internal/activity"
 	"github.com/Primexz/nodarium/internal/auth"
 	"github.com/Primexz/nodarium/internal/blockindex"
 	"github.com/Primexz/nodarium/internal/collector"
@@ -145,6 +146,13 @@ func run(cfg config.Config, logger *zap.Logger) error {
 	defer index.Close()
 	col.SetBlockIndex(index)
 
+	var receiver activity.Receiver
+	if cfg.ZMQSequenceURL != "" {
+		receiver = activity.ZMQReceiver{URL: cfg.ZMQSequenceURL}
+	}
+	events := activity.New(ctx, client, col, db, receiver, logger, index.Observe)
+	defer events.Close()
+
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
@@ -162,7 +170,7 @@ func run(cfg config.Config, logger *zap.Logger) error {
 
 	defer geo.Close()
 
-	app := server.New(
+	app := server.NewWithActivity(
 		auth.New(cfg.AdminKey, cfg.CookieSecure),
 		col,
 		db,
@@ -171,6 +179,7 @@ func run(cfg config.Config, logger *zap.Logger) error {
 		explorer.New(client, definitions),
 		index,
 		logger,
+		events,
 		index,
 	)
 	srv := &http.Server{

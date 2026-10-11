@@ -94,9 +94,11 @@ export async function signIn(page: Page) {
 
 export async function navigate(page: Page, name: string) {
   await expect(page.locator('.topbar')).toBeVisible();
+  await expect(page.locator('.navigation-drawer[data-state="closed"]')).toBeHidden();
   const menu = page.getByRole('button', { name: /^(Open navigation|Navigation öffnen)$/ });
 
   if (await menu.isVisible()) await menu.click();
 
   await page.getByRole('navigation').getByRole('link', { name }).click();
+  await expect(page.locator('.navigation-drawer[data-state="closed"]')).toBeHidden();
 }

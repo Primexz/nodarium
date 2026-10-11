@@ -22,7 +22,7 @@ test('desktop sidebar supports icon navigation, keyboard toggles and a saved pre
   await collapse.press('Enter');
   await expect(sidebar).toHaveCSS('width', '76px');
   await expect(sidebar.locator('.brand-mark')).toHaveCSS('width', '34px');
-  await expect(sidebar.locator('nav a')).toHaveCount(7);
+  await expect(sidebar.locator('nav a')).toHaveCount(8);
   await expect(sidebar.locator('nav a span').first()).toBeHidden();
   await expect(sidebar.locator('.brand-descriptor')).toBeHidden();
   await expect(sidebar.getByRole('button', { name: 'Sign out' })).toBeVisible();

@@ -10,24 +10,39 @@ import (
 
 func TestConfig(t *testing.T) {
 	for k, v := range map[string]string{
-		"LOG_LEVEL":            "",
-		"ADMIN_KEY":            "secret",
-		"BITCOIN_RPC_URL":      "http://localhost:8332",
-		"BITCOIN_RPC_USER":     "user",
-		"BITCOIN_RPC_PASSWORD": "password",
-		"DB_DRIVER":            "",
-		"DB_DSN":               "",
-		"DATA_DIR":             "/data",
-		"POLL_INTERVAL":        "",
-		"BLOCK_INDEX_DELAY":    "",
-		"COOKIE_SECURE":        "",
-		"NODE_IP":              "",
-		"NODE_LOCATION_NAME":   "",
-		"GEOIP_DB_PATH":        "",
-		"GEOIP_AUTO_DOWNLOAD":  "",
+		"LOG_LEVEL":                "",
+		"ADMIN_KEY":                "secret",
+		"BITCOIN_RPC_URL":          "http://localhost:8332",
+		"BITCOIN_RPC_USER":         "user",
+		"BITCOIN_RPC_PASSWORD":     "password",
+		"BITCOIN_ZMQ_SEQUENCE_URL": "",
+		"DB_DRIVER":                "",
+		"DB_DSN":                   "",
+		"DATA_DIR":                 "/data",
+		"POLL_INTERVAL":            "",
+		"BLOCK_INDEX_DELAY":        "",
+		"COOKIE_SECURE":            "",
+		"NODE_IP":                  "",
+		"NODE_LOCATION_NAME":       "",
+		"GEOIP_DB_PATH":            "",
+		"GEOIP_AUTO_DOWNLOAD":      "",
 	} {
 		t.Setenv(k, v)
 	}
+
+	for _, endpoint := range []string{"tcp://127.0.0.1:28332", "tcp://[::1]:28332", ""} {
+		t.Setenv("BITCOIN_ZMQ_SEQUENCE_URL", endpoint)
+		if _, err := Load(); err != nil {
+			t.Fatal("valid ZMQ endpoint rejected", err)
+		}
+	}
+	for _, endpoint := range []string{"http://node:28332", "tcp://node", "tcp://user:secret@node:28332", "tcp://node:0", "tcp://node:65536", "tcp://node:28332/path"} {
+		t.Setenv("BITCOIN_ZMQ_SEQUENCE_URL", endpoint)
+		if _, err := Load(); err == nil {
+			t.Fatal("invalid ZMQ endpoint accepted", endpoint)
+		}
+	}
+	t.Setenv("BITCOIN_ZMQ_SEQUENCE_URL", "")
 
 	c, err := Load()
 
