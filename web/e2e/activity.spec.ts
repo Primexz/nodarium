@@ -123,7 +123,7 @@ async function activityFixture(page: import('@playwright/test').Page) {
 test('transaction arrivals preserve the row being read', async ({ page }) => {
   await activityFixture(page);
   await signIn(page);
-  await navigate(page, 'Activity');
+  await navigate(page, 'Mempool');
   await expect(page.locator('.activity-amount').first()).toHaveText('0.00000000 BTC');
   const viewport = page.locator('.table-scroll').first();
   await viewport.evaluate((element) => {
@@ -192,7 +192,7 @@ test('ready transactions slide continuously and incomplete rows wait for metadat
 }, info) => {
   await activityFixture(page);
   await signIn(page);
-  await navigate(page, 'Activity');
+  await navigate(page, 'Mempool');
   await page.evaluate(() => {
     (document.activeElement as HTMLElement)?.blur();
     window.scrollTo(0, 0);
@@ -310,12 +310,12 @@ test('live activity can pause, inspect blocks, browse history and reset coverage
 }, info) => {
   await activityFixture(page);
   await signIn(page);
-  await navigate(page, 'Activity');
-  await expect(page.getByRole('heading', { name: 'Activity, as it happens.' })).toBeVisible();
+  await navigate(page, 'Mempool');
+  await expect(page.getByRole('heading', { name: 'Mempool' })).toBeVisible();
   await expect(page.getByText('ZMQ · live events')).toBeVisible();
-  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  await page.getByRole('button', { name: 'Pause live tracking', exact: true }).click();
   await expect(page.getByText('Paused', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Resume', exact: true }).click();
+  await page.getByRole('button', { name: 'Resume live tracking', exact: true }).click();
   await expect(page.getByText('ZMQ · live events')).toBeVisible();
   await expect(page.getByRole('columnheader', { name: 'Virtual size' })).toBeVisible();
   await expect(page.locator('.activity-transactions-table th').first()).toHaveText('Amount');
@@ -327,6 +327,12 @@ test('live activity can pause, inspect blocks, browse history and reset coverage
   await expect(page.locator('.activity-amount').nth(1)).toHaveText('0.00000001 BTC');
   await expect(page.locator('.activity-amount').nth(2)).toHaveText('21,000,000.00000000 BTC');
   const assertSampleFits = async () => {
+    await expect(page.locator('.activity-amount').first()).toHaveText(
+      (await page.locator('html').getAttribute('lang')) === 'de'
+        ? '0,00000000 BTC'
+        : '0.00000000 BTC',
+    );
+
     expect(
       await page
         .locator('.activity-transactions-table tbody tr[data-index]')
@@ -340,7 +346,7 @@ test('live activity can pause, inspect blocks, browse history and reset coverage
 
   await assertSampleFits();
   await expect(page.getByRole('button', { name: 'Inspect block 900,123' })).toHaveCount(0);
-  await page.getByRole('button', { name: 'Timeline', exact: true }).click();
+  await navigate(page, 'Events');
   const blockLink = page.locator('.activity-events-table .table-link').first();
   await blockLink.click();
   const panel = page.locator('.selected-block-panel');
@@ -358,7 +364,7 @@ test('live activity can pause, inspect blocks, browse history and reset coverage
   await expect(page.locator('.table-scroll-note')).toContainText('180');
   await page.getByLabel('Event category').selectOption('reorg');
   await expect(page.getByText('Chain reorganized to', { exact: false }).first()).toBeVisible();
-  await page.getByRole('button', { name: 'Live', exact: true }).click();
+  await navigate(page, 'Mempool');
   await page.emulateMedia({ reducedMotion: 'reduce' });
 
   for (const theme of ['light', 'dark']) {
@@ -392,9 +398,7 @@ test('live activity can pause, inspect blocks, browse history and reset coverage
   }
 
   await page.getByLabel('Language').selectOption('de');
-  await expect(
-    page.getByRole('heading', { name: 'Aktivität, während sie passiert.' }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Mempool' })).toBeVisible();
 
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({
@@ -411,7 +415,7 @@ test('live activity can pause, inspect blocks, browse history and reset coverage
     fullPage: true,
   });
 
-  await page.getByRole('button', { name: 'Ereignisse', exact: true }).click();
+  await navigate(page, 'Ereignisse');
   expect(
     await page
       .locator('.activity-events-table tbody tr')
@@ -430,7 +434,7 @@ test('live activity can pause, inspect blocks, browse history and reset coverage
   });
 
   if (info.project.name === 'desktop') {
-    await page.getByRole('button', { name: 'Live', exact: true }).click();
+    await navigate(page, 'Mempool');
     await page.setViewportSize({ width: 2048, height: 1100 });
     await assertSampleFits();
     await page.evaluate(() => window.scrollTo(0, 0));
@@ -442,7 +446,7 @@ test('real activity stream boots from RPC and resumes without counting its basel
   page,
 }) => {
   await signIn(page);
-  await navigate(page, 'Activity');
+  await navigate(page, 'Mempool');
   await expect(page.getByText('RPC · observed every 5 seconds')).toBeVisible();
   await expect(
     page.locator('.activity-amount').filter({ hasText: '1.00000000 BTC' }).first(),
@@ -454,9 +458,9 @@ test('real activity stream boots from RPC and resumes without counting its basel
     }),
   ).toBeVisible();
 
-  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  await page.getByRole('button', { name: 'Pause live tracking', exact: true }).click();
   await expect(page.getByText('Paused', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Resume', exact: true }).click();
+  await page.getByRole('button', { name: 'Resume live tracking', exact: true }).click();
   await expect(page.getByText('RPC · observed every 5 seconds')).toBeVisible();
 });
 
@@ -465,7 +469,7 @@ test('projections distinguish stale, resetting and empty snapshots without hidin
 }) => {
   await activityFixture(page);
   await signIn(page);
-  await navigate(page, 'Activity');
+  await navigate(page, 'Mempool');
   await expect(page.locator('.projected-mosaic')).toHaveCount(4);
   const send = async (value: ActivityLive) =>
     page.evaluate((value) => {
@@ -504,7 +508,7 @@ test('projections distinguish stale, resetting and empty snapshots without hidin
 test('rapid ZMQ arrivals leave full-mempool projections stable', async ({ page }) => {
   await activityFixture(page);
   await signIn(page);
-  await navigate(page, 'Activity');
+  await navigate(page, 'Mempool');
   await expect(page.locator('.projected-mosaic')).toHaveCount(4);
   const before = await page.locator('.projected-blocks').innerHTML();
 

@@ -5,14 +5,14 @@ primary_target: "web/src/views/Activity.tsx"
 related_targets: ["web/src/components/ProjectedBlocks.tsx", "web/src/components/VirtualTable.tsx", "web/src/components/useTableMotion.ts", "web/src/activity.ts", "web/src/style.css", "web/src/locales/en.ts", "web/src/locales/de.ts", "internal/activity/projection.go", "docs/activity.md"]
 ---
 
-Mode: Operate. Audience: individual node operators. Live combines full-mempool projected next blocks with an animated, always-visible sampled transaction table; Timeline retains the quiet 30-day observation history. ZMQ sequence with RPC fallback and SSE remain the observation transport. No watchlist, notifications, or RSS. Code-first; inherit DESIGN.md.
+Mode: Operate. Audience: individual node operators. Mempool Live combines full-mempool projected next blocks with an animated, always-visible sampled transaction table; My node Events retains the quiet 30-day observation history. The component’s internal `live` and `timeline` modes support those separately addressed views. ZMQ sequence with RPC fallback and SSE remain the observation transport. No watchlist, notifications, or RSS. Code-first; inherit DESIGN.md.
 
 ## Direction contract
 
 THESIS: Make the node's full mempool backlog and fee-prioritized next-block estimates readable, while sampled transaction arrivals remain animated and inspectable.
 OWN-WORLD: Incumbent warm paper, ink, orange actions, and charcoal dark theme; flat ruled workspace, tabular readings, native controls.
-STORY: Operators inspect backlog and projected package fee ranges, distinguish the full snapshot from sampled arrivals, pause observation, then investigate quiet node history and its block links.
-FIRST VIEWPORT: Heading and Live/Timeline tabs precede source status and pause control. The ruled projection section shows full-snapshot backlog, capacity equivalents, fee range, and observation time above a horizontal strip of up to four static fee-group mosaics. Each projection presents its effective package median, count, virtual size, and effective range. Observed-arrival and sample readings precede the always-visible transaction table. Timeline replaces these Live contents with category controls and contained virtual history.
+STORY: Operators inspect backlog and projected package fee ranges, distinguish the full snapshot from sampled arrivals, pause live tracking, then investigate quiet node history and its block links in My node Events.
+FIRST VIEWPORT: Mempool’s heading and URL-addressed Live/Trends navigation precede Core’s fee estimates. The ruled full-mempool projection section follows with a concise estimate warning, backlog/capacity readings, fee range, observation time, and a horizontal strip of up to four static fee-group mosaics. Each projection presents its effective package median, count, virtual size, and effective range. The original detailed method remains in a native disclosure below the projections. Source status and the live-tracking pause control precede observed-arrival/sample metrics and the always-visible transaction table. Dashboard’s final native disclosure preserves polled mempool count, virtual size, memory, and policy readings. Pausing retains the held projection and sample; independent fee estimates and node polling continue. My node Events (`/node/events`) uses the internal timeline mode with category controls and contained virtual history; block inspection belongs there.
 FORM: Ordinary extension of the established dashboard. SVG fee-group areas represent combined virtual size and leave spare capacity visible; they never claim individual transaction identity or an exact mining template. Projection estimates remain static between snapshots. Measured table motion carries arrival feedback, complete metadata gates readable rows, exact eight-decimal BTC amounts lead, and reduced motion settles rows immediately.
 FINISH: Source guidance must match the implemented surface; independent rendered review and its verdict remain required. This extension preserves DESIGN.md and its sidecar and introduces no raster assets.
 
@@ -22,9 +22,14 @@ This is an ordinary extension of the incumbent system. `DESIGN.md` and
 `.impeccable/design.json` remain the shared authority; these Activity-specific
 facts do not introduce global tokens or replace existing design rules.
 
-- Keep the projection section before observed-arrival readings and the sampled
-  table. Source status and pause follow the Live/Timeline selector. Block inspection
-  belongs to Timeline block links; Live has no separate block inspection action.
+- In Mempool Live, keep Core fee estimates before this component, projection
+  before source/pause and observed-arrival readings, and sampled transactions
+  before Dashboard’s final native mempool-policy disclosure. Projection warnings
+  precede the readings; the original detailed method sits in a native disclosure
+  below the projection. The pause control explicitly pauses live tracking and
+  preserves held projection/sample values while fees and polled node readings
+  continue. Block inspection belongs to My node Events block links; Live has no
+  separate block inspection action.
   Full-mempool projections and sampled arrival coverage have separate copy and
   readings; sample membership is not the source of projection totals.
 - Reuse semantic theme variables for rules, surfaces, controls, status, and
@@ -119,7 +124,7 @@ facts do not introduce global tokens or replace existing design rules.
   scroll adjustment is disabled for Live. Returning to the top clears the
   anchor, and a changed observation generation resets scroll. Pausing, hiding,
   or leaving Live closes its SSE connection; resuming reopens it.
-- Timeline remains quiet. Connection changes, observed blocks, and verified
+- My node Events (the internal Timeline mode) remains quiet. Connection changes, observed blocks, and verified
   reorganizations have readable event text and a native category select. New
   events expose "Show new events" instead of replacing history being read.
   Cursor loading retains at most ten pages (500 events); category changes and
@@ -147,20 +152,25 @@ incumbent primitives in `web/src/style.css`, typed EN/DE Activity locales,
 `docs/activity.md`. Product context and shared authority checked: `PRODUCT.md`,
 `DESIGN.md`, and `.impeccable/design.json`.
 
-Source regression evidence includes `ProjectedBlocks.test.tsx` for bounded
-fee-group area, spare capacity, loading, failed-refresh retention, and empty
-snapshot states, and `web/e2e/activity.spec.ts` for reading anchors, complete-row
-metadata gating, rapid row motion, pause/resume, inspection, Timeline, stale/reset/
-empty projections, and stable projections during rapid arrivals. The parent
-implementation pass reports all 12 browser checks, six relevant browser
-recaptures after the latest copy refinement, all Go tests, Go race tests, and
-40 frontend tests passing. This documentation pass did not independently rerun
-those checks or certify the rendered result; independent finish review owns the
-visual verdict.
+Structural source evidence additionally includes `web/src/App.tsx` for the
+addressed views and localized page-not-found behavior, `web/src/views/Dashboard.tsx`
+for placement and disclosures, and `web/src/useRememberedRange.ts` for optional
+per-view session preferences. Mempool Trends owns fee, backlog, memory, and
+acceptance-floor history; Events owns the existing observation timeline. Activity
+API names and SSE `view=timeline` semantics are unchanged.
+
+This documentation pass reconciles source evidence; it did not independently
+run the complete regression suite or certify rendered output. Independent
+finish review owns the visual verdict.
 
 No new raster assets are introduced. Projection geometry is source-native SVG.
 
-Pre-existing drift left unmodified: the shared sidecar motion catalogue omits
+Pre-existing drift left unmodified: DESIGN.md was already newer than the shared
+sidecar. The shared sidecar motion catalogue also omits
 navigation drawer timings already present in the incumbent stylesheet and
 described in `DESIGN.md`. That omission is outside this Activity extension and
 is neither canonized nor repaired here.
+
+The structural merge preserves all incumbent DESIGN.md token frontmatter and
+leaves `.impeccable/design.json` untouched. No global tokens or visual world are
+introduced.

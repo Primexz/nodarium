@@ -3,12 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { NavLink, Link, Navigate, Route, Routes, useLocation } from 'react-router';
 import * as Dialog from '@radix-ui/react-dialog';
 import {
-  Activity,
-  Radio,
   Blocks,
-  LayoutDashboard,
-  Network,
-  Globe2,
+  Layers,
   LogOut,
   Menu,
   X,
@@ -24,12 +20,10 @@ import {
 import { useAuth } from './auth';
 import { useReadings, refresh } from './state';
 import { message } from './i18n';
-import type { HistoryRange } from './types';
 import { duration } from './format';
 import { Brand, LanguagePicker, ThemePicker, Notice, ErrorBoundary } from './components/ui';
 import BlockIndexProgress from './components/BlockIndexProgress';
 
-const ActivityView = lazy(() => import('./views/Activity'));
 const Dashboard = lazy(() => import('./views/Dashboard'));
 const PoolDetail = lazy(() => import('./views/PoolDetail'));
 import styles from './App.module.css';
@@ -143,7 +137,6 @@ function Workspace() {
   const drawer = useRef<HTMLDivElement>(null);
   const drawerOverlay = useRef<HTMLDivElement>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [range, setRange] = useState<HistoryRange>('24h');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     try {
       return localStorage.getItem(sidebarStorageKey) === 'true';
@@ -177,25 +170,21 @@ function Workspace() {
   }
 
   const links = [
-    { path: 'overview', icon: LayoutDashboard },
-    { path: 'node', icon: Server },
+    { path: 'mempool', icon: Layers },
+    { path: 'blocks', icon: Blocks },
     { path: 'mining', icon: Pickaxe },
-    { path: 'peers', icon: Network },
-    { path: 'traffic', icon: Activity },
-    { path: 'mempool', icon: Blocks },
-    { path: 'blocks', icon: Globe2 },
-    { path: 'activity', icon: Radio },
+    { path: 'node', icon: Server },
   ] as const;
 
   const page =
-    links.find((link) => link.path === location.pathname.split('/')[1])?.path ?? 'overview';
+    links.find((link) => link.path === location.pathname.split('/')[1])?.path ?? 'mempool';
 
   const title = t(`nav.${page}`);
 
   const brand = (
     <Link
-      to="/overview"
-      aria-label={`Nodarium · ${t('nav.overview')}`}
+      to="/mempool"
+      aria-label={`Nodarium · ${t('nav.mempool')}`}
       title="Nodarium"
       onClick={() => changeMenu(false)}
     >
@@ -216,9 +205,6 @@ function Workspace() {
           >
             <Icon size={18} aria-hidden />
             <span>{t(`nav.${path}`)}</span>
-            {path === 'peers' && node.peers.data && (
-              <span className="nav-count">{node.peers.data.length}</span>
-            )}
           </NavLink>
         ))}
       </nav>
@@ -298,12 +284,16 @@ function Workspace() {
               </Dialog.Portal>
             </Dialog.Root>
             <span className={styles.pageTitle}>{title}</span>
-            <span className={`connection-badge ${status}`}>
+            <Link
+              to="/node"
+              className={`connection-badge ${status}`}
+              title={t('workspace.nodeStatus')}
+            >
               <span className="status-dot" />
               {t(
                 `status.${status === 'connected' || status === 'partial' || status === 'disconnected' ? status : 'connecting'}`,
               )}
-            </span>
+            </Link>
           </div>
           <div className={styles.tools}>
             <LanguagePicker />
@@ -330,22 +320,41 @@ function Workspace() {
         <ErrorBoundary key={page} label={t('app.interfaceError')} retry={t('common.retry')}>
           <Suspense fallback={<Notice>{t('app.opening')}</Notice>}>
             <Routes>
-              <Route path="/" element={<Navigate to="/overview" replace />} />
+              <Route path="/" element={<Navigate to="/mempool" replace />} />
               {links.map(({ path }) => (
                 <Route
                   key={path}
                   path={`/${path}`}
-                  element={
-                    path === 'activity' ? (
-                      <ActivityView />
-                    ) : (
-                      <Dashboard page={path} node={node} range={range} setRange={setRange} />
-                    )
-                  }
-                />
+                  element={<Dashboard key={path} page={path} node={node} />}
+                >
+                  <Route index />
+                  {(path === 'mempool'
+                    ? ['trends']
+                    : path === 'blocks'
+                      ? ['analytics']
+                      : path === 'mining'
+                        ? ['pools']
+                        : ['peers', 'traffic', 'events']
+                  ).map((view) => (
+                    <Route key={view} path={view} />
+                  ))}
+                </Route>
               ))}
               <Route path="/mining/pools/:id" element={<PoolDetail />} />
-              <Route path="*" element={<Navigate to="/overview" replace />} />
+              <Route
+                path="*"
+                element={
+                  <main id="content" className="page-content" tabIndex={-1}>
+                    <div className="page-heading">
+                      <h1>{t('workspace.notFound')}</h1>
+                      <p>{t('workspace.notFoundDescription')}</p>
+                    </div>
+                    <Link className="text-link" to="/mempool">
+                      {t('nav.mempool')} <ArrowUpRight size={15} aria-hidden />
+                    </Link>
+                  </main>
+                }
+              />
             </Routes>
           </Suspense>
         </ErrorBoundary>

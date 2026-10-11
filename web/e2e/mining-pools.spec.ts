@@ -12,7 +12,7 @@ test('local coinbases build official pool shares for both block windows', async 
   });
 
   await signIn(page);
-  await navigate(page, 'Mining');
+  await navigate(page, 'Pools');
   const pools = page.getByRole('region', { name: 'Mining pools', exact: true });
   await expect(pools.getByRole('button', { name: 'Last 144 blocks', exact: true })).toHaveClass(
     'active',
@@ -57,7 +57,7 @@ test('local coinbases build official pool shares for both block windows', async 
   expect(['indexing', 'ready']).toContain(indexed.status);
   expect(indexed.shares.reduce((total, share) => total + share.blocks, 0)).toBe(indexed.scanned);
   expect(outbound).toEqual([]);
-  await navigate(page, 'Overview');
+  await navigate(page, 'Blocks');
   await page.getByRole('button', { name: 'Inspect block 900,123', exact: true }).click();
   const miner = page.getByRole('group', { name: 'Mining pool', exact: true });
   await expect(miner).toContainText('F2Pool');
@@ -110,7 +110,7 @@ test('pool chart shows partial, syncing, unsupported and failed refresh states',
   });
 
   await signIn(page);
-  await navigate(page, 'Mining');
+  await navigate(page, 'Pools');
   const pools = page.getByRole('region', { name: 'Mining pools', exact: true });
   await expect(pools.getByRole('progressbar')).toHaveCount(0);
   await expect(pools.locator('.pool-sample')).toContainText('16 / 144');
@@ -140,7 +140,7 @@ test('pool chart and block attribution support themes, German and accessible lay
   test.setTimeout(60000);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await signIn(page);
-  await navigate(page, 'Mining');
+  await navigate(page, 'Pools');
   const pools = page.getByRole('region', { name: 'Mining pools', exact: true });
   await expect(pools.locator('.pool-sample')).toContainText('144 / 144', { timeout: 30000 });
 
@@ -193,7 +193,7 @@ test('pool chart and block attribution support themes, German and accessible lay
     fullPage: true,
   });
 
-  await navigate(page, 'Übersicht');
+  await navigate(page, 'Blöcke');
   await page.getByRole('button', { name: 'Block 900.123 ansehen', exact: true }).click();
   await expect(page.locator('.block-pool')).toContainText('F2Pool');
   await expect(page.locator('.block-pool')).toContainText('Coinbase-Auszahlungsadresse');

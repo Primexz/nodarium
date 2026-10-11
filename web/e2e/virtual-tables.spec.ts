@@ -31,7 +31,7 @@ test('peer rows stay bounded while scrolling, filtering, sorting, refreshing and
   });
 
   await signIn(page);
-  await navigate(page, 'Connected peers');
+  await navigate(page, 'Peers');
   const panel = page.locator('.peer-panel');
   const scroll = panel.locator('.virtual-table-scroll');
   const rows = panel.locator('tr[data-index]');
@@ -144,7 +144,7 @@ test('long joined history tables expose the full range and preserve missing valu
   });
 
   await signIn(page);
-  await navigate(page, 'Connected peers');
+  await navigate(page, 'Peers');
   const chart = page
     .locator('.chart-panel')
     .filter({ has: page.getByRole('heading', { name: 'Total peers', exact: true }) });
@@ -177,6 +177,7 @@ test('transaction scrolling reaches the final block transaction and restores its
   page,
 }, info) => {
   await signIn(page);
+  await navigate(page, 'Blocks');
   await page.getByRole('button', { name: 'Inspect block 900,123', exact: true }).click();
   await page.locator('.goggles-table summary').click();
   const table = page.locator('.goggles-table');

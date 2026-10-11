@@ -22,7 +22,7 @@ test('desktop sidebar supports icon navigation, keyboard toggles and a saved pre
   await collapse.press('Enter');
   await expect(sidebar).toHaveCSS('width', '76px');
   await expect(sidebar.locator('.brand-mark')).toHaveCSS('width', '34px');
-  await expect(sidebar.locator('nav a')).toHaveCount(8);
+  await expect(sidebar.locator('nav a')).toHaveCount(4);
   await expect(sidebar.locator('nav a span').first()).toBeHidden();
   await expect(sidebar.locator('.brand-descriptor')).toBeHidden();
   await expect(sidebar.getByRole('button', { name: 'Sign out' })).toBeVisible();
@@ -59,9 +59,10 @@ test('desktop sidebar supports icon navigation, keyboard toggles and a saved pre
   await expect(sidebar).toHaveCSS('width', '256px');
   await page.getByLabel('Language', { exact: true }).selectOption('de');
   await page.getByRole('button', { name: 'Seitenleiste einklappen', exact: true }).click();
-  await expect(
-    sidebar.getByRole('link', { name: 'Verbundene Peers', exact: true }),
-  ).toHaveAttribute('title', 'Verbundene Peers');
+  await expect(sidebar.getByRole('link', { name: 'Mein Node', exact: true })).toHaveAttribute(
+    'title',
+    'Mein Node',
+  );
 
   await expect(
     page.getByRole('button', { name: 'Seitenleiste ausklappen', exact: true }),
@@ -88,7 +89,7 @@ test('a collapsed desktop preference keeps mobile navigation fully labeled', asy
   await expect(drawer.locator('.brand-descriptor')).toBeVisible();
   await expect(drawer.locator('.brand-mark')).toHaveCSS('width', '34px');
   await expect(drawer.locator('nav a span').first()).toBeVisible();
-  await expect(drawer.getByRole('link', { name: 'Connected peers', exact: true })).toBeVisible();
+  await expect(drawer.getByRole('link', { name: 'My node', exact: true })).toBeVisible();
   await expect(drawer.getByRole('button', { name: 'Sign out', exact: true })).toBeVisible();
   await page.screenshot({ path: `test-results/sidebar-drawer-${info.project.name}.png` });
   await drawer.getByRole('link', { name: 'Mining', exact: true }).click();

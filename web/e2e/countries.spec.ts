@@ -17,10 +17,8 @@ test('country bars count peers, include unknown locations, translate and retain 
 
   await mockMap(page, fixture);
   await signIn(page);
-  await navigate(page, 'Connected peers');
-  await expect(
-    page.getByRole('heading', { name: 'Connected to the network.', exact: true }),
-  ).toBeVisible();
+  await navigate(page, 'Peers');
+  await expect(page.getByRole('heading', { name: 'My node', level: 1, exact: true })).toBeVisible();
 
   let panel = page.getByRole('region', { name: 'Peers by country', exact: true });
   await expect(panel.getByText('7 peers · 4 countries')).toBeVisible();

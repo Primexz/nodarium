@@ -18,9 +18,8 @@ import BlockGoggles from '../components/BlockGoggles';
 const eventKey = (event: ActivityEvent) => event.id;
 const transactionKey = (tx: ActivityTransaction) => tx.txid;
 
-export default function Activity() {
+export default function Activity({ view }: { view: 'live' | 'timeline' }) {
   const { t } = useTranslation();
-  const [view, setView] = useState<'live' | 'timeline'>('live');
   const [paused, setPaused] = useState(false);
   const [kind, setKind] = useState('');
   const [generation, setGeneration] = useState(0);
@@ -100,44 +99,30 @@ export default function Activity() {
     return t('activity.blockEvent', { height: number(event.height) });
   }
 
+  const trackingControls = (
+    <div className="activity-controls">
+      <div className="activity-source" role="status">
+        <span className={`status-dot ${connected ? '' : 'offline'}`} />
+        {paused && view === 'live'
+          ? t('activity.paused')
+          : !connected
+            ? t('activity.reconnecting')
+            : live?.source === 'zmq'
+              ? t('activity.zmq')
+              : t('activity.rpc')}
+      </div>
+      {view === 'live' && (
+        <button onClick={() => setPaused(!paused)}>
+          {paused ? <Play size={16} aria-hidden /> : <Pause size={16} aria-hidden />}
+          {t(paused ? 'activity.resume' : 'activity.pause')}
+        </button>
+      )}
+    </div>
+  );
+
   return (
-    <main id="content" className="page-content activity-page" tabIndex={-1}>
-      <div className="page-heading">
-        <h1>{t('activity.title')}</h1>
-        <p>{t('activity.description')}</p>
-      </div>
-      <div className="activity-controls">
-        <div className="segmented" role="group" aria-label={t('activity.view')}>
-          {(['live', 'timeline'] as const).map((tab) => (
-            <button
-              key={tab}
-              aria-pressed={view === tab}
-              onClick={() => {
-                setView(tab);
-                setSelected(null);
-              }}
-            >
-              {t(`activity.${tab}`)}
-            </button>
-          ))}
-        </div>
-        <div className="activity-source" role="status">
-          <span className={`status-dot ${connected ? '' : 'offline'}`} />
-          {paused && view === 'live'
-            ? t('activity.paused')
-            : !connected
-              ? t('activity.reconnecting')
-              : live?.source === 'zmq'
-                ? t('activity.zmq')
-                : t('activity.rpc')}
-        </div>
-        {view === 'live' && (
-          <button onClick={() => setPaused(!paused)}>
-            {paused ? <Play size={16} aria-hidden /> : <Pause size={16} aria-hidden />}
-            {t(paused ? 'activity.resume' : 'activity.pause')}
-          </button>
-        )}
-      </div>
+    <div className="activity-page">
+      {view === 'timeline' && trackingControls}
       {(live?.persistence_error || history.data?.pages.some((p) => p.persistence_error)) && (
         <Notice error>{t('activity.persistenceError')}</Notice>
       )}
@@ -150,6 +135,7 @@ export default function Activity() {
             error={live?.projection_error ?? false}
             stopped={paused || !visible || !connected}
           />
+          {trackingControls}
           <dl className="activity-metrics metrics-grid two">
             <Metric
               label={t('activity.arrivals')}
@@ -313,6 +299,6 @@ export default function Activity() {
           <BlockGoggles hash={selected} />
         </section>
       )}
-    </main>
+    </div>
   );
 }

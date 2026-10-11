@@ -1,3 +1,4 @@
+import { useRememberedRange } from '../useRememberedRange';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../api';
@@ -215,7 +216,7 @@ export default function BlockEconomics({
   syncing?: boolean;
 }) {
   const { t } = useTranslation();
-  const [range, setRange] = useState<EconomicsRange>('recent');
+  const [range, setRange] = useRememberedRange('block-economics', economicsRanges, 'recent');
   const query = useQuery({
     queryKey: ['node', 'block-economics', range],
     queryFn: ({ signal }) => api<EconomicsHistory>(`blocks/economics?range=${range}`, { signal }),
@@ -287,6 +288,48 @@ export default function BlockEconomics({
       ) : (
         <div className="chart-grid">
           <EconomicsPlot
+            title={t('blockEconomics.fullness')}
+            ceiling={100}
+            description={t(
+              history ? 'blockEconomics.historyFullness' : 'blockEconomics.fullnessDescription',
+            )}
+            blocks={blocks}
+            history={history}
+            unit="percent"
+            series={[
+              {
+                label: t('blocks.capacity'),
+                historyValue: (point) => point.capacity_percent,
+                value: (block) => block.capacity_percent,
+                text: (block) => missing(block.capacity_percent, '%'),
+              },
+            ]}
+          />
+          <EconomicsPlot
+            title={t('blockEconomics.feeRates')}
+            description={t(
+              history ? 'blockEconomics.historyRates' : 'blockEconomics.feeRatesDescription',
+            )}
+            blocks={blocks}
+            history={history}
+            unit="fee"
+            series={[
+              {
+                label: t('blockEconomics.averageRate'),
+                historyValue: (point) => point.average_fee_rate,
+                value: (block) => block.average_fee_rate ?? null,
+                text: (block) => missing(block.average_fee_rate, ' sat/vB'),
+              },
+              {
+                label: t(history ? 'blockEconomics.meanMedian' : 'blocks.medianFee'),
+                historyValue: (point) => point.median_fee_rate,
+                value: (block) => block.median_fee_rate,
+                text: (block) => missing(block.median_fee_rate, ' sat/vB'),
+                dashed: true,
+              },
+            ]}
+          />
+          <EconomicsPlot
             title={t('blockEconomics.reward')}
             description={t(
               history ? 'blockEconomics.historyReward' : 'blockEconomics.rewardDescription',
@@ -323,48 +366,6 @@ export default function BlockEconomics({
                 historyValue: (point) => point.fee_share,
                 value: feeShare,
                 text: (block) => missing(feeShare(block), '%'),
-              },
-            ]}
-          />
-          <EconomicsPlot
-            title={t('blockEconomics.feeRates')}
-            description={t(
-              history ? 'blockEconomics.historyRates' : 'blockEconomics.feeRatesDescription',
-            )}
-            blocks={blocks}
-            history={history}
-            unit="fee"
-            series={[
-              {
-                label: t('blockEconomics.averageRate'),
-                historyValue: (point) => point.average_fee_rate,
-                value: (block) => block.average_fee_rate ?? null,
-                text: (block) => missing(block.average_fee_rate, ' sat/vB'),
-              },
-              {
-                label: t(history ? 'blockEconomics.meanMedian' : 'blocks.medianFee'),
-                historyValue: (point) => point.median_fee_rate,
-                value: (block) => block.median_fee_rate,
-                text: (block) => missing(block.median_fee_rate, ' sat/vB'),
-                dashed: true,
-              },
-            ]}
-          />
-          <EconomicsPlot
-            title={t('blockEconomics.fullness')}
-            ceiling={100}
-            description={t(
-              history ? 'blockEconomics.historyFullness' : 'blockEconomics.fullnessDescription',
-            )}
-            blocks={blocks}
-            history={history}
-            unit="percent"
-            series={[
-              {
-                label: t('blocks.capacity'),
-                historyValue: (point) => point.capacity_percent,
-                value: (block) => block.capacity_percent,
-                text: (block) => missing(block.capacity_percent, '%'),
               },
             ]}
           />

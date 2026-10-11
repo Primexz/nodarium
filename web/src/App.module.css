@@ -96,6 +96,10 @@
   transition: margin-top var(--sidebar-duration) var(--sidebar-ease);
 }
 
+.sidebar nav a:last-child {
+  margin-top: 24px;
+}
+
 .sidebar nav a,
 .sidebar :global(.logout) {
   overflow: hidden;

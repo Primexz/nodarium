@@ -118,7 +118,7 @@ test('historical trends link to shareable pool pages and inspect pool blocks', a
     (block: Block) => block.height % 5 === 3,
   );
 
-  await navigate(page, 'Mining');
+  await navigate(page, 'Pools');
   const history = page.getByRole('region', { name: 'Historical mining pools', exact: true });
   await expect(history.locator('.chart canvas')).toBeVisible();
   await expect(history).toContainText('Unavailable');
@@ -140,8 +140,8 @@ test('historical trends link to shareable pool pages and inspect pool blocks', a
   await page.getByRole('button', { name: 'Inspect block 900,123', exact: true }).click();
   await expect(page.locator('.block-goggles')).toBeVisible();
   await expect(page.locator('.block-pool')).toContainText('F2Pool');
-  await page.getByRole('link', { name: 'Back to mining' }).click();
-  await expect(page).toHaveURL(/\/mining$/);
+  await page.getByRole('link', { name: 'Back to pools' }).click();
+  await expect(page).toHaveURL(/\/mining\/pools\?range=1y$/);
 });
 
 test('pool history and details retain accessible desktop and mobile layouts in both languages', async ({
@@ -155,7 +155,7 @@ test('pool history and details retain accessible desktop and mobile layouts in b
     (block: Block) => block.height % 5 === 3,
   );
 
-  await navigate(page, 'Mining');
+  await navigate(page, 'Pools');
   await expect(page.locator('.pool-history .chart canvas')).toBeVisible();
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({
@@ -233,7 +233,7 @@ test('pool history handles empty, offline, unsupported, failed and unknown pool 
     return route.fulfill({ json: data });
   });
 
-  await navigate(page, 'Mining');
+  await navigate(page, 'Pools');
   const region = page.getByRole('region', { name: 'Historical mining pools', exact: true });
   await expect(region).toContainText('No indexed blocks in this period');
   state = 'offline';

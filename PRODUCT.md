@@ -40,14 +40,51 @@ an alternative. No exclusive market or performance claims are established.
   provides the standard single-container setup with persistent data storage.
 - The responsive web interface supports desktop and mobile browsers, with
   English and German language selection.
-- The core workflow is to check the compact overview for health, key metrics,
-  and recent blocks, then investigate node details, mining, peers, traffic,
-  mempool activity, or historical blocks on dedicated pages. Monitoring ranges support
-  comparison over one hour, 24 hours, seven days, 30 days, and one year.
+- The core workflow starts in Mempool Live, then uses Blocks and Mining for
+  chain and network exploration, and My node for health, peers, traffic, and
+  observed events. Each destination has URL-addressed secondary views. Monitoring
+  ranges support comparison over one hour, 24 hours, seven days, 30 days, and
+  one year, remembered separately per view within the browser tab when session
+  storage is available; controls remain usable without storage.
 - Collection continues independently of an open browser. Monitoring observations
   begin when collection starts and cannot be backfilled from earlier node activity.
   Compact block history is indexed from Core's active chain, independently of those
   observations, and resumes after restart.
+
+## Navigation and View Responsibilities
+
+The sidebar order is Mempool, Blocks, Mining, then My node, with a gap before
+My node. The root opens `/mempool`; the shared node-status badge opens `/node`.
+Unknown and retired page URLs show a localized page-not-found view without
+redirecting to replacement pages.
+
+| Destination | Views and URLs | Responsibility |
+| --- | --- | --- |
+| Mempool | Live `/mempool`; Trends `/mempool/trends` | Current fees, projected backlog, sampled arrivals; collected fee, backlog, memory, and acceptance-floor history. |
+| Blocks | Explorer `/blocks`; Analytics `/blocks/analytics` | Height search, block browser and transaction inspection; utilization, fee rates, subsidy/fees, and fee share in that order. |
+| Mining | Network `/mining`; Pools `/mining/pools` | Difficulty period and hashrate/difficulty history; recent and historical observed pool shares. |
+| My node | Overview `/node`; Peers `/node/peers`; Traffic `/node/traffic`; Events `/node/events` | Health, storage and Core details; connections and geography; rates and budget; observed connection, block and reorganization events. |
+
+Mempool Live presents Core’s fee estimates first, full-mempool projections second,
+and source status, live-tracking pause, and sampled arrivals third. The original
+`getmempoolinfo` count, virtual size, memory, and policy readings remain in a final
+native disclosure. A concise estimate warning precedes projections; the original
+detailed method remains available in a disclosure beneath them. Pausing live
+tracking retains the held projection and does not pause independently polled
+node readings or fee estimates. Mobile fee readings retain per-target times,
+stale states, and errors in compact stacked rows.
+
+Explorer retains its mounted browser while Analytics is visible, preserving the
+selection and browser scroll between those views. My node Peers places the
+searchable table before history, map, countries, and transport counts. Traffic
+uses one combined download/upload history chart with independently toggleable
+series, followed by the upload budget and cumulative Core counters. Events keeps
+the existing observation log, coverage limits, category filtering, and block
+inspection.
+
+Pool detail pages remain at `/mining/pools/:id`; their back link returns to Pools
+with the selected historical range. Pool history also reflects its selected
+range in the query string. Block economics remembers its own range independently.
 
 ## Capabilities and Constraints
 
@@ -69,17 +106,16 @@ Implementation details are grounded in the repository's README and source.
   with persisted hashrate and difficulty charts. Pause network mining history
   during synchronization and preserve gaps for failed estimates.
 - Show local conservative fee estimates for 2, 3, and 6-block confirmation targets
-  in sat/vB, with persisted history on the Mempool page. Preserve each target's
+  in sat/vB, with persisted history in Mempool Trends. Preserve each target's
   observation and stale state independently; missing estimates stay unavailable.
   Show Core's returned target when it differs from the request and record history
   only when they match. Pause fee collection during blockchain synchronization.
 - Provide searchable and sortable peer connections, approximate peer locations,
   country counts from local GeoIP data, traffic rates and totals, mempool statistics,
-  and the latest ten blocks on the overview. Browse persisted block summaries on
-  the Blocks page through one visual browser with horizontal infinite scrolling
+  and recent block summaries. Browse persisted block summaries in Blocks
+  Explorer through one visual browser with horizontal infinite scrolling
   and block-height search. Selected details occupy a separate panel below the
-  browser and above block economics, remaining available when their tile leaves
-  the loaded pages. Share inspectable tile geometry with the overview and provide
+  browser, remaining available when their tile leaves the loaded pages. Retain shared inspectable block-tile geometry and provide
   an on-demand transaction mosaic sized by virtual bytes and colored by fee rate.
   Tile selection and a keyboard-accessible data table open transaction details,
   inputs, and outputs from the local node;
@@ -105,8 +141,8 @@ Implementation details are grounded in the repository's README and source.
   validates whole heights from genesis through the current tip. New blocks appear
   through a return-to-latest control; reorganizations offer a restart at the visible
   height. Closing selected details restores the invoking tile when it remains mounted.
-- Compare the latest ten validated blocks or persisted block history on the Blocks
-  page with subsidy and fees, fee share of available reward, Core's average and weight-percentile median fee
+- Compare the latest ten validated blocks or persisted block history in Blocks
+  Analytics with subsidy and fees, fee share of available reward, Core's average and weight-percentile median fee
   rates, and full-block capacity utilization. Available reward means subsidy plus
   fees, not the actual claimed coinbase payout. Recent plots use height order and
   exact satoshi amounts in expandable tables. Historical ranges cover 24 hours,
@@ -121,7 +157,8 @@ Implementation details are grounded in the repository's README and source.
 - Attribute mainnet coinbase transactions locally using bundled official
   mempool/mining-pools definitions. Show pool block shares for the latest 144 or
   1,008 blocks using the same persisted block index, and the attributed miner in
-  block goggles. Compare historical observed pool shares over 24 hours, seven
+  block goggles. Mining Network owns the difficulty period and network-history
+  charts; Mining Pools owns recent observed shares and historical pool shares. Compare historical observed pool shares over 24 hours, seven
   days, 30 days, one year, or all indexed history. Include every indexed
   active-chain block within the exact selected period in share denominators;
   keep Unknown and Unavailable separate, and leave buckets without blocks as

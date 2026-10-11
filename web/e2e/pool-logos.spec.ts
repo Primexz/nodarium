@@ -1,13 +1,13 @@
 import { test, expect } from '@playwright/test';
-import type { BlockTransactions, PoolDistribution } from '../src/types';
+import type { IndexedBlock, PoolDistribution } from '../src/types';
 import { navigate, signIn } from './fixtures';
 
 test('block pool logos and names align with localized attribution text', async ({ page }, info) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.route('**/api/1.0/blocks/*/transactions', async (route) => {
+  await page.route('**/api/1.0/blocks/*', async (route) => {
     const response = await route.fetch();
-    const body: BlockTransactions = await response.json();
-    body.mining_pool = {
+    const body: IndexedBlock = await response.json();
+    body.pool = {
       status: 'identified',
       method: 'payout_address',
       pool: { id: 1, name: 'Luxor', link: 'https://luxor.tech' },
@@ -18,6 +18,7 @@ test('block pool logos and names align with localized attribution text', async (
 
   await signIn(page);
   await page.getByLabel('Language', { exact: true }).selectOption('de');
+  await navigate(page, 'Blöcke');
   await page.getByRole('button', { name: 'Block 900.123 ansehen', exact: true }).click();
   const attribution = page.locator('.block-pool');
 
@@ -36,7 +37,7 @@ test('block pool logos and names align with localized attribution text', async (
       true,
     );
 
-    await page.locator('.block-goggles').screenshot({
+    await page.locator('.selected-block-panel').screenshot({
       path: `../.impeccable/review/block-pool-alignment-${info.project.name}-${theme}.png`,
     });
   }
@@ -69,7 +70,7 @@ test('unknown and missing pool logos use local theme-aware fallbacks without cha
   });
 
   await signIn(page);
-  await navigate(page, 'Mining');
+  await navigate(page, 'Pools');
   const legend = page.locator('.pool-pie-legend');
   const missing = legend.getByRole('listitem').filter({ hasText: '../../New pool? #1' });
   const unknown = legend.getByRole('listitem').filter({ hasText: 'Unknown' });
@@ -106,7 +107,7 @@ test('failed images fall back locally, hide broken images, and recover on a them
 }) => {
   await page.route('**/assets/foundryusa.light-*.svg', (route) => route.abort());
   await signIn(page);
-  await navigate(page, 'Mining');
+  await navigate(page, 'Pools');
   const foundry = page
     .getByRole('region', { name: 'Mining pools', exact: true })
     .locator('.pool-name')

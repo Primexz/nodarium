@@ -32,7 +32,7 @@ test('one top-bar index progress survives navigation, localizes, updates and dis
   await expect(progress).toContainText('600,000 / 2,000,000 blocks · 30.0%');
   await expect(progress.getByRole('progressbar')).toHaveAttribute('value', '600000');
 
-  for (const name of ['Mining', 'Blocks', 'Node details', 'Overview']) {
+  for (const name of ['Mining', 'Blocks', 'My node', 'Events']) {
     await navigate(page, name);
     await expect(progress).toBeVisible();
     await expect(page.getByRole('progressbar', { name: 'Block indexing progress' })).toHaveCount(1);

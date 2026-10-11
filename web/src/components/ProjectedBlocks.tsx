@@ -78,7 +78,7 @@ export default function ProjectedBlocks({
   return (
     <section className="projected-section">
       <h2>{t('activity.projectedBlocks')}</h2>
-      <p className="form-note">{t('activity.projectionExplanation')}</p>
+      <p className="form-note">{t('workspace.projectionSummary')}</p>
       {error && (
         <Notice error>
           {t(projection ? 'activity.projectionStale' : 'activity.projectionError')}
@@ -210,6 +210,10 @@ export default function ProjectedBlocks({
           </ul>
         </>
       )}
+      <details className="projection-method">
+        <summary>{t('workspace.projectionMethod')}</summary>
+        <p className="form-note">{t('activity.projectionExplanation')}</p>
+      </details>
     </section>
   );
 }

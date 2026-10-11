@@ -26,6 +26,7 @@ test('block strip opens real block details and opens a single selected block pan
 }) => {
   await mockMap(page);
   await signIn(page);
+  await navigate(page, 'Blocks');
   await page.getByRole('button', { name: 'Inspect block 900,123', exact: true }).click();
   await expect(
     page.getByRole('region', { name: 'Block 900,123 details', exact: true }),
@@ -44,7 +45,7 @@ test('block strip opens real block details and opens a single selected block pan
 
 test('keyboard dialogs restore focus and expired sessions hide node data', async ({ page }) => {
   await signIn(page);
-  await navigate(page, 'Connected peers');
+  await navigate(page, 'Peers');
   const peer = page.getByRole('button', { name: '192.0.2.12:8333', exact: true });
   await peer.focus();
   await peer.press('Enter');
@@ -61,19 +62,21 @@ test('keyboard dialogs restore focus and expired sessions hide node data', async
   await expect(page.getByText('900,123', { exact: true })).toHaveCount(0);
 });
 
-test('direct routes reload and unknown routes return to overview', async ({ page }) => {
+test('direct routes reload and unknown routes remain at a not-found page', async ({ page }) => {
   await signIn(page);
   await page.goto('/mempool');
-  await expect(page.getByRole('heading', { name: 'Waiting for the next block.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Mempool' })).toBeVisible();
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Waiting for the next block.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Mempool' })).toBeVisible();
   await page.goto('/does-not-exist');
-  await expect(page).toHaveURL(/\/overview$/);
+  await expect(page).toHaveURL(/\/does-not-exist$/);
+  await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible();
 });
 
 test('redesign capture matrix covers themes, routes, German and reduced motion', async ({
   page,
 }, info) => {
+  test.setTimeout(120000);
   const prefix = `../.impeccable/review/${info.project.name}`;
   const errors: string[] = [];
 
@@ -140,26 +143,36 @@ test('redesign capture matrix covers themes, routes, German and reduced motion',
     await page.getByLabel('Theme', { exact: true }).selectOption(theme);
 
     for (const route of [
-      'Overview',
-      'Node details',
-      'Mining',
-      'Connected peers',
-      'Network traffic',
       'Mempool',
+      'Trends',
       'Blocks',
+      'Analytics',
+      'Mining',
+      'Pools',
+      'My node',
+      'Peers',
+      'Traffic',
+      'Events',
     ]) {
       await navigate(page, route);
-      const heading = {
-        Overview: 'Your node, in focus.',
-        'Node details': 'Your node, in detail.',
-        Mining: 'Mining across the network.',
-        'Connected peers': 'Connected to the network.',
-        'Network traffic': 'Every byte, accounted for.',
-        Mempool: 'Waiting for the next block.',
-        Blocks: 'The chain keeps growing.',
-      }[route]!;
+      const heading = ['Mempool', 'Trends'].includes(route)
+        ? 'Mempool'
+        : ['Blocks', 'Analytics'].includes(route)
+          ? 'Blocks'
+          : ['Mining', 'Pools'].includes(route)
+            ? 'Mining'
+            : 'My node';
 
-      await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
+      await expect(
+        page.getByRole('heading', { name: heading, level: 1, exact: true }),
+      ).toBeVisible();
+
+      if (route === 'Pools') {
+        const history = page.getByRole('region', { name: 'Historical mining pools', exact: true });
+        await expect(history.locator('.chart-foot')).toBeVisible();
+        await expect(history.locator('.chart canvas')).toBeVisible();
+      }
+
       await expect(page.locator('.chart-empty.skeleton')).toHaveCount(0);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,
@@ -175,13 +188,13 @@ test('redesign capture matrix covers themes, routes, German and reduced motion',
       const name = route.toLowerCase().replaceAll(' ', '-');
       await page.screenshot({ path: `${prefix}-${name}-${theme}.png`, fullPage: true });
 
-      if (route === 'Overview' && theme === 'light')
+      if (route === 'Mempool' && theme === 'light')
         await page.screenshot({ path: `${prefix}.png`, fullPage: true });
     }
   }
 
   await page.getByLabel('Language', { exact: true }).selectOption('de');
-  await navigate(page, 'Übersicht');
+  await navigate(page, 'Mein Node');
   await expect(page.locator('html')).toHaveAttribute('lang', 'de');
   await page.screenshot({ path: `${prefix}-german.png`, fullPage: true });
   expect(errors).toEqual([]);
@@ -190,7 +203,7 @@ test('redesign capture matrix covers themes, routes, German and reduced motion',
 test('login and monitoring routes pass automated accessibility checks in both themes', async ({
   page,
 }) => {
-  test.setTimeout(60000);
+  test.setTimeout(120000);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
 
@@ -216,13 +229,16 @@ test('login and monitoring routes pass automated accessibility checks in both th
     await page.getByLabel('Theme', { exact: true }).selectOption(theme);
 
     for (const route of [
-      'Overview',
-      'Node details',
-      'Mining',
-      'Connected peers',
-      'Network traffic',
       'Mempool',
+      'Trends',
       'Blocks',
+      'Analytics',
+      'Mining',
+      'Pools',
+      'My node',
+      'Peers',
+      'Traffic',
+      'Events',
     ]) {
       await navigate(page, route);
       await expect(page.locator('.chart-empty.skeleton')).toHaveCount(0);
@@ -233,7 +249,7 @@ test('login and monitoring routes pass automated accessibility checks in both th
         await audit();
       }
 
-      if (route === 'Connected peers') {
+      if (route === 'Peers') {
         await page.getByRole('button', { name: '192.0.2.12:8333', exact: true }).click();
         await audit();
         await page.keyboard.press('Escape');

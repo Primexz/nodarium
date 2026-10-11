@@ -403,6 +403,121 @@ nav a.active {
   margin-top: 9px;
 }
 
+.view-navigation {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 28px;
+  margin-top: 0;
+}
+
+.view-navigation a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 4px;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  text-decoration: none;
+  border-radius: 0;
+}
+
+.view-navigation a.active {
+  background: transparent;
+}
+
+.navigation-drawer nav a:last-child {
+  margin-top: 24px;
+}
+
+.view-navigation a:hover {
+  color: var(--ink);
+}
+
+.view-navigation a[aria-current='page'] {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+.chain-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 32px;
+  margin-bottom: 24px;
+}
+
+.chain-context > div {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.chain-context dt {
+  color: var(--muted);
+}
+
+.chain-context dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.mempool-policy {
+  margin-top: 32px;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+
+.mempool-policy summary {
+  cursor: pointer;
+  padding: 16px 0;
+  font-weight: 600;
+}
+
+.chart-legend button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.chart-legend button[aria-pressed='false'] {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.metrics-grid.node-metrics {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.metrics-grid.two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  row-gap: 24px;
+}
+
+.metrics-grid.two .metric:nth-child(odd) {
+  border-left: 0;
+  padding-left: 0;
+}
+
+@media (max-width: 767px) {
+  .metrics-grid.node-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .node-metrics .metric:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+.connection-badge {
+  text-decoration: none;
+}
+
 .banner {
   padding: 16px 20px;
   background: var(--rail);
@@ -1816,7 +1931,16 @@ tbody tr:hover {
   }
 
   .fee-readings .metric {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    align-items: baseline;
+    gap: 12px;
     padding-right: 0;
+  }
+
+  .fee-readings .metric dd {
+    text-align: right;
+    margin: 0;
   }
 
   .fee-readings .metric + .metric {
@@ -2556,6 +2680,21 @@ tbody tr:hover {
 }
 .projected-section > .form-note {
   max-width: 90ch;
+}
+
+.projection-method {
+  margin-top: 20px;
+  font-size: 12px;
+}
+
+.projection-method summary {
+  cursor: pointer;
+  min-height: 40px;
+  padding-block: 12px;
+}
+
+.projection-method p {
+  max-width: 80ch;
 }
 .projection-metrics {
   margin-block: 24px;

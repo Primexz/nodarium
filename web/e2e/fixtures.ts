@@ -89,16 +89,56 @@ export async function signIn(page: Page) {
   await page.goto('/');
   await page.getByLabel('Admin key', { exact: true }).fill('e2e-admin-key');
   await page.getByRole('button', { name: 'Open dashboard' }).click();
-  await expect(page.getByRole('heading', { name: 'Your node, in focus.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Mempool', exact: true })).toBeVisible();
 }
 
 export async function navigate(page: Page, name: string) {
+  const parents: Record<string, string> = {
+    Peers: 'My node',
+    Traffic: 'My node',
+    Events: 'My node',
+    Trends: 'Mempool',
+    Analytics: 'Blocks',
+    Pools: 'Mining',
+    Datenverkehr: 'Mein Node',
+    Ereignisse: 'Mein Node',
+    Verlauf: 'Mempool',
+    Analyse: 'Blöcke',
+  };
+
+  const german = (await page.locator('html').getAttribute('lang')) === 'de';
+  const parent =
+    name === 'Peers' && german
+      ? 'Mein Node'
+      : name === 'Pools' && german
+        ? 'Mining'
+        : parents[name];
+
   await expect(page.locator('.topbar')).toBeVisible();
   await expect(page.locator('.navigation-drawer[data-state="closed"]')).toBeHidden();
   const menu = page.getByRole('button', { name: /^(Open navigation|Navigation öffnen)$/ });
 
   if (await menu.isVisible()) await menu.click();
 
-  await page.getByRole('navigation').getByRole('link', { name }).click();
+  const primary = page
+    .getByRole('navigation', { name: /^(Workspace|Arbeitsbereich)$/ })
+    .getByRole('link', { name: parent ?? name, exact: true });
+
+  let path = (await primary.getAttribute('href'))!;
+  await primary.click();
+  await expect(page).toHaveURL((url) => url.pathname === path);
+
   await expect(page.locator('.navigation-drawer[data-state="closed"]')).toBeHidden();
+
+  if (parent) {
+    const secondary = page.locator('.view-navigation').getByRole('link', { name, exact: true });
+    path = (await secondary.getAttribute('href'))!;
+    await secondary.click();
+    await expect(page).toHaveURL((url) => url.pathname === path);
+  }
+
+  await expect(page.locator('.view-navigation a[aria-current="page"]')).toHaveAttribute(
+    'href',
+    path,
+  );
 }

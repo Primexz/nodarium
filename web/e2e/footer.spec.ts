@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { signIn } from './fixtures';
+import { navigate, signIn } from './fixtures';
 
 test('footer reaches the viewport bottom on short pages and follows expanded content', async ({
   page,
@@ -11,6 +11,7 @@ test('footer reaches the viewport bottom on short pages and follows expanded con
   });
 
   await signIn(page);
+  await navigate(page, 'My node');
   await page.getByLabel('Language', { exact: true }).selectOption('de');
   const footer = page.locator('footer');
 
@@ -25,6 +26,7 @@ test('footer reaches the viewport bottom on short pages and follows expanded con
   }
 
   await page.setViewportSize({ width: info.project.name === 'mobile' ? 390 : 1440, height: 600 });
+  await navigate(page, 'Blöcke');
   await page.getByRole('button', { name: 'Block 900.123 ansehen', exact: true }).click();
   await expect(page.locator('.transaction-mosaic canvas')).toBeVisible();
   const content = (await page.locator('#content').boundingBox())!;

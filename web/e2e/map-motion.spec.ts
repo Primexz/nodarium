@@ -9,10 +9,8 @@ test('peer connection lines animate and stop for reduced motion and stale readin
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await mockMap(page);
   await signIn(page);
-  await navigate(page, 'Connected peers');
-  await expect(
-    page.getByRole('heading', { name: 'Connected to the network.', exact: true }),
-  ).toBeVisible();
+  await navigate(page, 'Peers');
+  await expect(page.getByRole('heading', { name: 'My node', level: 1, exact: true })).toBeVisible();
 
   const map = page.locator('.peer-map-canvas');
   await map.scrollIntoViewIfNeeded();

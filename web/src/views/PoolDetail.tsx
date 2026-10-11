@@ -45,9 +45,9 @@ export default function PoolDetailPage() {
 
   return (
     <main id="content" className="page-content pool-detail-page" tabIndex={-1}>
-      <Link to="/mining" className="text-link pool-back">
+      <Link to={`/mining/pools?range=${range}`} className="text-link pool-back">
         <ArrowLeft size={16} aria-hidden />
-        {t('poolHistory.back')}
+        {t('workspace.backToPools')}
       </Link>
       <div className="page-heading">
         <h1 className="pool-detail-title">

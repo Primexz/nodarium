@@ -10,7 +10,7 @@ test('admin authentication protects API and supports logout', async ({ page, req
   await expect(page.getByRole('alert')).toHaveText('Invalid admin key');
   await page.getByLabel('Admin key', { exact: true }).fill('e2e-admin-key');
   await page.getByRole('button', { name: 'Open dashboard' }).click();
-  await expect(page.getByRole('heading', { name: 'Your node, in focus.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Mempool' })).toBeVisible();
   expect(await page.evaluate(() => localStorage.length)).toBe(0);
   const menu = page.getByRole('button', { name: 'Open navigation' });
 
@@ -21,11 +21,14 @@ test('admin authentication protects API and supports logout', async ({ page, req
   expect((await page.request.get('/api/1.0/overview')).status()).toBe(401);
 });
 
-test('overview displays node metrics without horizontal overflow', async ({ page }, info) => {
+test('node overview displays essential readings without horizontal overflow', async ({
+  page,
+}, info) => {
   await mockMap(page);
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await signIn(page);
+  await navigate(page, 'My node');
   await expect(page.getByText('900,123', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('Up to date', { exact: true })).toBeVisible();
   await expect(page.getByText('Node connected', { exact: true })).toBeVisible();
@@ -43,7 +46,7 @@ test('overview displays node metrics without horizontal overflow', async ({ page
 
 test('peers can be searched, filtered, sorted and inspected', async ({ page }) => {
   await signIn(page);
-  await navigate(page, 'Connected peers');
+  await navigate(page, 'Peers');
   await page.getByLabel('Search peers').fill('192.0.2.12');
   await expect(page.getByRole('button', { name: '192.0.2.12:8333', exact: true })).toBeVisible();
   await expect(page.locator('tbody tr')).toHaveCount(1);
@@ -63,7 +66,7 @@ test('peers can be searched, filtered, sorted and inspected', async ({ page }) =
 
 test('charts change range and all monitoring views are available', async ({ page }) => {
   await signIn(page);
-  await navigate(page, 'Network traffic');
+  await navigate(page, 'Traffic');
   const response = page.waitForResponse(
     (r) => r.url().includes('metric=rx_rate&range=1y') && r.status() === 200,
   );
@@ -77,7 +80,7 @@ test('charts change range and all monitoring views are available', async ({ page
 
   await expect(page.getByText('No upload target configured')).toBeVisible();
   await navigate(page, 'Mempool');
-  await expect(page.getByText('1,842', { exact: true })).toBeVisible();
+  await expect(page.locator('.projected-section')).toBeVisible();
   await navigate(page, 'Blocks');
   await expect(page.locator('.virtual-block-strip li').first()).toBeVisible();
 });
@@ -97,6 +100,7 @@ test('lost RPC connection is clearly marked while last readings remain visible',
 
   await page.getByRole('button', { name: 'Refresh node data' }).click();
   await expect(page.getByText('Node connection lost')).toBeVisible();
+  await navigate(page, 'My node');
   await expect(page.getByText('900,123', { exact: true }).first()).toBeVisible();
 });
 
@@ -107,7 +111,7 @@ test('peer map shows locations, direction filters, controls and unlocated peers'
   page.on('pageerror', (error) => errors.push(error.message));
   await mockMap(page);
   await signIn(page);
-  await navigate(page, 'Connected peers');
+  await navigate(page, 'Peers');
   const map = page.getByRole('img', {
     name: 'World map showing 4 located peers connected to My node',
   });
@@ -136,7 +140,7 @@ test('peer map shows locations, direction filters, controls and unlocated peers'
     .screenshot({ path: `test-results/map-${info.project.name}.png` });
 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await navigate(page, 'Connected peers');
+  await navigate(page, 'Peers');
   await expect(
     page.getByRole('img', { name: 'World map showing 4 located peers connected to My node' }),
   ).toBeVisible();
@@ -156,7 +160,7 @@ test('map reports absent node location, empty peers and stale data', async ({ pa
   fixture.stale = true;
   await mockMap(page, fixture);
   await signIn(page);
-  await navigate(page, 'Connected peers');
+  await navigate(page, 'Peers');
   await expect(page.getByText('No connected peers yet')).toBeVisible();
   await expect(page.getByText(fixture.data!.node_message)).toBeVisible();
   await expect(
@@ -168,7 +172,7 @@ test('map reports absent node location, empty peers and stale data', async ({ pa
 
 test('GeoIP failure preserves the rest of the dashboard', async ({ page }) => {
   await signIn(page);
-  await navigate(page, 'Connected peers');
+  await navigate(page, 'Peers');
   // This uses the real authenticated endpoint with no city database configured.
   await expect(
     page
@@ -176,7 +180,8 @@ test('GeoIP failure preserves the rest of the dashboard', async ({ page }) => {
       .getByText('No city GeoIP database is available.', { exact: false }),
   ).toBeVisible();
 
-  await navigate(page, 'Overview');
+  await navigate(page, 'My node');
+  await navigate(page, 'My node');
   await expect(page.getByText('900,123', { exact: true }).first()).toBeVisible();
   const response = await page.request.get('/api/1.0/peer-map');
   expect(response.status()).toBe(200);
@@ -198,9 +203,10 @@ test('top bar switches the full dashboard to German and remembers the selection'
   await signIn(page);
   await page.locator('.topbar').getByRole('combobox', { name: 'Language' }).selectOption('de');
   await expect(page.locator('html')).toHaveAttribute('lang', 'de');
-  await expect(page.getByRole('heading', { name: 'Dein Node im Überblick.' })).toBeVisible();
+  await navigate(page, 'Mein Node');
+  await expect(page.getByRole('heading', { name: 'Mein Node' })).toBeVisible();
   await expect(page.getByText('900.123', { exact: true }).first()).toBeVisible();
-  await navigate(page, 'Verbundene Peers');
+  await navigate(page, 'Peers');
   await expect(page.getByRole('heading', { name: 'Peer-Verbindungen weltweit' })).toBeVisible();
   await expect(page.getByText('Frankfurt, Deutschland', { exact: true })).toBeVisible();
   await page.locator('.unlocated-peers summary').click();
@@ -215,31 +221,31 @@ test('top bar switches the full dashboard to German and remembers the selection'
     fullPage: true,
   });
 
-  await navigate(page, 'Übersicht');
+  await navigate(page, 'Mein Node');
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Dein Node im Überblick.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Mein Node' })).toBeVisible();
   await expect(page.locator('.topbar').getByRole('combobox', { name: 'Sprache' })).toHaveValue(
     'de',
   );
 
   const germanNavigate = (name: string) => navigate(page, name);
 
-  await germanNavigate('Verbundene Peers');
+  await germanNavigate('Peers');
   await page.getByLabel('Peers suchen', { exact: true }).fill('192.0.2.12');
   await page.getByRole('button', { name: '192.0.2.12:8333', exact: true }).click();
   await expect(page.getByRole('dialog')).toContainText('Verbindungsdetails');
   await page.getByLabel('Peer-Details schließen').click();
-  await germanNavigate('Netzwerkverkehr');
+  await germanNavigate('Datenverkehr');
   await expect(page.getByText('Kein Upload-Limit konfiguriert')).toBeVisible();
   await page.getByRole('button', { name: '1J', exact: true }).click();
   await expect(page.getByRole('img', { name: 'Netzwerkverkehr für 1J' })).toBeVisible();
   await germanNavigate('Mempool');
-  await expect(page.getByText('1.842', { exact: true })).toBeVisible();
+  await expect(page.locator('.projected-section')).toBeVisible();
   await germanNavigate('Blöcke');
   await expect(page.getByRole('heading', { name: 'Blöcke entdecken' })).toBeVisible();
   await expect(page.locator('.virtual-block-strip li').first()).toBeVisible();
   await page.locator('.topbar').getByRole('combobox', { name: 'Sprache' }).selectOption('en');
-  await expect(page.getByRole('heading', { name: 'The chain keeps growing.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Blocks', exact: true })).toBeVisible();
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   expect(errors).toEqual([]);
 });
@@ -255,7 +261,7 @@ test('login errors and GeoIP outages follow the selected language', async ({ pag
   await page.getByLabel('Language', { exact: true }).selectOption('de');
   await page.getByLabel('Admin-Schlüssel', { exact: true }).fill('e2e-admin-key');
   await page.getByRole('button', { name: 'Dashboard öffnen' }).click();
-  await navigate(page, 'Verbundene Peers');
+  await navigate(page, 'Peers');
   await expect(
     page
       .locator('.peer-map-panel')
@@ -325,8 +331,7 @@ test('block tiles open into responsive details and preserve selection across ref
   const bounds = await panel.boundingBox();
   expect(bounds!.x).toBeGreaterThanOrEqual(0);
   expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
-  const economicsBounds = await page.locator('.block-economics').boundingBox();
-  expect(bounds!.y + bounds!.height).toBeLessThan(economicsBounds!.y);
+  await expect(page.locator('.block-economics')).toHaveCount(0);
   await page.getByRole('button', { name: 'Refresh node data' }).click();
   await expect(panel).toBeVisible();
   await page.locator('.topbar').getByLabel('Language', { exact: true }).selectOption('de');

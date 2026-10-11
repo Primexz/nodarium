@@ -142,13 +142,13 @@ test('fee estimates and history support ranges, themes, German and partial obser
   const panel = page.locator('.fee-estimates');
   const chart = page.locator('.fee-history');
   await expect(panel.getByText('12.00 sat/vB', { exact: true })).toBeVisible();
+  await navigate(page, 'Trends');
   await expect(chart.locator('.chart-empty')).toHaveCount(0);
   await expect(chart.getByRole('img')).toBeVisible();
 
   for (const theme of ['light', 'dark']) {
     await page.getByLabel('Theme', { exact: true }).selectOption(theme);
     const audit = await new AxeBuilder({ page })
-      .include('.fee-estimates')
       .include('.fee-history')
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
       .analyze();
@@ -158,17 +158,23 @@ test('fee estimates and history support ranges, themes, German and partial obser
       true,
     );
 
-    await page.getByRole('heading', { name: 'Fee estimates', exact: true }).click();
+    await navigate(page, 'Mempool');
+    const liveAudit = await new AxeBuilder({ page }).include('.fee-estimates').analyze();
+    expect(liveAudit.violations).toEqual([]);
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({
       path: `../.impeccable/review/fees-${info.project.name}-${theme}.png`,
       fullPage: true,
     });
+
+    await navigate(page, 'Trends');
   }
 
   await page.getByLabel('Language', { exact: true }).selectOption('de');
+  await navigate(page, 'Mempool');
   await expect(panel).toContainText('Gebührenschätzungen');
   await expect(panel.getByText('12,00 sat/vB', { exact: true })).toBeVisible();
+  await navigate(page, 'Verlauf');
   await expect(chart.getByRole('heading')).toHaveText('Verlauf der Gebührenschätzungen');
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({
@@ -184,6 +190,7 @@ test('fee estimates and history support ranges, themes, German and partial obser
   await expect(chart.getByRole('columnheader', { name: '6-block target' })).toBeVisible();
   await expect(chart.getByText('No reading', { exact: true })).toHaveCount(3);
   const refresh = page.getByRole('button', { name: 'Refresh node data' });
+  await navigate(page, 'Mempool');
   state = 'partial';
   await refresh.click();
   await expect(panel.locator('.metric').nth(1)).toContainText('Last known reading');
@@ -203,6 +210,8 @@ test('fee estimates and history support ranges, themes, German and partial obser
     panel.getByText('Not enough data to estimate this fee rate.', { exact: true }),
   ).toHaveCount(3);
 
+  await navigate(page, 'Trends');
+  await refresh.click();
   await expect(chart.getByText('Your history starts here')).toBeVisible();
   // Change range to discard the cached first series, then verify partial history still has an accessible table.
   state = 'ready';
@@ -215,6 +224,7 @@ test('fee estimates and history support ranges, themes, German and partial obser
   await expect(chart.getByRole('row').nth(1).getByRole('cell').nth(1)).toHaveText('No reading');
   await expect(chart.getByRole('row').nth(1).getByRole('cell').nth(2)).toHaveText('8.00 sat/vB');
   syncing = true;
+  await navigate(page, 'Mempool');
   await refresh.click();
   await expect(panel.getByRole('alert')).toContainText('while the node is syncing');
   await expect(panel.getByText('—', { exact: true })).toHaveCount(3);

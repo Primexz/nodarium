@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
+import { useRememberedRange } from '../useRememberedRange';
 import { api } from '../api';
 import {
   poolHistoryRanges,
@@ -237,7 +238,15 @@ export function PoolTrendChart({ data, poolID }: { data: PoolTrends; poolID?: nu
 
 export default function PoolHistory() {
   const { t } = useTranslation();
-  const [range, setRange] = useState<PoolHistoryRange>('30d');
+  const [search, setSearch] = useSearchParams();
+  const [remembered, remember] = useRememberedRange('pools', poolHistoryRanges, '30d');
+  const range = poolHistoryRanges.find((value) => value === search.get('range')) ?? remembered;
+
+  function setRange(value: PoolHistoryRange) {
+    remember(value);
+    setSearch({ range: value }, { replace: true });
+  }
+
   const query = useQuery({
     queryKey: ['node', 'pool-history', range],
     queryFn: ({ signal }) => api<PoolTrends>(`mining/pools/history?range=${range}`, { signal }),

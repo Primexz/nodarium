@@ -15,8 +15,44 @@ const de = {
     collapseSidebar: 'Seitenleiste einklappen',
     expandSidebar: 'Seitenleiste ausklappen',
     signOut: 'Abmelden',
-    node: 'Node-Details',
+    node: 'Mein Node',
     mining: 'Mining',
+  },
+  workspace: {
+    projectionSummary:
+      'Aus dem gesamten Mempool deines Nodes geschätzt. Gebührenbereiche zeigen die gemeinsame virtuelle Größe; tatsächliche Blöcke können abweichen.',
+    projectionMethod: 'So entstehen die Prognosen',
+    backToPools: 'Zurück zu den Pools',
+    views: 'Seitenansichten',
+    live: 'Live',
+    trends: 'Verlauf',
+    explorer: 'Explorer',
+    analytics: 'Analyse',
+    network: 'Netzwerk',
+    pools: 'Pools',
+    overview: 'Übersicht',
+    peers: 'Peers',
+    traffic: 'Datenverkehr',
+    events: 'Ereignisse',
+    liveDescription:
+      'Erkunde den Mempool deines Nodes, prognostizierte Blöcke und eine Stichprobe neuer Transaktionen.',
+    trendsDescription:
+      'Vergleiche Gebührenschätzungen, Transaktionsrückstand und Speichernutzung im Zeitverlauf.',
+    explorerDescription: 'Durchsuche validierte Blöcke und prüfe ihre Transaktionen.',
+    analyticsDescription:
+      'Vergleiche Blockauslastung, Gebührenraten und Belohnungen in der indexierten Historie.',
+    networkDescription: 'Beobachte Netzwerk-Hashrate, Difficulty und die nächste Anpassung.',
+    poolsDescription: 'Erkunde beobachtete Mining-Pool-Anteile an Blöcken und ihren Verlauf.',
+    overviewDescription:
+      'Prüfe Synchronisierung, Verbindungen, Speicher und Bitcoin-Core-Informationen.',
+    peersDescription:
+      'Prüfe die Verbindungen deines Nodes, ihre Leistung und geografische Verteilung.',
+    trafficDescription: 'Beobachte Bandbreite, Upload-Volumen und kumulierte Übertragungsmengen.',
+    eventsDescription: 'Prüfe beobachtete Verbindungsänderungen, neue Blöcke und Reorganisationen.',
+    mempoolPolicy: 'Mempool-Details und Regeln',
+    nodeStatus: 'Node-Status öffnen',
+    notFound: 'Seite nicht gefunden',
+    notFoundDescription: 'Wähle ein Ziel in der Navigation oder öffne den Mempool.',
   },
   status: {
     connected: 'Node verbunden',
@@ -48,8 +84,8 @@ const de = {
     reconnecting: 'Verbindung zum Ereignisstream wird hergestellt …',
     zmq: 'ZMQ · Live-Ereignisse',
     rpc: 'RPC · Beobachtung alle 5 Sekunden',
-    resume: 'Fortsetzen',
-    pause: 'Pausieren',
+    resume: 'Live-Beobachtung fortsetzen',
+    pause: 'Live-Beobachtung pausieren',
     persistenceError:
       'Der Ereignisverlauf konnte nicht gespeichert werden. Live-Beobachtungen bleiben verfügbar.',
     waiting: 'Warten auf eine aktuelle Node-Beobachtung.',

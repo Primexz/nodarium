@@ -14,12 +14,27 @@
 
 ## Features
 
-- **Overview and node details:** health, synchronization, storage, uptime, and recent blocks.
-- **Peers and traffic:** searchable connections, a world map, country distribution, transfer rates, and history.
-- **Mining:** difficulty-period progress and estimated adjustment time, network hashrate, difficulty history, and pool shares over the latest 144 or 1,008 blocks, historical pool trends, and pool detail pages with block activity and fee revenue.
-- **Mempool and blocks:** local fee estimates for 2, 3, and 6-block targets with history, mempool statistics, historical block economics charts, virtual-scrolling block history, and a transaction mosaic. Click a transaction to inspect its inputs, outputs, and fees.
+- **Mempool:** Live opens with local fee estimates for 2, 3, and 6-block targets, projected next blocks, and sampled transaction arrivals. Trends collects fee, backlog, memory, and acceptance-floor history.
+- **Blocks:** Explorer provides height search, virtual-scrolling block history, and transaction inspection. Analytics compares utilization, fee rates, subsidy and fees, and fee share.
+- **Mining:** Network shows difficulty-period progress, estimated adjustment time, hashrate, and difficulty history. Pools shows recent observed shares, historical trends, and pool detail pages.
+- **My node:** Overview shows health, synchronization, storage, uptime, and Core details. Peers combines searchable connections and geography; Traffic combines download/upload history and budget readings; Events retains the 30-day observation timeline.
 
-Nodarium monitors one node per instance; PostgreSQL is optional. Monitoring history begins when collection starts and is retained for up to a year. Block summaries are backfilled from Core and retained across restarts. The Activity page adds sampled live transactions and a 30-day node-event timeline, using optional ZMQ with RPC fallback and SSE updates. See [Activity setup and coverage](docs/activity.md). No wallet features, peer controls, or host-resource monitoring.
+Nodarium monitors one node per instance; PostgreSQL is optional. Monitoring history begins when collection starts and is retained for up to a year. Block summaries are backfilled from Core and retained across restarts. Mempool Live and My node Events use optional ZMQ with RPC fallback and SSE updates. See [Live tracking and Events setup and coverage](docs/activity.md). No wallet features, peer controls, or host-resource monitoring.
+
+## Dashboard navigation
+
+The sidebar lists Mempool, Blocks, Mining, and My node. `/` opens Mempool Live.
+
+| Destination | Views |
+| --- | --- |
+| Mempool | Live `/mempool`, Trends `/mempool/trends` |
+| Blocks | Explorer `/blocks`, Analytics `/blocks/analytics` |
+| Mining | Network `/mining`, Pools `/mining/pools` |
+| My node | Overview `/node`, Peers `/node/peers`, Traffic `/node/traffic`, Events `/node/events` |
+
+Views have separate URLs. Retired and unknown page URLs show a localized page-not-found view without redirects. History ranges are remembered per view for the browser tab when session storage is available. Pool details retain their historical range in the URL and return to Pools with that range; block analytics remembers its own range.
+
+“Pause live tracking” holds the current projection and sampled arrivals; independently polled fee estimates and node readings continue. Mempool details and policy readings remain available in Live’s final disclosure. Traffic totals are Core’s cumulative counters, distinct from the collected rate history.
 
 ## Quick start
 

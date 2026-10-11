@@ -227,6 +227,7 @@ test('historical goggles and long-term economics remain accessible in both theme
   await choose.press('Enter');
   await expect(page.locator('.selected-block-panel')).toBeFocused();
   await expect(page.locator('.selected-block-panel .transaction-mosaic canvas')).toBeVisible();
+  await page.locator('.view-navigation').getByRole('link', { name: 'Analytics' }).click();
   const economics = page.locator('.block-economics');
   await economics.getByLabel('Chart time range').selectOption('all');
   await expect(economics.getByRole('img')).toHaveCount(4);
@@ -246,7 +247,9 @@ test('historical goggles and long-term economics remain accessible in both theme
 
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await page.getByLabel('Language').selectOption('de');
+  await page.locator('.view-navigation').getByRole('link', { name: 'Explorer' }).click();
   await expect(page.locator('.block-history')).toContainText('Blöcke entdecken');
+  await page.locator('.view-navigation').getByRole('link', { name: 'Analyse' }).click();
   await expect(economics).toContainText('Gesamte Historie');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,

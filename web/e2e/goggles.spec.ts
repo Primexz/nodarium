@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { signIn } from './fixtures';
+import { signIn, navigate } from './fixtures';
 
 const hash = (900123).toString(16).padStart(64, '0');
 const txid = (index: number) => (900123 * 100000 + index).toString(16).padStart(64, '0');
@@ -15,6 +15,7 @@ test('authenticated local transactions open from mosaic and keyboard table', asy
   });
 
   await signIn(page);
+  await navigate(page, 'Blocks');
   expect(detailRequests).toEqual([]);
   await page.getByRole('button', { name: 'Inspect block 900,123', exact: true }).click();
   const mosaic = page.locator('.transaction-mosaic');
@@ -71,6 +72,7 @@ test('unavailable block retries, stale data is labeled and orphaned mosaic is hi
   });
 
   await signIn(page);
+  await navigate(page, 'Blocks');
   await page.getByRole('button', { name: 'Inspect block 900,123', exact: true }).click();
   const goggles = page.getByRole('region', { name: 'Block transaction mosaic', exact: true });
   await expect(goggles.getByRole('alert')).toContainText('block data may be pruned');
@@ -100,6 +102,7 @@ test('missing prevouts and fees remain unavailable rather than zero', async ({ p
   });
 
   await signIn(page);
+  await navigate(page, 'Blocks');
   await page.getByRole('button', { name: 'Inspect block 900,123', exact: true }).click();
   await expect(page.locator('.transaction-mosaic canvas')).toBeVisible();
   await page.locator('.goggles-table summary').click();
@@ -119,6 +122,7 @@ test('block visualization supports both themes, German, accessibility and narrow
   test.setTimeout(60000);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await signIn(page);
+  await navigate(page, 'Blocks');
   await page.getByRole('button', { name: 'Inspect block 900,123', exact: true }).click();
   await expect(page.locator('.transaction-mosaic canvas')).toBeVisible();
   await page.locator('.goggles-table summary').click();

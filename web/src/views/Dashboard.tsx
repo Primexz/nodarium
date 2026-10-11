@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router';
+import { NavLink, useLocation } from 'react-router';
 import type { Readings } from '../state';
-import { historyRanges, type HistoryRange, type Page } from '../types';
+import { historyRanges } from '../types';
+import { useRememberedRange } from '../useRememberedRange';
+import HistoryRangePicker from '../components/HistoryRangePicker';
+import Activity from './Activity';
 import { message } from '../i18n';
 import { bytes, duration, fee, number, decimal, dateTime } from '../format';
 import { Metric, Notice, SectionHeading, Empty } from '../components/ui';
@@ -16,27 +19,55 @@ import PoolHistory from '../components/PoolHistory';
 import FeeEstimates, { FeeHistory } from '../components/FeeEstimates';
 import BlockEconomics from '../components/BlockEconomics';
 import PeerTable from '../components/PeerTable';
-import { BlockStrip } from '../components/BlockTable';
 import BlockHistory from '../components/BlockHistory';
-import { ArrowUpRight, ShieldCheck } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
+
+const views = {
+  mempool: ['live', 'trends'],
+  blocks: ['explorer', 'analytics'],
+  mining: ['network', 'pools'],
+  node: ['overview', 'peers', 'traffic', 'events'],
+} as const;
+
+type Destination = keyof typeof views;
 
 export default function Dashboard({
-  page,
+  page: destination,
   node,
-  range,
-  setRange,
 }: {
-  page: Page;
+  page: Destination;
   node: Readings;
-  range: HistoryRange;
-  setRange: (range: HistoryRange) => void;
 }) {
   const { t } = useTranslation();
+  const location = useLocation();
+  const requestedView = location.pathname.split('/')[2];
+  const view = views[destination].find((item) => item === requestedView) ?? views[destination][0];
+  const page =
+    destination === 'node'
+      ? view === 'overview'
+        ? 'node'
+        : view
+      : destination === 'mining' && view === 'pools'
+        ? 'pools'
+        : destination;
+
   const [blockHash, setBlockHash] = useState<string | null>(null);
+  const mempoolRange = useRememberedRange('mempool', historyRanges, '24h');
+  const peerRange = useRememberedRange('peers', historyRanges, '24h');
+  const trafficRange = useRememberedRange('traffic', historyRanges, '24h');
+  const miningRange = useRememberedRange('mining', historyRanges, '24h');
+  const [range, setRange] =
+    page === 'mempool'
+      ? mempoolRange
+      : page === 'peers'
+        ? peerRange
+        : page === 'traffic'
+          ? trafficRange
+          : miningRange;
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-  }, [page]);
+  }, [destination, view]);
 
   const overview = node.overview?.overview.data;
   const chain = overview?.blockchain;
@@ -79,9 +110,16 @@ export default function Dashboard({
   return (
     <main id="content" className="page-content" tabIndex={-1}>
       <div className="page-heading">
-        <h1>{t(`dashboard.${page}Title`)}</h1>
-        <p>{t(`dashboard.${page}Description`)}</p>
+        <h1>{t(`nav.${destination}`)}</h1>
+        <p>{t(`workspace.${view}Description`)}</p>
       </div>
+      <nav className="view-navigation" aria-label={t('workspace.views')}>
+        {views[destination].map((item, index) => (
+          <NavLink key={item} end to={index === 0 ? `/${destination}` : `/${destination}/${item}`}>
+            {t(`workspace.${item}`)}
+          </NavLink>
+        ))}
+      </nav>
       {node.loading && <Notice>{t('dashboard.collecting')}</Notice>}
       {node.error && <Notice error>{message(node.error)}</Notice>}
       {(node.overview?.status === 'disconnected' || section?.stale || section?.error) && (
@@ -111,7 +149,7 @@ export default function Dashboard({
           {String(warning)}
         </Notice>
       ))}
-      {(page === 'overview' || page === 'node') && (
+      {page === 'node' && (
         <>
           <section className="health-summary">
             <div className="health-title">
@@ -134,35 +172,11 @@ export default function Dashboard({
               <progress aria-label={t('sync.heading')} max={100} value={progress} />
             )}
           </section>
-          {page === 'overview' && (
-            <dl className="metrics-grid">
-              <Metric
-                label={t('metrics.height')}
-                value={number(chain?.blocks)}
-                detail={t('metrics.headers', { total: number(chain?.headers) })}
-              />
-              <Metric
-                label={t('nav.peers')}
-                value={number(network?.connections)}
-                detail={`${t('metrics.inbound', { total: number(network?.connections_in) })} / ${t('metrics.outbound', { total: number(network?.connections_out) })}`}
-              />
-              <Metric
-                label={t('metrics.mempoolTransactions')}
-                value={number(mempool?.size)}
-                detail={t('metrics.virtualSize', { size: bytes(mempool?.bytes) })}
-              />
-              <Metric
-                label={t('metrics.uptime')}
-                value={duration(overview?.uptime)}
-                detail={network?.subversion?.replaceAll('/', '') || t('metrics.waiting')}
-              />
-            </dl>
-          )}
         </>
       )}
       {page === 'traffic' && (
         <>
-          <dl className="metrics-grid">
+          <dl className="metrics-grid two">
             <Metric
               label={t('traffic.downloadRate')}
               value={traffic?.receive_rate == null ? '—' : `${bytes(traffic.receive_rate)}/s`}
@@ -173,17 +187,98 @@ export default function Dashboard({
               value={traffic?.send_rate == null ? '—' : `${bytes(traffic.send_rate)}/s`}
               detail={t('traffic.current')}
             />
+          </dl>
+        </>
+      )}
+      {page === 'mempool' && view === 'live' && <FeeEstimates overview={node.overview?.overview} />}
+      {page === 'mempool' && view === 'live' && <Activity view="live" />}
+      {page === 'mempool' && view === 'live' && (
+        <details className="mempool-policy">
+          <summary>{t('workspace.mempoolPolicy')}</summary>
+          <dl className="metrics-grid two">
             <Metric
-              label={t('traffic.received')}
-              value={bytes(traffic?.totalbytesrecv)}
-              detail={t('traffic.sinceStart')}
+              label={t('mempool.pending')}
+              value={number(mempool?.size)}
+              detail={t(mempool?.loaded ? 'mempool.loaded' : 'mempool.waiting')}
             />
             <Metric
-              label={t('traffic.sent')}
-              value={bytes(traffic?.totalbytessent)}
-              detail={t('traffic.sinceStart')}
+              label={t('mempool.virtualSize')}
+              value={bytes(mempool?.bytes)}
+              detail={t('mempool.discounted')}
+            />
+            <Metric
+              label={t('mempool.memoryUsage')}
+              value={bytes(mempool?.usage)}
+              detail={t('mempool.maximum', { size: bytes(mempool?.maxmempool) })}
+            />
+            <Metric
+              label={t('mempool.minimumFee')}
+              value={fee(mempool?.mempoolminfee)}
+              detail={t('mempool.totalFees', { fee: decimal(mempool?.total_fee, 8) })}
             />
           </dl>
+        </details>
+      )}
+      {page === 'peers' && (
+        <dl className="metrics-grid">
+          <Metric
+            label={t('nav.peers')}
+            value={number(node.peers.data?.length)}
+            detail={t('peers.active')}
+          />
+          <Metric
+            label={t('common.inbound')}
+            value={number(network?.connections_in)}
+            detail={t('peers.inboundDescription')}
+          />
+          <Metric
+            label={t('common.outbound')}
+            value={number(network?.connections_out)}
+            detail={t('peers.outboundDescription')}
+          />
+          <Metric
+            label={t('peers.networkTypes')}
+            value={node.peers.data ? number(mix.length) : '—'}
+            detail={mix.map(([name]) => name).join(' · ') || t('peers.awaiting')}
+          />
+        </dl>
+      )}
+      {page === 'mining' && (
+        <>
+          <DifficultyPeriod section={node.overview?.overview} />
+        </>
+      )}
+      {page === 'pools' && (
+        <>
+          <MiningPools />
+          <PoolHistory />
+        </>
+      )}
+      {page === 'peers' && <PeerTable peers={node.peers.data ?? []} now={node.now} />}
+      {(page === 'mining' ||
+        page === 'peers' ||
+        page === 'traffic' ||
+        (page === 'mempool' && view === 'trends')) && (
+        <HistoryRangePicker title={t(historyTitle)} range={range} onChange={setRange} />
+      )}
+      {page === 'mining' && (
+        <MiningCharts mining={node.mining} overview={node.overview?.overview} range={range} />
+      )}
+      {page === 'traffic' && (
+        <div className="full-chart">
+          <HistoryChart
+            title={t('nav.traffic')}
+            subtitle={t('history.flowing')}
+            metrics={['rx_rate', 'tx_rate']}
+            labels={[t('history.download'), t('history.upload')]}
+            range={range}
+            unit="rate"
+            toggleSeries
+          />
+        </div>
+      )}
+      {page === 'traffic' && (
+        <>
           <section className="upload-panel">
             <div>
               <h2>{t('traffic.target')}</h2>
@@ -218,146 +313,19 @@ export default function Dashboard({
               />
             </dl>
           </section>
-        </>
-      )}
-      {page === 'mempool' && <FeeEstimates overview={node.overview?.overview} />}
-      {page === 'mempool' && (
-        <dl className="metrics-grid">
-          <Metric
-            label={t('mempool.pending')}
-            value={number(mempool?.size)}
-            detail={t(mempool?.loaded ? 'mempool.loaded' : 'mempool.waiting')}
-          />
-          <Metric
-            label={t('mempool.virtualSize')}
-            value={bytes(mempool?.bytes)}
-            detail={t('mempool.discounted')}
-          />
-          <Metric
-            label={t('mempool.memoryUsage')}
-            value={bytes(mempool?.usage)}
-            detail={t('mempool.maximum', { size: bytes(mempool?.maxmempool) })}
-          />
-          <Metric
-            label={t('mempool.minimumFee')}
-            value={fee(mempool?.mempoolminfee)}
-            detail={t('mempool.totalFees', { fee: decimal(mempool?.total_fee, 8) })}
-          />
-        </dl>
-      )}
-      {page === 'peers' && (
-        <dl className="metrics-grid">
-          <Metric
-            label={t('nav.peers')}
-            value={number(node.peers.data?.length)}
-            detail={t('peers.active')}
-          />
-          <Metric
-            label={t('common.inbound')}
-            value={number(network?.connections_in)}
-            detail={t('peers.inboundDescription')}
-          />
-          <Metric
-            label={t('common.outbound')}
-            value={number(network?.connections_out)}
-            detail={t('peers.outboundDescription')}
-          />
-          <Metric
-            label={t('peers.networkTypes')}
-            value={node.peers.data ? number(mix.length) : '—'}
-            detail={mix.map(([name]) => name).join(' · ') || t('peers.awaiting')}
-          />
-        </dl>
-      )}
-      {page === 'peers' && <PeerMap section={node.peerMap} />}
-      {page === 'peers' && <PeerCountries section={node.peerMap} />}
-      {page === 'peers' && (
-        <section className="panel network-panel">
-          <SectionHeading title={t('peers.networks')} subtitle={t('peers.distribution')} />
-          <dl className="network-list">
-            {mix.map(([name, count]) => (
-              <div key={name}>
-                <dt>{name}</dt>
-                <dd>
-                  {number(count)}{' '}
-                  <small>{Math.round((count / (node.peers.data?.length || 1)) * 100)}%</small>
-                </dd>
-              </div>
-            ))}
+          <dl className="metrics-grid two">
+            <Metric
+              label={t('traffic.received')}
+              value={bytes(traffic?.totalbytesrecv)}
+              detail={t('traffic.sinceStart')}
+            />
+            <Metric
+              label={t('traffic.sent')}
+              value={bytes(traffic?.totalbytessent)}
+              detail={t('traffic.sinceStart')}
+            />
           </dl>
-          {!mix.length && <Empty title={t('peers.emptyDistribution')} />}
-        </section>
-      )}
-      {page === 'overview' && (
-        <BlockStrip blocks={node.blocks.data ?? []} stale={node.blocks.stale} />
-      )}
-      {page === 'overview' && (
-        <div className="overview-links">
-          {(['node', 'mining', 'peers', 'traffic', 'mempool'] as const).map((destination) => (
-            <Link key={destination} to={`/${destination}`} className="text-link">
-              {t(`nav.${destination}`)} <ArrowUpRight size={15} aria-hidden />
-            </Link>
-          ))}
-        </div>
-      )}
-      {page === 'mining' && (
-        <>
-          <DifficultyPeriod section={node.overview?.overview} />
-          <MiningPools />
-          <PoolHistory />
         </>
-      )}
-      {['mining', 'peers', 'traffic', 'mempool'].includes(page) && (
-        <div className="section-toolbar">
-          <h2>{t(historyTitle)}</h2>
-          <div className="range-picker" role="group" aria-label={t('history.range')}>
-            {historyRanges.map((r) => (
-              <button
-                key={r}
-                aria-pressed={range === r}
-                className={range === r ? 'active' : ''}
-                onClick={() => setRange(r)}
-              >
-                {t(`range.${r}`)}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-      {page === 'mining' && (
-        <MiningCharts mining={node.mining} overview={node.overview?.overview} range={range} />
-      )}
-      {page === 'traffic' && (
-        <div className="full-chart">
-          <HistoryChart
-            title={t('nav.traffic')}
-            subtitle={t('history.flowing')}
-            metrics={['rx_rate', 'tx_rate']}
-            labels={[t('history.download'), t('history.upload')]}
-            range={range}
-            unit="rate"
-          />
-        </div>
-      )}
-      {page === 'traffic' && (
-        <div className="chart-grid">
-          <HistoryChart
-            title={t('traffic.downloadRate')}
-            subtitle={t('history.receivedRate')}
-            metrics={['rx_rate']}
-            labels={[t('history.download')]}
-            range={range}
-            unit="rate"
-          />
-          <HistoryChart
-            title={t('traffic.uploadRate')}
-            subtitle={t('history.sentRate')}
-            metrics={['tx_rate']}
-            labels={[t('history.upload')]}
-            range={range}
-            unit="rate"
-          />
-        </div>
       )}
       {page === 'peers' && (
         <div className="chart-grid">
@@ -375,8 +343,8 @@ export default function Dashboard({
           />
         </div>
       )}
-      {page === 'mempool' && <FeeHistory range={range} />}
-      {page === 'mempool' && (
+      {page === 'mempool' && view === 'trends' && <FeeHistory range={range} />}
+      {page === 'mempool' && view === 'trends' && (
         <div className="chart-grid">
           <HistoryChart
             title={t('mempool.pending')}
@@ -400,17 +368,40 @@ export default function Dashboard({
           />
         </div>
       )}
-      {page === 'peers' && <PeerTable peers={node.peers.data ?? []} now={node.now} />}
+      {page === 'peers' && <PeerMap section={node.peerMap} />}
+      {page === 'peers' && <PeerCountries section={node.peerMap} />}
+      {page === 'peers' && (
+        <section className="panel network-panel">
+          <SectionHeading title={t('peers.networks')} subtitle={t('peers.distribution')} />
+          <dl className="network-list">
+            {mix.map(([name, count]) => (
+              <div key={name}>
+                <dt>{name}</dt>
+                <dd>
+                  {number(count)}{' '}
+                  <small>{Math.round((count / (node.peers.data?.length || 1)) * 100)}%</small>
+                </dd>
+              </div>
+            ))}
+          </dl>
+          {!mix.length && <Empty title={t('peers.emptyDistribution')} />}
+        </section>
+      )}
       {page === 'node' && (
         <>
           {(node.mempool.stale || node.mempool.error) && (
             <Notice error>{t('node.relayFeeStale')}</Notice>
           )}
-          <dl className="metrics-grid">
+          <dl className="metrics-grid node-metrics">
             <Metric
               label={t('metrics.height')}
               value={number(chain?.blocks)}
               detail={t('metrics.headers', { total: number(chain?.headers) })}
+            />
+            <Metric
+              label={t('nav.peers')}
+              value={number(network?.connections)}
+              detail={`${t('metrics.inbound', { total: number(network?.connections_in) })} / ${t('metrics.outbound', { total: number(network?.connections_out) })}`}
             />
             <Metric label={t('metrics.uptime')} value={duration(overview?.uptime)} />
             <Metric label={t('node.disk')} value={bytes(chain?.size_on_disk)} />
@@ -443,37 +434,41 @@ export default function Dashboard({
           </section>
         </>
       )}
+      {page === 'events' && <Activity view="timeline" />}
       {page === 'blocks' && (
         <>
-          <dl className="metrics-grid three">
-            <Metric
-              label={t('blocks.height')}
-              value={number(chain?.blocks)}
-              detail={t('blocks.tip')}
+          {view === 'explorer' && (
+            <dl className="chain-context">
+              <div>
+                <dt>{t('blocks.height')}</dt>
+                <dd>{number(chain?.blocks)}</dd>
+              </div>
+              <div>
+                <dt>{t('blocks.latest')}</dt>
+                <dd>
+                  {latest
+                    ? t('blocks.ago', { time: duration(node.now / 1000 - latest.time) })
+                    : '—'}
+                </dd>
+              </div>
+              <div>
+                <dt>{t('blocks.status')}</dt>
+                <dd>{!chain ? '—' : synced ? t('blocks.synced') : t('blocks.syncing')}</dd>
+              </div>
+            </dl>
+          )}
+          <div hidden={view !== 'explorer'}>
+            <BlockHistory
+              selectedHash={blockHash}
+              onSelect={setBlockHash}
+              recent={node.blocks.data ?? []}
+              stale={node.blocks.stale}
+              tipHeight={chain?.blocks}
             />
-            <Metric
-              label={t('blocks.latest')}
-              value={
-                latest ? t('blocks.ago', { time: duration(node.now / 1000 - latest.time) }) : '—'
-              }
-              detail={t('blocks.since')}
-            />
-            <Metric
-              label={t('blocks.status')}
-              value={!chain ? '—' : synced ? t('blocks.synced') : t('blocks.syncing')}
-              detail={
-                chain ? t('blocks.verified', { percent: decimal(progress) }) : t('sync.awaiting')
-              }
-            />
-          </dl>
-          <BlockHistory
-            selectedHash={blockHash}
-            onSelect={setBlockHash}
-            recent={node.blocks.data ?? []}
-            stale={node.blocks.stale}
-            tipHeight={chain?.blocks}
-          />
-          <BlockEconomics section={node.blocks} syncing={chain != null && !synced} />
+          </div>
+          {view === 'analytics' && (
+            <BlockEconomics section={node.blocks} syncing={chain != null && !synced} />
+          )}
         </>
       )}
     </main>

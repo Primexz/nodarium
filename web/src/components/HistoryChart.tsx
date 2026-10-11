@@ -23,6 +23,7 @@ function HistoryChart({
   notice,
   step,
   linePatterns,
+  toggleSeries = false,
 }: {
   title: string;
   subtitle?: string;
@@ -34,12 +35,14 @@ function HistoryChart({
   notice?: string;
   step?: 'end';
   linePatterns?: ('solid' | 'dashed' | 'dotted')[];
+  toggleSeries?: boolean;
 }) {
   const { t } = useTranslation();
   const { effective } = useTheme();
   const palette = chartPalette(effective === 'dark');
 
   const [showData, setShowData] = useState(false);
+  const [hiddenSeries, setHiddenSeries] = useState<string[]>([]);
   const queries = useQueries({
     queries: metrics.map((metric) => ({
       queryKey: ['history', metric, range],
@@ -124,7 +127,7 @@ function HistoryChart({
         width: 2,
         type: linePatterns?.[i] ?? (unit === 'hashrate' && i === 1 ? 'dashed' : 'solid'),
       },
-      data: s?.points.map((p) => [p.at, p.value]) ?? [],
+      data: hiddenSeries.includes(metrics[i]!) ? [] : (s?.points.map((p) => [p.at, p.value]) ?? []),
     })),
   });
 
@@ -132,12 +135,29 @@ function HistoryChart({
     <section className="panel chart-panel">
       <SectionHeading title={title} subtitle={subtitle}>
         <div className="chart-legend">
-          {labels.map((label, i) => (
-            <span key={label}>
-              <i style={{ background: palette.series[i] }} />
-              {label}
-            </span>
-          ))}
+          {labels.map((label, i) =>
+            toggleSeries ? (
+              <button
+                key={label}
+                aria-pressed={!hiddenSeries.includes(metrics[i]!)}
+                onClick={() =>
+                  setHiddenSeries((current) =>
+                    current.includes(metrics[i]!)
+                      ? current.filter((metric) => metric !== metrics[i])
+                      : [...current, metrics[i]!],
+                  )
+                }
+              >
+                <i style={{ background: palette.series[i] }} aria-hidden />
+                {label}
+              </button>
+            ) : (
+              <span key={label}>
+                <i style={{ background: palette.series[i] }} />
+                {label}
+              </span>
+            ),
+          )}
         </div>
       </SectionHeading>
       {notice && <Notice error>{notice}</Notice>}
@@ -265,6 +285,7 @@ export default memo(
     previous.unit === next.unit &&
     previous.notice === next.notice &&
     previous.step === next.step &&
+    previous.toggleSeries === next.toggleSeries &&
     previous.linePatterns?.join() === next.linePatterns?.join() &&
     JSON.stringify(previous.readings) === JSON.stringify(next.readings) &&
     previous.metrics.join() === next.metrics.join() &&
