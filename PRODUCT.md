@@ -63,7 +63,7 @@ redirecting to replacement pages.
 | Mempool | Live `/mempool`; Trends `/mempool/trends` | Current fees, projected backlog, sampled arrivals; collected fee, backlog, memory, and acceptance-floor history. |
 | Blocks | Explorer `/blocks`; Analytics `/blocks/analytics` | Height search, block browser and transaction inspection; utilization, fee rates, subsidy/fees, and fee share in that order. |
 | Mining | Network `/mining`; Pools `/mining/pools` | Difficulty period and hashrate/difficulty history; recent and historical observed pool shares. |
-| My node | Overview `/node`; Peers `/node/peers`; Traffic `/node/traffic`; Events `/node/events` | Health, storage and Core details; connections and geography; rates and budget; observed connection, block and reorganization events. |
+| My node | Overview `/node`; Peers `/node/peers`; Traffic `/node/traffic`; Events `/node/events` | Health, blockchain/database storage and Core details; connections and geography; rates and budget; observed connection, block and reorganization events. |
 
 Mempool Live presents Core’s fee estimates first, full-mempool projections second,
 and source status, live-tracking pause, and sampled arrivals third. The original
@@ -102,6 +102,16 @@ Implementation details are grounded in the repository's README and source.
   node observation and a ten-minute target per remaining block. Hide the date
   during synchronization and retain its observation anchor when readings are stale.
   Identify syncing and stale readings; regtest has no difficulty retargeting.
+- Show Nodarium’s database size separately from blockchain disk usage in My node
+  Overview. Its six metrics are height, peers, uptime, blockchain disk usage,
+  Nodarium database size, and node mode. SQLite measures the canonical main file
+  plus existing WAL and SHM files; in-memory SQLite reports allocated database
+  pages labeled as memory. PostgreSQL measures the whole configured database,
+  including other schemas or tables when shared. Refresh the overview API’s
+  independent database section after history storage each collection cycle,
+  including when Core is unavailable. Retain a successful reading marked stale
+  after a size error; show a dash and unavailable explanation without a reading.
+  Use locale-aware byte formatting and English/German detail text.
 - Show locally sourced network hashrate estimates over up to 144 and 1,008 blocks,
   with persisted hashrate and difficulty charts. Pause network mining history
   during synchronization and preserve gaps for failed estimates.

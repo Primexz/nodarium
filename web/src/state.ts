@@ -69,6 +69,7 @@ export function useReadings() {
             ...overview.data,
             status: 'disconnected',
             overview: { ...overview.data.overview, stale: true },
+            database: overview.data.database && { ...overview.data.database, stale: true },
           }
         : overview.data,
     peers: sectionResult(peers.data, peers.isError),

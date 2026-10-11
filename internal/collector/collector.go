@@ -49,22 +49,24 @@ type Block struct {
 }
 
 type Snapshot struct {
-	Node             string               `json:"-"`
-	Status           string               `json:"status"`
-	CheckedAt        *time.Time           `json:"checked_at"`
-	PersistenceError string               `json:"persistence_error,omitempty"`
-	Overview         Section[Overview]    `json:"overview"`
-	Peers            Section[[]rpc.Peer]  `json:"peers"`
-	Traffic          Section[Traffic]     `json:"traffic"`
-	Mempool          Section[rpc.Mempool] `json:"mempool"`
-	Blocks           Section[[]Block]     `json:"blocks"`
-	Mining           Section[Mining]      `json:"mining"`
-	Fees             Section[Fees]        `json:"fees"`
+	Node             string                        `json:"-"`
+	Status           string                        `json:"status"`
+	CheckedAt        *time.Time                    `json:"checked_at"`
+	PersistenceError string                        `json:"persistence_error,omitempty"`
+	Overview         Section[Overview]             `json:"overview"`
+	Database         Section[storage.DatabaseSize] `json:"database"`
+	Peers            Section[[]rpc.Peer]           `json:"peers"`
+	Traffic          Section[Traffic]              `json:"traffic"`
+	Mempool          Section[rpc.Mempool]          `json:"mempool"`
+	Blocks           Section[[]Block]              `json:"blocks"`
+	Mining           Section[Mining]               `json:"mining"`
+	Fees             Section[Fees]                 `json:"fees"`
 }
 
 type Store interface {
 	Save(context.Context, string, time.Time, map[string]storage.Measurement) error
 	Prune(context.Context, time.Time) error
+	Size(context.Context) (storage.DatabaseSize, error)
 }
 
 type baseline struct {
@@ -124,6 +126,7 @@ func (c *Collector) Snapshot() Snapshot {
 		s.Blocks.Stale = true
 		s.Mining.Stale = true
 		s.Fees.Stale = true
+		s.Database.Stale = true
 	}
 
 	return s
@@ -444,7 +447,9 @@ func (c *Collector) Collect(ctx context.Context) {
 		}
 	}
 
+	database, sizeErr := c.store.Size(dbCtx)
 	c.mu.Lock()
+	c.snapshot.Database = refresh(c.snapshot.Database, &database, sizeErr, time.Now().UTC())
 
 	if dbErr != nil {
 		c.snapshot.PersistenceError = "History storage is unavailable. Live monitoring continues; missed samples will remain gaps."

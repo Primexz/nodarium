@@ -17,7 +17,7 @@
 - **Mempool:** Live opens with local fee estimates for 2, 3, and 6-block targets, projected next blocks, and sampled transaction arrivals. Trends collects fee, backlog, memory, and acceptance-floor history.
 - **Blocks:** Explorer provides height search, virtual-scrolling block history, and transaction inspection. Analytics compares utilization, fee rates, subsidy and fees, and fee share.
 - **Mining:** Network shows difficulty-period progress, estimated adjustment time, hashrate, and difficulty history. Pools shows recent observed shares, historical trends, and pool detail pages.
-- **My node:** Overview shows health, synchronization, storage, uptime, and Core details. Peers combines searchable connections and geography; Traffic combines download/upload history and budget readings; Events retains the 30-day observation timeline.
+- **My node:** Overview shows health, synchronization, blockchain and Nodarium database size, uptime, and Core details. Peers combines searchable connections and geography; Traffic combines download/upload history and budget readings; Events retains the 30-day observation timeline.
 
 Nodarium monitors one node per instance; PostgreSQL is optional. Monitoring history begins when collection starts and is retained for up to a year. Block summaries are backfilled from Core and retained across restarts. Mempool Live and My node Events use optional ZMQ with RPC fallback and SSE updates. See [Live tracking and Events setup and coverage](docs/activity.md). No wallet features, peer controls, or host-resource monitoring.
 
@@ -85,6 +85,8 @@ See [.env.example](.env.example) for settings. Apply changes with `docker compos
 | `LOG_LEVEL` | `debug`, `info`, `warn`, or `error`; defaults to `info`. |
 | `COOKIE_SECURE` | Set to `true` behind an HTTPS reverse proxy. Serve at the domain root and preserve the Host header. |
 | `BIND_ADDRESS`, `PORT` | Compose host address and port; defaults to `127.0.0.1:8080`. |
+
+My node Overview shows Nodarium’s database size beside blockchain disk usage. SQLite includes the main database and its WAL/SHM journal files; in-memory SQLite shows allocated database pages labeled as memory. PostgreSQL reports the entire configured database, including other schemas or tables if it is shared. The reading refreshes each collection cycle independently of Core health; a failed refresh keeps the last size marked stale, and an absent reading shows unavailable.
 
 IP geolocation runs locally. Peer and node addresses are never sent to a geolocation service. DB-IP City Lite is downloaded and cached by default; Tor, I2P, private, and unknown addresses remain unlocated. Locations and connection lines are approximate.
 

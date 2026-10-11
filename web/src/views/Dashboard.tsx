@@ -70,6 +70,7 @@ export default function Dashboard({
   }, [destination, view]);
 
   const overview = node.overview?.overview.data;
+  const database = node.overview?.database;
   const chain = overview?.blockchain;
   const network = overview?.network;
   const traffic = node.traffic.data;
@@ -405,6 +406,21 @@ export default function Dashboard({
             />
             <Metric label={t('metrics.uptime')} value={duration(overview?.uptime)} />
             <Metric label={t('node.disk')} value={bytes(chain?.size_on_disk)} />
+            <Metric
+              label={t('node.database')}
+              value={bytes(database?.data?.size_bytes)}
+              detail={t(
+                !database?.data
+                  ? 'node.databaseUnavailable'
+                  : database.stale || database.error
+                    ? 'node.databaseStale'
+                    : database.data.in_memory
+                      ? 'node.databaseMemory'
+                      : database.data.driver === 'postgres'
+                        ? 'node.databasePostgres'
+                        : 'node.databaseSQLite',
+              )}
+            />
             <Metric
               label={t('node.mode')}
               value={!chain ? '—' : t(chain.pruned ? 'sync.pruned' : 'sync.full')}

@@ -66,6 +66,14 @@ func (f *fakeRPC) Call(ctx context.Context, method string, params any, out any) 
 type memoryStore struct {
 	fail   bool
 	values map[string]storage.Measurement
+	size   int64
+}
+
+func (s *memoryStore) Size(context.Context) (storage.DatabaseSize, error) {
+	if s.fail {
+		return storage.DatabaseSize{}, errors.New("database size unavailable")
+	}
+	return storage.DatabaseSize{SizeBytes: s.size, Driver: "sqlite"}, nil
 }
 
 func (s *memoryStore) Save(_ context.Context, _ string, _ time.Time, v map[string]storage.Measurement) error {

@@ -27,7 +27,7 @@ Blocks Explorer uses compact chain context before its cursor-backed browser and 
 
 Mining Network begins with difficulty-period progress and estimated adjustment time, then its own remembered network-history range and hashrate/difficulty charts. Pools owns recent observed distribution and historical shares, each with its existing sample or period control. Historical pool range is remembered within the browser tab and reflected in the URL query; detail links carry it. Existing pool details stay at `/mining/pools/:id` and return to Pools with their selected range.
 
-My node Overview consolidates health, synchronization, storage, and inspectable Core information. Peers puts the searchable connection table before its range, history charts, map, countries, and transport breakdown. Traffic puts current rates and its remembered range before one combined full-width download/upload chart with independently toggleable series; upload budget and cumulative Core totals follow. Events contains the former Activity Timeline, preserving observations, category filters, coverage limits, explicit new-event refresh, and inline block inspection.
+My node Overview consolidates health, synchronization, storage, and inspectable Core information. Its six metrics are height, peers, uptime, blockchain disk usage, Nodarium database size, and node mode, in three columns/two rows on desktop and two columns/three rows on mobile. The database reading reuses localized byte formatting and quiet EN/DE detail; it retains its last value marked stale after refresh errors and shows a dash with unavailable copy before a reading exists. Peers puts the searchable connection table before its range, history charts, map, countries, and transport breakdown. Traffic puts current rates and its remembered range before one combined full-width download/upload chart with independently toggleable series; upload budget and cumulative Core totals follow. Events contains the former Activity Timeline, preserving observations, category filters, coverage limits, explicit new-event refresh, and inline block inspection.
 
 Monitoring ranges are remembered separately for Mempool Trends, Peers, Traffic, and Mining Network in optional session storage. Block economics has its own remembered range; pool history also has its URL query. Storage failure falls back to usable controls. Peer lists, history readings, and transaction tables keep contained virtual scrolling, native table semantics, sticky headers, row totals, keyboard access, refresh scroll retention, and inspection focus. English/German, local geography, source distinctions, freshness, missing coverage, and data gaps retain their established meaning.
 
@@ -54,6 +54,15 @@ The structural merge follows `web/src/App.tsx` routes and status link,
 `web/src/useRememberedRange.ts`, and incumbent shell/mobile rules in
 `web/src/App.module.css` and `web/src/style.css`. English and German locale files
 retain typed route labels and scope the pause control to live tracking.
+
+Database-size source evidence is `internal/storage/size.go` for the canonical
+SQLite main path plus WAL/SHM file sizes, allocated pages for in-memory SQLite,
+and PostgreSQL’s whole configured database (including shared schemas/tables).
+`internal/collector/collector.go` refreshes the reading after history storage each
+cycle independently of Core health, preserving the last successful value on
+errors. `internal/server/server.go` exposes the independent overview `database`
+section; `web/src/views/Dashboard.tsx`, `web/src/style.css`, and EN/DE locales
+supply the six-metric responsive grid, byte formatting, and state explanations.
 
 This pass reconciles source documentation; it did not independently certify
 rendered output or run the complete regression suite. `DESIGN.md` token

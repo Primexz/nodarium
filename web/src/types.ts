@@ -45,6 +45,13 @@ export interface OverviewResponse {
   checked_at: string | null;
   persistence_error?: string;
   overview: Section<Overview>;
+  database?: Section<DatabaseSize>;
+}
+
+export interface DatabaseSize {
+  size_bytes: number;
+  driver: 'sqlite' | 'postgres';
+  in_memory: boolean;
 }
 
 export interface Mining {

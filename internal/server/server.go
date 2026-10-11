@@ -98,6 +98,7 @@ func newServer(a *auth.Manager, c Snapshots, db HistoryStore, assets fs.FS, mapp
 				"checked_at":        s.CheckedAt,
 				"persistence_error": s.PersistenceError,
 				"overview":          s.Overview,
+				"database":          s.Database,
 			},
 		)
 	})
