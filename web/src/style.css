@@ -2623,11 +2623,6 @@ tbody tr:hover {
     grid-template-columns: repeat(4, 260px);
   }
 }
-.activity-block-link {
-  display: block;
-  margin: 20px 0 0 auto;
-  color: var(--accent);
-}
 .activity-page > .form-note {
   margin: 20px 0 32px;
   max-width: 80ch;

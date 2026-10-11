@@ -63,7 +63,6 @@ const de = {
     sinceBaseline: 'Seit Beginn dieser Live-Beobachtung',
     sampleCount: 'Angezeigte Stichprobe',
     sampleLimit: 'Bis zu 500 Transaktionen',
-    inspectBlock: 'Block {{height}} ansehen',
     sampleExplanation:
       'Neue Zugänge sind eine Stichprobe von bis zu 500 Transaktionen, getrennt von den Prognosen des gesamten Mempools oben. Beginnt mit bis zu 50 bestehenden Einträgen. Polling kann Transaktionen zwischen Beobachtungen verpassen.',
     projectedBlocks: 'Prognose der nächsten Blöcke',

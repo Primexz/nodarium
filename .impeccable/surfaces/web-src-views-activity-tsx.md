@@ -11,8 +11,8 @@ Mode: Operate. Audience: individual node operators. Live combines full-mempool p
 
 THESIS: Make the node's full mempool backlog and fee-prioritized next-block estimates readable, while sampled transaction arrivals remain animated and inspectable.
 OWN-WORLD: Incumbent warm paper, ink, orange actions, and charcoal dark theme; flat ruled workspace, tabular readings, native controls.
-STORY: Operators inspect backlog and projected package fee ranges, distinguish the full snapshot from sampled arrivals, pause observation, then investigate the latest known block or quiet node history.
-FIRST VIEWPORT: Heading and Live/Timeline tabs precede source status and pause control. The ruled projection section shows full-snapshot backlog, capacity equivalents, fee range, and observation time above a horizontal strip of up to four static fee-group mosaics. Each projection presents its effective package median, count, virtual size, and effective range. A separate latest-known-block inspection button follows; observed-arrival and sample readings precede the always-visible transaction table. Timeline replaces these Live contents with category controls and contained virtual history.
+STORY: Operators inspect backlog and projected package fee ranges, distinguish the full snapshot from sampled arrivals, pause observation, then investigate quiet node history and its block links.
+FIRST VIEWPORT: Heading and Live/Timeline tabs precede source status and pause control. The ruled projection section shows full-snapshot backlog, capacity equivalents, fee range, and observation time above a horizontal strip of up to four static fee-group mosaics. Each projection presents its effective package median, count, virtual size, and effective range. Observed-arrival and sample readings precede the always-visible transaction table. Timeline replaces these Live contents with category controls and contained virtual history.
 FORM: Ordinary extension of the established dashboard. SVG fee-group areas represent combined virtual size and leave spare capacity visible; they never claim individual transaction identity or an exact mining template. Projection estimates remain static between snapshots. Measured table motion carries arrival feedback, complete metadata gates readable rows, exact eight-decimal BTC amounts lead, and reduced motion settles rows immediately.
 FINISH: Source guidance must match the implemented surface; independent rendered review and its verdict remain required. This extension preserves DESIGN.md and its sidecar and introduces no raster assets.
 
@@ -23,8 +23,8 @@ This is an ordinary extension of the incumbent system. `DESIGN.md` and
 facts do not introduce global tokens or replace existing design rules.
 
 - Keep the projection section before observed-arrival readings and the sampled
-  table. Source status and pause follow the Live/Timeline selector. The latest
-  known block appears as a separate inspection action when its hash is available.
+  table. Source status and pause follow the Live/Timeline selector. Block inspection
+  belongs to Timeline block links; Live has no separate block inspection action.
   Full-mempool projections and sampled arrival coverage have separate copy and
   readings; sample membership is not the source of projection totals.
 - Reuse semantic theme variables for rules, surfaces, controls, status, and

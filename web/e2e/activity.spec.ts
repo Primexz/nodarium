@@ -339,13 +339,15 @@ test('live activity can pause, inspect blocks, browse history and reset coverage
   };
 
   await assertSampleFits();
-  await page.getByRole('button', { name: 'Inspect block 900,123' }).click();
+  await expect(page.getByRole('button', { name: 'Inspect block 900,123' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Timeline', exact: true }).click();
+  const blockLink = page.locator('.activity-events-table .table-link').first();
+  await blockLink.click();
   const panel = page.locator('.selected-block-panel');
   await expect(panel).toBeFocused();
   await expect(panel.getByRole('heading', { name: 'Block transaction mosaic' })).toBeVisible();
   await page.getByRole('button', { name: 'Close block details' }).click();
-  await expect(page.getByRole('button', { name: 'Inspect block 900,123' })).toBeFocused();
-  await page.getByRole('button', { name: 'Timeline', exact: true }).click();
+  await expect(blockLink).toBeFocused();
   await expect(page.getByRole('columnheader', { name: 'Observed at' })).toBeVisible();
   await expect(page.locator('tbody tr tr')).toHaveCount(0);
   const table = page.locator('.table-scroll');

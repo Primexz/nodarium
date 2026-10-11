@@ -60,7 +60,6 @@ const en = {
     sinceBaseline: 'Since this live observation began',
     sampleCount: 'Displayed sample',
     sampleLimit: 'Up to 500 transactions',
-    inspectBlock: 'Inspect block {{height}}',
     sampleExplanation:
       'Recent arrivals are a sample of up to 500 transactions, separate from the full-mempool projections above. Starts with up to 50 existing entries. Polling can miss transactions between observations.',
     projectedBlocks: 'Projected next blocks',

@@ -150,11 +150,6 @@ export default function Activity() {
             error={live?.projection_error ?? false}
             stopped={paused || !visible || !connected}
           />
-          {live?.block && (
-            <button className="activity-block-link" onClick={() => setSelected(live.block!.hash)}>
-              {t('activity.inspectBlock', { height: number(live.block.height) })}
-            </button>
-          )}
           <dl className="activity-metrics metrics-grid two">
             <Metric
               label={t('activity.arrivals')}
