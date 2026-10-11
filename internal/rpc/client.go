@@ -110,6 +110,11 @@ func (c *Client) Call(ctx context.Context, method string, params any, out any) (
 	if method == "getblock" || method == "getrawtransaction" || method == "getrawmempool" {
 		limit = 32 << 20
 	}
+	// A verbose mempool snapshot contains dependencies and fee metadata for
+	// every entry. Keep the response bounded without imposing the ID-only cap.
+	if method == "getrawmempool" {
+		limit = 128 << 20
+	}
 
 	if err := json.NewDecoder(io.LimitReader(res.Body, limit)).Decode(&response); err != nil {
 		return errors.New("invalid RPC response")

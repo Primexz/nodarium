@@ -25,6 +25,9 @@ import (
 const MaxTransactions = 500
 const MaxMembers = 200000
 
+const metadataPerWindow = 200
+const metadataWorkers = 4
+
 type Snapshots interface{ Snapshot() collector.Snapshot }
 type Store interface {
 	SaveActivity(context.Context, storage.ActivityEvent) error
@@ -57,6 +60,8 @@ type Live struct {
 	Transactions     []Transaction `json:"transactions"`
 	Block            *Block        `json:"block"`
 	PersistenceError bool          `json:"persistence_error"`
+	Projection       *Projection   `json:"projection"`
+	ProjectionError  bool          `json:"projection_error"`
 }
 
 type removedTransaction struct {
@@ -81,29 +86,32 @@ type subscription struct {
 }
 
 type Service struct {
-	enrichResults chan enrichment
-	enrichBusy    bool
-	enrichWG      sync.WaitGroup
-	ctx           context.Context
-	cancel        context.CancelFunc
-	done          chan struct{}
-	rpc           rpc.Caller
-	snapshots     Snapshots
-	store         Store
-	logger        *zap.Logger
-	receiver      Receiver
-	observeChain  func(*rpc.Blockchain)
-	notifications chan Notification
-	lost          atomic.Bool
-	mu            sync.Mutex
-	live          Live
-	dirty         bool
-	node          string
-	subscribers   map[*subscription]bool
-	replay        []Message
-	serial        uint64
-	session       string
-	idleAt        time.Time
+	projectionResults chan projectionResult
+	projectionBusy    bool
+	lastProjection    time.Time
+	enrichResults     chan enrichment
+	enrichBusy        bool
+	enrichWG          sync.WaitGroup
+	ctx               context.Context
+	cancel            context.CancelFunc
+	done              chan struct{}
+	rpc               rpc.Caller
+	snapshots         Snapshots
+	store             Store
+	logger            *zap.Logger
+	receiver          Receiver
+	observeChain      func(*rpc.Blockchain)
+	notifications     chan Notification
+	lost              atomic.Bool
+	mu                sync.Mutex
+	live              Live
+	dirty             bool
+	node              string
+	subscribers       map[*subscription]bool
+	replay            []Message
+	serial            uint64
+	session           string
+	idleAt            time.Time
 	// The remaining fields belong exclusively to run.
 	members        map[string]bool
 	sample         map[string]Transaction
@@ -131,24 +139,25 @@ func New(ctx context.Context, client rpc.Caller, snapshots Snapshots, store Stor
 	id := make([]byte, 16)
 	rand.Read(id)
 	s := &Service{
-		ctx:           ctx,
-		cancel:        cancel,
-		done:          make(chan struct{}),
-		rpc:           client,
-		snapshots:     snapshots,
-		store:         store,
-		receiver:      receiver,
-		logger:        logging.Component(logger, "activity"),
-		observeChain:  observe,
-		notifications: make(chan Notification, 10000),
-		enrichResults: make(chan enrichment, 1),
-		subscribers:   map[*subscription]bool{},
-		session:       hex.EncodeToString(id),
-		sample:        map[string]Transaction{},
-		removed:       map[string]removedTransaction{},
-		members:       map[string]bool{},
-		metadataTried: map[string]bool{},
-		live:          Live{Source: "rpc", Status: "waiting", Transactions: []Transaction{}},
+		ctx:               ctx,
+		cancel:            cancel,
+		done:              make(chan struct{}),
+		rpc:               client,
+		snapshots:         snapshots,
+		store:             store,
+		receiver:          receiver,
+		logger:            logging.Component(logger, "activity"),
+		observeChain:      observe,
+		notifications:     make(chan Notification, 10000),
+		enrichResults:     make(chan enrichment, 1),
+		projectionResults: make(chan projectionResult, 1),
+		subscribers:       map[*subscription]bool{},
+		session:           hex.EncodeToString(id),
+		sample:            map[string]Transaction{},
+		removed:           map[string]removedTransaction{},
+		members:           map[string]bool{},
+		metadataTried:     map[string]bool{},
+		live:              Live{Source: "rpc", Status: "waiting", Transactions: []Transaction{}},
 	}
 	go s.run()
 	return s
@@ -300,6 +309,7 @@ func (s *Service) update(status string) {
 }
 
 func (s *Service) reset(status string) {
+	s.lastProjection = time.Time{}
 	s.dirty = true
 	clear(s.members)
 	clear(s.sample)
@@ -311,6 +321,8 @@ func (s *Service) reset(status string) {
 	s.live.Generation++
 	s.live.Arrivals = 0
 	s.live.Block = nil
+	s.live.Projection = nil
+	s.live.ProjectionError = false
 	if s.tip != nil && status != "unavailable" {
 		s.live.Block = &Block{Hash: s.tip.Hash, Height: s.tip.Height, Time: s.tip.Time, Transactions: []Transaction{}}
 	}
@@ -429,6 +441,18 @@ func (s *Service) run() {
 				}
 				s.update("ready")
 			}
+		case result := <-s.projectionResults:
+			s.projectionBusy = false
+			if result.generation == s.Snapshot().Generation {
+				s.mu.Lock()
+				s.live.ProjectionError = result.err != nil
+				if result.err == nil {
+					s.live.Projection = result.projection
+				}
+				s.mu.Unlock()
+				s.dirty = true
+				s.update("ready")
+			}
 		case n := <-s.notifications:
 			if n.Lost || s.lost.Swap(false) {
 				s.lastPoll = time.Time{}
@@ -518,6 +542,7 @@ func (s *Service) run() {
 					}
 					if s.baseline {
 						s.enrich()
+						s.project()
 					}
 					if s.baseline {
 						s.update("ready")
@@ -622,20 +647,25 @@ func (s *Service) enrich() {
 	}
 	if time.Since(s.metadataAt) >= 5*time.Second {
 		s.metadataAt = time.Now()
-		s.metadataBudget = 50
+		s.metadataBudget = metadataPerWindow
 		clear(s.metadataTried)
 	}
 	if s.metadataBudget <= 0 {
 		return
 	}
-	ids := []string{}
+	queued := []Transaction{}
 	for id, tx := range s.sample {
 		if (tx.VSize == nil || tx.FeeRate == nil || tx.OutputSats == nil) && !s.metadataTried[id] {
-			ids = append(ids, id)
-			if len(ids) >= min(4, s.metadataBudget) {
-				break
-			}
+			queued = append(queued, tx)
 		}
+	}
+	// New arrivals should become readable before older incomplete metadata.
+	slices.SortFunc(queued, func(a, b Transaction) int {
+		return cmp.Or(cmp.Compare(b.At, a.At), cmp.Compare(a.TxID, b.TxID))
+	})
+	ids := make([]string, min(len(queued), metadataWorkers, s.metadataBudget))
+	for i := range ids {
+		ids[i] = queued[i].TxID
 	}
 	if len(ids) == 0 {
 		return

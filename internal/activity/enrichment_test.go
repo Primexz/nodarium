@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -62,6 +64,52 @@ func TestEnrichmentOutputAmounts(t *testing.T) {
 				t.Fatalf("output sum = %v, want %s", tx.OutputSats, test.want)
 			}
 		})
+	}
+}
+
+func TestMetadataBudgetPrioritizesNewestWithoutMoreConcurrency(t *testing.T) {
+	var active, peak, calls atomic.Int32
+	s := testService(t, callerFunc(func(_ context.Context, method string, _, out any) error {
+		if method != "getmempoolentry" {
+			t.Errorf("unexpected RPC: %s", method)
+		}
+		n := active.Add(1)
+		defer active.Add(-1)
+		for old := peak.Load(); n > old && !peak.CompareAndSwap(old, n); old = peak.Load() {
+		}
+		calls.Add(1)
+		time.Sleep(time.Millisecond)
+		return assign(out, map[string]any{"vsize": 100, "fees": map[string]float64{"base": 0.000002}})
+	}))
+	s.enrichResults = make(chan enrichment, 1)
+	for i := range 300 {
+		id := fmt.Sprintf("%064x", i)
+		s.sample[id] = Transaction{TxID: id, At: int64(i), OutputSats: new("100")}
+	}
+	for batch := range metadataPerWindow / metadataWorkers {
+		s.enrich()
+		s.enrichWG.Wait()
+		result := <-s.enrichResults
+		if len(result.transactions) != metadataWorkers {
+			t.Fatalf("workers = %d", len(result.transactions))
+		}
+		for i, tx := range result.transactions {
+			if want := int64(299 - batch*metadataWorkers - i); tx.At != want {
+				t.Fatalf("old metadata took priority: at=%d, want=%d", tx.At, want)
+			}
+			s.sample[tx.TxID] = tx
+		}
+		s.enrichBusy = false
+	}
+	s.enrich()
+	if s.enrichBusy || calls.Load() != metadataPerWindow || peak.Load() > metadataWorkers {
+		t.Fatalf("unbounded metadata work: calls=%d, concurrency=%d", calls.Load(), peak.Load())
+	}
+	s.metadataAt = time.Now().Add(-6 * time.Second)
+	s.enrich()
+	s.enrichWG.Wait()
+	if result := <-s.enrichResults; result.transactions[0].At != 99 {
+		t.Fatal("backlog did not resume after the budget refreshed")
 	}
 }
 

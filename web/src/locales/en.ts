@@ -38,7 +38,7 @@ const en = {
   activity: {
     title: 'Activity, as it happens.',
     description:
-      'Follow transactions from your node’s mempool into blocks, or review recent node events.',
+      'See what may confirm next, watch transaction arrivals, and review recent node events.',
     view: 'Activity view',
     live: 'Live',
     timeline: 'Timeline',
@@ -56,22 +56,47 @@ const en = {
       'Live activity is unavailable while the node is offline, synchronizing, or an RPC request fails.',
     capacity:
       'The mempool exceeds the live view’s bounded capacity. Other monitoring remains available.',
-    mempoolCount: 'Observed mempool',
-    observedCount: 'Transaction IDs in the latest live baseline',
     arrivals: 'Observed arrivals',
     sinceBaseline: 'Since this live observation began',
     sampleCount: 'Displayed sample',
     sampleLimit: 'Up to 500 transactions',
-    waitingTransactions: 'Waiting transactions',
-    latestBlock: 'Latest observed block',
-    scene: 'Sampled transactions waiting and moving into a verified block',
-    emptyScene: 'Waiting for observed transactions.',
     inspectBlock: 'Inspect block {{height}}',
     sampleExplanation:
-      'This is a sample, not the entire mempool. Tile area reflects virtual size when known; neutral placeholders have no size meaning. Color shows fee rate. Only verified block inclusions move into a block. Polling can miss transactions between observations.',
+      'Recent arrivals are a sample of up to 500 transactions, separate from the full-mempool projections above. Starts with up to 50 existing entries. Polling can miss transactions between observations.',
+    projectedBlocks: 'Projected next blocks',
+    emptyMempool: 'Your node’s mempool is empty. There is no transaction backlog to project.',
+    projectionHeld: 'Snapshot retained',
+    projectionExplanation:
+      'Estimated from your node’s full mempool, prioritizing ancestor packages by effective fee rate. Each tile groups transactions in a similar fee band; area shows their combined virtual size. Unfilled space is spare virtual capacity. Miner policies and new transactions can change the result.',
+    backlog: 'Mempool backlog',
+    backlogSize: '{{size}} of virtual transaction data',
+    blockEquivalent: 'Block equivalents',
+    capacityExplanation: 'Virtual size ÷ 999,000 vB; capacity estimate, not a wait time',
+    mempoolFeeRange: 'Mempool fee range',
+    fullSnapshot: 'Individual modified fee rates across the full snapshot',
+    projectionUpdated: 'Snapshot: {{time}} · refreshes every 10 seconds',
+    projectionLoading: 'Loading the full mempool to project next blocks…',
+    projectionError:
+      'Projections could not load. The node request or bounded calculation failed; retrying automatically.',
+    projectionStale:
+      'Showing the last successful projection. Refresh failed; retrying automatically.',
+    nextBlock: 'Next block',
+    projectedPosition: 'Projected block {{position}}',
+    medianPackageRate: 'Median effective package fee rate',
+    projectionMosaic:
+      'Projected block {{position}}: {{total}} transactions, {{size}} virtual size. Tiles group transactions by effective fee rate.',
+    feeGroup: '{{total}} transactions · {{min}}–{{max}} sat/vB effective package rate',
+    effectiveRange: 'Effective fee range',
+    transactions: 'Transactions',
+    emptyProjection:
+      'No transactions fit the projected blocks. An empty mempool has no backlog; entries exceeding the reserved block capacity remain in the backlog.',
+    remainingBacklog:
+      '{{total}} transactions ({{size}} virtual size) remain beyond these projections or do not fit the reserved capacity.',
     sampleDetails: 'Sampled transaction details',
     amount: 'Amount',
     amountNote: 'Amounts sum all outputs, including change, and exclude fees.',
+    metadataWaiting:
+      '{{total}} sampled transactions waiting for metadata. Rows appear once amount, size and fee rate are available.',
     transaction: 'Transaction',
     vsize: 'Virtual size',
     feeRate: 'Fee rate',

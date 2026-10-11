@@ -26,6 +26,30 @@ export interface ActivityLive {
   transactions: ActivityTransaction[];
   block: ActivityBlock | null;
   persistence_error: boolean;
+  projection: MempoolProjection | null;
+  projection_error: boolean;
+}
+
+export interface ProjectedBlock {
+  count: number;
+  vsize: number;
+  weight: number;
+  min_rate: number;
+  max_rate: number;
+  median_rate: number;
+  groups: { count: number; vsize: number; min_rate: number; max_rate: number }[];
+}
+
+export interface MempoolProjection {
+  at: number;
+  count: number;
+  vsize: number;
+  weight: number;
+  min_rate: number;
+  max_rate: number;
+  remaining_count: number;
+  remaining_vsize: number;
+  blocks: ProjectedBlock[];
 }
 
 export interface ActivityEvent {

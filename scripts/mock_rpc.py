@@ -54,7 +54,10 @@ class Handler(BaseHTTPRequestHandler):
             result = f'{tip:064x}'
         elif method == 'getrawmempool':
             count = 50 + int(elapsed / 5) % 10
-            result = dict(txids=[f'{100000000+i:064x}' for i in range(count)], mempool_sequence=100 + int(elapsed / 5))
+            if req['params'][0]:
+                result = {f'{100000000+i:064x}': dict(vsize=150+i*50, weight=(150+i*50)*4, depends=[], fees=dict(base=(150+i*50)*[2,8,25][i%3]/1e8)) for i in range(count)}
+            else:
+                result = dict(txids=[f'{100000000+i:064x}' for i in range(count)], mempool_sequence=100 + int(elapsed / 5))
         elif method == 'getmempoolentry':
             i = int(req['params'][0], 16) % 100
             result = dict(vsize=150 + i*50, fees=dict(base=(150 + i*50)*[2,8,25][i%3]/1e8))

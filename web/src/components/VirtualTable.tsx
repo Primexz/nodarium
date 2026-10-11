@@ -3,6 +3,7 @@ import type { Key, KeyboardEvent, ReactNode } from 'react';
 import { defaultRangeExtractor, useVirtualizer } from '@tanstack/react-virtual';
 import { useTranslation } from 'react-i18next';
 import { number } from '../format';
+import { useTableMotion } from './useTableMotion';
 
 const controls = 'button:not(:disabled), a[href], input, select, [tabindex="0"]';
 
@@ -30,6 +31,8 @@ export default function VirtualTable<T>({
   onBoundary,
   totalRows,
   rowOffset = 0,
+  liveRows = false,
+  animateRows = false,
 }: {
   rows: T[];
   rowKey: (row: T) => Key;
@@ -46,6 +49,8 @@ export default function VirtualTable<T>({
   onBoundary?: (direction: 'older' | 'newer') => boolean;
   totalRows?: number;
   rowOffset?: number;
+  liveRows?: boolean;
+  animateRows?: boolean;
 }) {
   const { t } = useTranslation();
   const viewport = useRef<HTMLDivElement>(null);
@@ -54,8 +59,9 @@ export default function VirtualTable<T>({
   const [focusedKey, setFocusedKey] = useState<Key | null>(null);
   const pendingFocus = useRef<{ index: number; reverse: boolean } | null>(null);
   const anchor = useRef<{ key: Key; offset: number } | null>(null);
+  const liveAnchor = useRef<{ key: string; top: number } | null>(null);
   const boundaryFocus = useRef<{ key: Key; direction: number } | null>(null);
-  const virtual = !compact && rows.length > 50;
+  const virtual = !compact && (liveRows || rows.length > 50);
   const getItemKey = useCallback((index: number) => rowKey(rows[index]!), [rowKey, rows]);
   const retained = rows.flatMap((row, index) =>
     rowKey(row) === focusedKey || rowKey(row) === keepKey ? [index] : [],
@@ -85,6 +91,10 @@ export default function VirtualTable<T>({
     rangeExtractor: (range) =>
       [...new Set([...defaultRangeExtractor(range), ...retained])].sort((a, b) => a - b),
   });
+
+  useLayoutEffect(() => {
+    virtualizer.shouldAdjustScrollPositionOnItemSizeChange = liveRows ? () => false : undefined;
+  }, [virtualizer, liveRows]);
 
   const rangeStart = virtualizer.range?.startIndex ?? 0;
   const rangeEnd = virtualizer.range?.endIndex ?? rows.length - 1;
@@ -125,7 +135,46 @@ export default function VirtualTable<T>({
         virtualizer.scrollToIndex(index, { align: 'auto' });
       }
     }
-  }, [rows, rowKey, paged, virtualizer]);
+  }, [rows, rowKey, paged, liveRows, virtualizer]);
+
+  // Keep a physical row offset, not an estimated virtual offset. Wrapped IDs
+  // have different heights on phones, and newly measured rows must not jump.
+  useLayoutEffect(() => {
+    const node = viewport.current;
+    const saved = liveAnchor.current;
+
+    if (!liveRows || !node || node.scrollTop <= 1) return;
+
+    if (!saved) {
+      const top = node.getBoundingClientRect().top;
+      const first = [...node.querySelectorAll<HTMLTableRowElement>('tr[data-row-key]')].find(
+        (row) => row.getBoundingClientRect().top >= top + headerHeight,
+      );
+
+      if (first)
+        liveAnchor.current = {
+          key: first.dataset.rowKey!,
+          top: first.getBoundingClientRect().top - top,
+        };
+
+      return;
+    }
+
+    const row = [...node.querySelectorAll<HTMLTableRowElement>('tr[data-row-key]')].find(
+      (row) => row.dataset.rowKey === saved.key,
+    );
+
+    if (row) {
+      const transform = getComputedStyle(row).transform;
+      const y = transform === 'none' ? 0 : new DOMMatrixReadOnly(transform).m42;
+      const delta =
+        row.getBoundingClientRect().top - node.getBoundingClientRect().top - y - saved.top;
+
+      if (Math.abs(delta) > 0.5) node.scrollTop += delta;
+    }
+  });
+
+  useTableMotion(viewport, rows, rowKey, animateRows, liveRows, resetKey);
 
   useLayoutEffect(() => {
     const node = heading.current;
@@ -146,6 +195,7 @@ export default function VirtualTable<T>({
     setFocusedKey(null);
     pendingFocus.current = null;
     anchor.current = null;
+    liveAnchor.current = null;
     boundaryFocus.current = null;
   }, [resetKey]);
 
@@ -226,6 +276,26 @@ export default function VirtualTable<T>({
         aria-label={label}
         tabIndex={rows.length ? 0 : undefined}
         onKeyDown={traverse}
+        onScroll={(event) => {
+          if (!liveRows) return;
+
+          const node = event.currentTarget;
+
+          if (node.scrollTop <= 1) {
+            liveAnchor.current = null;
+
+            return;
+          }
+
+          const top = node.getBoundingClientRect().top;
+          const row = [...node.querySelectorAll<HTMLTableRowElement>('tr[data-row-key]')].find(
+            (row) => row.getBoundingClientRect().top >= top + headerHeight,
+          );
+
+          liveAnchor.current = row
+            ? { key: row.dataset.rowKey!, top: row.getBoundingClientRect().top - top }
+            : null;
+        }}
         onFocusCapture={(event) => {
           const row = (event.target as HTMLElement).closest<HTMLTableRowElement>('tr[data-index]');
 
@@ -254,6 +324,7 @@ export default function VirtualTable<T>({
                   <Spacer height={gap} columns={columns} />
                   <tr
                     data-index={item.index}
+                    data-row-key={String(item.key)}
                     aria-rowindex={rowOffset + item.index + 2}
                     ref={virtual ? virtualizer.measureElement : undefined}
                   >

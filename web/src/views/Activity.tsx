@@ -12,18 +12,14 @@ import {
 import { number, decimal, dateTime, shortHash, bitcoinAmount } from '../format';
 import { Notice, Empty, Metric } from '../components/ui';
 import VirtualTable from '../components/VirtualTable';
-import ActivityScene from '../components/ActivityScene';
+import ProjectedBlocks from '../components/ProjectedBlocks';
 import BlockGoggles from '../components/BlockGoggles';
-import { chartPalette } from '../components/useChart';
-import { useTheme } from '../theme';
 
 const eventKey = (event: ActivityEvent) => event.id;
 const transactionKey = (tx: ActivityTransaction) => tx.txid;
 
 export default function Activity() {
   const { t } = useTranslation();
-  const { effective } = useTheme();
-  const palette = chartPalette(effective === 'dark');
   const [view, setView] = useState<'live' | 'timeline'>('live');
   const [paused, setPaused] = useState(false);
   const [kind, setKind] = useState('');
@@ -32,6 +28,15 @@ export default function Activity() {
   const [acknowledged, setAcknowledged] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const { live, connected, updates, visible } = useActivity(view, paused);
+  const readyTransactions = useMemo(
+    () =>
+      live?.transactions.filter(
+        (tx) => tx.output_sats != null && tx.vsize != null && tx.fee_rate != null,
+      ) ?? [],
+    [live?.transactions],
+  );
+
+  const pendingTransactions = (live?.transactions.length ?? 0) - readyTransactions.length;
   const history = useInfiniteQuery({
     queryKey: ['activity', 'events', kind, generation],
     queryFn: ({ pageParam, signal }) =>
@@ -140,40 +145,17 @@ export default function Activity() {
         <>
           {live && live.status !== 'ready' && <Notice>{t(`activity.${live.status}`)}</Notice>}
           {!live && <Notice>{t('activity.waiting')}</Notice>}
-          <section className="activity-stage" aria-label={t('activity.scene')}>
-            <div className="activity-stage-headings">
-              <h2>{t('activity.waitingTransactions')}</h2>
-              <h2>{t('activity.latestBlock')}</h2>
-            </div>
-            {live && <ActivityScene live={live} paused={paused || !visible || !connected} />}
-            {!live?.transactions.length && (
-              <p className="activity-empty-scene">{t('activity.emptyScene')}</p>
-            )}
-            {live?.block && (
-              <button className="activity-block-link" onClick={() => setSelected(live.block!.hash)}>
-                {t('activity.inspectBlock', { height: number(live.block.height) })}
-              </button>
-            )}
-          </section>
-          <ul className="activity-legend" aria-label={t('activity.feeRate')}>
-            {[
-              { label: '< 5 sat/vB', color: palette.series[3] },
-              { label: '5–<20 sat/vB', color: palette.series[0] },
-              { label: '≥20 sat/vB', color: palette.series[2] },
-              { label: t('activity.pending'), color: palette.land },
-            ].map((band) => (
-              <li key={band.label}>
-                <span style={{ background: band.color }} aria-hidden />
-                {band.label}
-              </li>
-            ))}
-          </ul>
-          <dl className="activity-metrics metrics-grid three">
-            <Metric
-              label={t('activity.mempoolCount')}
-              value={live ? number(live.count) : '—'}
-              detail={t('activity.observedCount')}
-            />
+          <ProjectedBlocks
+            projection={live?.projection ?? null}
+            error={live?.projection_error ?? false}
+            stopped={paused || !visible || !connected}
+          />
+          {live?.block && (
+            <button className="activity-block-link" onClick={() => setSelected(live.block!.hash)}>
+              {t('activity.inspectBlock', { height: number(live.block.height) })}
+            </button>
+          )}
+          <dl className="activity-metrics metrics-grid two">
             <Metric
               label={t('activity.arrivals')}
               value={live ? number(live.arrivals) : '—'}
@@ -186,11 +168,20 @@ export default function Activity() {
             />
           </dl>
           <p className="form-note">{t('activity.sampleExplanation')}</p>
-          <details>
-            <summary>{t('activity.sampleDetails')}</summary>
+          <section>
+            <h2>{t('activity.sampleDetails')}</h2>
             <p className="form-note">{t('activity.amountNote')}</p>
+            <p className="form-note">
+              {t('activity.metadataWaiting', {
+                count: pendingTransactions,
+                total: number(pendingTransactions),
+              })}
+            </p>
             <VirtualTable
-              rows={live?.transactions ?? []}
+              rows={readyTransactions}
+              liveRows
+              animateRows={!paused && visible && connected}
+              resetKey={String(live?.generation ?? 0)}
               rowKey={transactionKey}
               columns={4}
               label={t('activity.sampleDetails')}
@@ -219,7 +210,7 @@ export default function Activity() {
                 </>
               )}
             />
-          </details>
+          </section>
         </>
       ) : (
         <section className="activity-timeline">

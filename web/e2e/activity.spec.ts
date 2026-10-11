@@ -38,6 +38,31 @@ const live: ActivityLive = {
     transactions: txs.slice(0, 20).map((tx) => ({ ...tx, txid: `f${tx.txid.slice(1)}` })),
   },
   persistence_error: false,
+  projection_error: false,
+  projection: {
+    at: Date.now(),
+    count: 1842,
+    vsize: 5300000,
+    weight: 21200000,
+    min_rate: 1,
+    max_rate: 120,
+    remaining_count: 442,
+    remaining_vsize: 1304000,
+    blocks: Array.from({ length: 4 }, (_, i) => ({
+      count: 350,
+      vsize: 999000,
+      weight: 3996000,
+      min_rate: [20, 8, 3, 1][i]!,
+      max_rate: [120, 25, 12, 5][i]!,
+      median_rate: [30, 12, 5, 2][i]!,
+      groups: Array.from({ length: 12 }, (_, j) => ({
+        count: j < 2 ? 30 : 29,
+        vsize: 83250,
+        min_rate: [20, 8, 3, 1][i]! + ((12 - j) * ([120, 25, 12, 5][i]! - [20, 8, 3, 1][i]!)) / 13,
+        max_rate: [20, 8, 3, 1][i]! + ((13 - j) * ([120, 25, 12, 5][i]! - [20, 8, 3, 1][i]!)) / 13,
+      })),
+    })),
+  },
 };
 
 async function activityFixture(page: import('@playwright/test').Page) {
@@ -95,6 +120,191 @@ async function activityFixture(page: import('@playwright/test').Page) {
   });
 }
 
+test('transaction arrivals preserve the row being read', async ({ page }) => {
+  await activityFixture(page);
+  await signIn(page);
+  await navigate(page, 'Activity');
+  await expect(page.locator('.activity-amount').first()).toHaveText('0.00000000 BTC');
+  const viewport = page.locator('.table-scroll').first();
+  await viewport.evaluate((element) => {
+    element.scrollTop = 1000;
+  });
+
+  await page.waitForTimeout(200);
+
+  const rows = page.locator('.activity-transactions-table tr[data-index]');
+  await expect(rows.first()).toBeVisible();
+  const viewportTop = (await viewport.boundingBox())!.y;
+  const scrollBefore = await viewport.evaluate((element) => element.scrollTop);
+  const anchor = await rows.evaluateAll((elements, top) => {
+    const visible = elements.find((element) => element.getBoundingClientRect().top > top + 60)!;
+
+    return {
+      id: visible.querySelector('.activity-txid')!.textContent!,
+      y: visible.getBoundingClientRect().top,
+    };
+  }, viewportTop);
+
+  await page.evaluate((value) => {
+    const row = [...document.querySelectorAll('.activity-txid')].find(
+      (cell) => cell.textContent === value,
+    )!.parentElement;
+
+    (window as unknown as { readingRow: Element | null }).readingRow = row;
+  }, anchor.id);
+
+  await page.evaluate((value) => {
+    const stream = (window as unknown as { activityStream: EventTarget }).activityStream;
+    stream.dispatchEvent(
+      new MessageEvent('live', {
+        data: JSON.stringify({
+          ...value,
+          transactions: [
+            { ...value.transactions[1]!, txid: 'a'.repeat(64), at: value.at + 1000 },
+            ...value.transactions,
+          ],
+        }),
+      }),
+    );
+  }, live);
+
+  await page.waitForTimeout(600);
+  const row = page
+    .locator('.activity-transactions-table tr[data-index]')
+    .filter({ has: page.getByText(anchor.id, { exact: true }) });
+
+  expect(
+    await row.evaluate(
+      (element) => element === (window as unknown as { readingRow: Element }).readingRow,
+    ),
+  ).toBe(true);
+
+  const scrollAfter = await viewport.evaluate((element) => element.scrollTop);
+
+  expect(
+    Math.abs((await row.boundingBox())!.y - anchor.y),
+    `scroll before=${scrollBefore}, after=${scrollAfter}`,
+  ).toBeLessThan(2);
+});
+
+test('ready transactions slide continuously and incomplete rows wait for metadata', async ({
+  page,
+}, info) => {
+  await activityFixture(page);
+  await signIn(page);
+  await navigate(page, 'Activity');
+  await page.evaluate(() => {
+    (document.activeElement as HTMLElement)?.blur();
+    window.scrollTo(0, 0);
+  });
+
+  await expect(page.locator('.activity-amount').first()).toHaveText('0.00000000 BTC');
+  const pending = {
+    ...txs[1]!,
+    txid: 'a'.repeat(64),
+    at: live.at + 1000,
+    output_sats: null,
+    vsize: null,
+    fee_rate: null,
+  };
+
+  const send = async (value: ActivityLive) =>
+    page.evaluate((data) => {
+      (window as unknown as { activityStream: EventTarget }).activityStream.dispatchEvent(
+        new MessageEvent('live', { data: JSON.stringify(data) }),
+      );
+    }, value);
+
+  await send({ ...live, transactions: [pending, ...txs] });
+  await expect(page.locator('.activity-txid', { hasText: pending.txid })).toHaveCount(0);
+  await expect(page.getByText('13 sampled transactions waiting', { exact: false })).toBeVisible();
+  const ready = { ...pending, output_sats: '123456789', vsize: 200, fee_rate: 3 };
+  await send({ ...live, transactions: [ready, ...txs] });
+  await expect(page.locator('.activity-amount').first()).toHaveText('1.23456789 BTC');
+  const motion = await page.evaluate(() => {
+    const rows = [
+      ...document.querySelectorAll<HTMLTableRowElement>(
+        '.activity-transactions-table tr[data-index]',
+      ),
+    ];
+
+    return {
+      entering: rows[0]!.getAnimations().length,
+      moving: rows[1]!.getAnimations().length,
+      opacity: getComputedStyle(rows[0]!).opacity,
+    };
+  });
+
+  expect(motion).toEqual({ entering: 1, moving: 1, opacity: '1' });
+  // Freeze an actual intermediate frame so screenshot time cannot race the
+  // short transition, especially at mobile device scale.
+  await page.evaluate(() => {
+    const table = document.querySelector('.activity-transactions-table')!;
+
+    for (const animation of table.getAnimations({ subtree: true })) {
+      animation.pause();
+      animation.currentTime = 120;
+    }
+
+    (window as unknown as { rowAnimation: Animation }).rowAnimation = table
+      .querySelector('tr[data-index]')!
+      .getAnimations()[0]!;
+  });
+
+  await page.screenshot({
+    path: `../.impeccable/review/activity-table-${info.project.name}-motion.png`,
+    fullPage: true,
+  });
+
+  // An unchanged reading must leave the existing animation running.
+  await send({ ...live, at: live.at + 2000, transactions: [ready, ...txs] });
+  expect(
+    await page.evaluate(
+      () =>
+        document
+          .querySelector('.activity-transactions-table tr[data-index]')!
+          .getAnimations()[0] === (window as unknown as { rowAnimation: Animation }).rowAnimation,
+    ),
+  ).toBe(true);
+
+  // Interrupt at the frozen mid-slide position. This measures the retargeting
+  // jump independently of natural movement while React commits the arrival.
+  const continuity = await page.evaluate(
+    async (value) => {
+      const table = document.querySelector('.activity-transactions-table')!;
+      const retained = table.querySelectorAll('tr[data-index]')[1]!;
+      const before = retained.getBoundingClientRect().top;
+      const committed = new Promise<void>((resolve) => {
+        const observer = new MutationObserver(() => {
+          observer.disconnect();
+          resolve();
+        });
+
+        observer.observe(table, { childList: true, subtree: true });
+      });
+
+      (window as unknown as { activityStream: EventTarget }).activityStream.dispatchEvent(
+        new MessageEvent('live', { data: JSON.stringify(value) }),
+      );
+
+      await committed;
+
+      return Math.abs(retained.getBoundingClientRect().top - before);
+    },
+    { ...live, transactions: [{ ...ready, txid: 'b'.repeat(64) }, ready, ...txs] },
+  );
+
+  expect(continuity).toBeLessThan(2);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await send({ ...live, transactions: [{ ...ready, txid: 'b'.repeat(64) }, ready, ...txs] });
+  await expect(page.locator('.activity-txid', { hasText: 'b'.repeat(64) })).toHaveCount(1);
+  expect(
+    await page
+      .locator('.activity-transactions-table')
+      .evaluate((table) => table.getAnimations({ subtree: true }).length),
+  ).toBe(0);
+});
+
 test('live activity can pause, inspect blocks, browse history and reset coverage', async ({
   page,
 }, info) => {
@@ -107,13 +317,15 @@ test('live activity can pause, inspect blocks, browse history and reset coverage
   await expect(page.getByText('Paused', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Resume', exact: true }).click();
   await expect(page.getByText('ZMQ · live events')).toBeVisible();
-  await page.getByText('Sampled transaction details', { exact: true }).click();
   await expect(page.getByRole('columnheader', { name: 'Virtual size' })).toBeVisible();
   await expect(page.locator('.activity-transactions-table th').first()).toHaveText('Amount');
-  await expect(page.locator('.activity-amount').nth(0)).toHaveText('—');
-  await expect(page.locator('.activity-amount').nth(1)).toHaveText('0.00000000 BTC');
-  await expect(page.locator('.activity-amount').nth(2)).toHaveText('0.00000001 BTC');
-  await expect(page.locator('.activity-amount').nth(3)).toHaveText('21,000,000.00000000 BTC');
+  await expect(
+    page.getByText('12 sampled transactions waiting for metadata.', { exact: false }),
+  ).toBeVisible();
+
+  await expect(page.locator('.activity-amount').nth(0)).toHaveText('0.00000000 BTC');
+  await expect(page.locator('.activity-amount').nth(1)).toHaveText('0.00000001 BTC');
+  await expect(page.locator('.activity-amount').nth(2)).toHaveText('21,000,000.00000000 BTC');
   const assertSampleFits = async () => {
     expect(
       await page
@@ -127,7 +339,6 @@ test('live activity can pause, inspect blocks, browse history and reset coverage
   };
 
   await assertSampleFits();
-  await page.getByText('Sampled transaction details', { exact: true }).click();
   await page.getByRole('button', { name: 'Inspect block 900,123' }).click();
   const panel = page.locator('.selected-block-panel');
   await expect(panel).toBeFocused();
@@ -163,15 +374,12 @@ test('live activity can pause, inspect blocks, browse history and reset coverage
       fullPage: true,
     });
 
-    await page.getByText('Sampled transaction details', { exact: true }).click();
     await assertSampleFits();
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({
       path: `../.impeccable/review/activity-${info.project.name}-${theme}-sample.png`,
       fullPage: true,
     });
-
-    await page.getByText('Sampled transaction details', { exact: true }).click();
 
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
@@ -192,9 +400,8 @@ test('live activity can pause, inspect blocks, browse history and reset coverage
     fullPage: true,
   });
 
-  await page.getByText('Details der Transaktionsstichprobe', { exact: true }).click();
   await expect(page.locator('.activity-transactions-table th').first()).toHaveText('Betrag');
-  await expect(page.locator('.activity-amount').nth(2)).toHaveText('0,00000001 BTC');
+  await expect(page.locator('.activity-amount').nth(1)).toHaveText('0,00000001 BTC');
   await assertSampleFits();
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({
@@ -202,7 +409,6 @@ test('live activity can pause, inspect blocks, browse history and reset coverage
     fullPage: true,
   });
 
-  await page.getByText('Details der Transaktionsstichprobe', { exact: true }).click();
   await page.getByRole('button', { name: 'Ereignisse', exact: true }).click();
   expect(
     await page
@@ -223,7 +429,6 @@ test('live activity can pause, inspect blocks, browse history and reset coverage
 
   if (info.project.name === 'desktop') {
     await page.getByRole('button', { name: 'Live', exact: true }).click();
-    await page.getByText('Details der Transaktionsstichprobe', { exact: true }).click();
     await page.setViewportSize({ width: 2048, height: 1100 });
     await assertSampleFits();
     await page.evaluate(() => window.scrollTo(0, 0));
@@ -237,15 +442,13 @@ test('real activity stream boots from RPC and resumes without counting its basel
   await signIn(page);
   await navigate(page, 'Activity');
   await expect(page.getByText('RPC · observed every 5 seconds')).toBeVisible();
-  await page.getByText('Sampled transaction details', { exact: true }).click();
   await expect(
     page.locator('.activity-amount').filter({ hasText: '1.00000000 BTC' }).first(),
   ).toBeVisible();
 
-  await page.getByText('Sampled transaction details', { exact: true }).click();
   await expect(
     page.getByRole('img', {
-      name: 'Sampled transactions waiting and moving into a verified block',
+      name: /Projected block 1:/,
     }),
   ).toBeVisible();
 
@@ -255,87 +458,76 @@ test('real activity stream boots from RPC and resumes without counting its basel
   await expect(page.getByText('RPC · observed every 5 seconds')).toBeVisible();
 });
 
-test('rapid ZMQ arrivals do not resize or blank the waiting mosaic', async ({ page }) => {
+test('projections distinguish stale, resetting and empty snapshots without hiding arrivals', async ({
+  page,
+}) => {
   await activityFixture(page);
   await signIn(page);
   await navigate(page, 'Activity');
-  await expect(page.locator('.activity-canvas')).toBeVisible();
-  await expect(page.getByText('ZMQ · live events')).toBeVisible();
-  const result = await page.locator('.activity-canvas').evaluate(async (element, value) => {
-    const canvas = element as HTMLCanvasElement;
-    const context = canvas.getContext('2d')!;
-    const descriptor = Object.getOwnPropertyDescriptor(HTMLCanvasElement.prototype, 'width')!;
-    let resizes = 0;
-    Object.defineProperty(canvas, 'width', {
-      get() {
-        return descriptor.get!.call(this);
+  await expect(page.locator('.projected-mosaic')).toHaveCount(4);
+  const send = async (value: ActivityLive) =>
+    page.evaluate((value) => {
+      (window as unknown as { activityStream: EventTarget }).activityStream.dispatchEvent(
+        new MessageEvent('live', { data: JSON.stringify(value) }),
+      );
+    }, value);
+
+  await send({ ...live, projection_error: true });
+  await expect(page.getByRole('alert')).toContainText('last successful projection');
+  await expect(page.locator('.projected-mosaic')).toHaveCount(4);
+  await send({ ...live, generation: 2, projection: null });
+  await expect(page.getByText('Loading the full mempool', { exact: false })).toBeVisible();
+  await expect(page.locator('.projected-mosaic')).toHaveCount(0);
+  await send({
+    ...live,
+    generation: 2,
+    projection: {
+      ...live.projection!,
+      count: 0,
+      vsize: 0,
+      weight: 0,
+      blocks: [],
+      remaining_count: 0,
+      remaining_vsize: 0,
+    },
+  });
+
+  await expect(page.getByText('Your node’s mempool is empty.', { exact: false })).toBeVisible();
+  await expect(page.locator('.activity-amount').first()).toHaveText('0.00000000 BTC');
+  await send({ ...live, generation: 2 });
+  await expect(page.locator('.projected-mosaic')).toHaveCount(4);
+  await expect(page.getByRole('alert')).toHaveCount(0);
+});
+
+test('rapid ZMQ arrivals leave full-mempool projections stable', async ({ page }) => {
+  await activityFixture(page);
+  await signIn(page);
+  await navigate(page, 'Activity');
+  await expect(page.locator('.projected-mosaic')).toHaveCount(4);
+  const before = await page.locator('.projected-blocks').innerHTML();
+
+  for (let i = 0; i < 12; i++) {
+    await page.evaluate(
+      ({ value, i }) => {
+        const stream = (window as unknown as { activityStream: EventTarget }).activityStream;
+        stream.dispatchEvent(
+          new MessageEvent('live', {
+            data: JSON.stringify({
+              ...value,
+              at: Date.now(),
+              arrivals: value.arrivals + i,
+              transactions: [
+                { ...value.transactions[1]!, txid: i.toString(16).padStart(64, 'b') },
+                ...value.transactions,
+              ],
+            }),
+          }),
+        );
       },
-      set(width: number) {
-        resizes++;
-        descriptor.set!.call(this, width);
-      },
-      configurable: true,
-    });
+      { value: live, i },
+    );
+  }
 
-    let blankFrames = 0;
-    let frames = 0;
-    const started = performance.now();
-    let updates = 0;
-    const interval = window.setInterval(() => {
-      updates++;
-      const transaction = {
-        ...value.transactions[0]!,
-        txid: updates.toString(16).padStart(64, 'b'),
-      };
-
-      value = {
-        ...value,
-        at: Date.now(),
-        arrivals: value.arrivals + 1,
-        transactions: [...value.transactions.slice(-199), transaction],
-      };
-
-      const stream = (window as unknown as { activityStream: EventTarget }).activityStream;
-      stream.dispatchEvent(new MessageEvent('live', { data: JSON.stringify(value) }));
-    }, 100);
-
-    await new Promise<void>((resolve) => {
-      function sample() {
-        const pixels = context.getImageData(
-          0,
-          0,
-          canvas.width,
-          Math.round(canvas.height * 0.58),
-        ).data;
-
-        let painted = false;
-
-        for (let i = 3; i < pixels.length; i += 4) {
-          if (pixels[i]! > 0) {
-            painted = true;
-            break;
-          }
-        }
-
-        frames++;
-
-        if (!painted) blankFrames++;
-
-        if (performance.now() - started < 1500) requestAnimationFrame(sample);
-        else resolve();
-      }
-
-      requestAnimationFrame(sample);
-    });
-
-    clearInterval(interval);
-    delete (canvas as unknown as { width?: number }).width;
-
-    return { resizes, blankFrames, frames, updates };
-  }, live);
-
-  expect(result.updates).toBeGreaterThanOrEqual(10);
-  expect(result.frames).toBeGreaterThan(20);
-  expect(result.resizes).toBe(0);
-  expect(result.blankFrames).toBe(0);
+  expect(await page.locator('.projected-blocks').innerHTML()).toBe(before);
+  await expect(page.getByText('442 transactions (', { exact: false })).toBeVisible();
 });

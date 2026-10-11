@@ -2547,36 +2547,81 @@ tbody tr:hover {
 }
 .activity-metrics {
   margin: 32px 0;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-.activity-stage {
-  container-type: inline-size;
-  position: relative;
+/* Projected blocks stay static; the live table owns arrival motion. */
+.projected-section {
   border-block: 1px solid var(--rule);
   padding-block: 24px;
 }
-.activity-stage-headings {
-  display: grid;
-  grid-template-columns: 66% 27%;
-  justify-content: space-between;
-  gap: 16px;
+.projected-section > .form-note {
+  max-width: 90ch;
+}
+.projection-metrics {
+  margin-block: 24px;
+}
+.projection-updated {
   margin-bottom: 20px;
 }
-.activity-stage h2 {
-  font-size: 16px;
+.projected-blocks {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(230px, 1fr));
+  gap: 24px;
+  overflow-x: auto;
+  padding: 0 0 16px;
+  margin: 0 0 12px;
+  list-style: none;
+}
+.projected-blocks > li {
+  min-width: 0;
+}
+.projected-blocks h3 {
+  margin: 0 0 12px;
+}
+.projected-median {
+  font-size: 24px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
   margin: 0;
 }
-.activity-canvas {
+.projected-median span {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.projected-mosaic {
   display: block;
   width: 100%;
-  height: 400px;
+  margin-block: 16px;
+  border: 1px solid var(--rule);
+  background: var(--rail);
 }
-.activity-empty-scene {
-  position: absolute;
-  left: 20px;
-  top: 140px;
-  max-width: 60%;
+.projected-readings {
+  margin: 0;
+  font-size: 12px;
+}
+.projected-readings > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-block: 6px;
+  border-bottom: 1px solid var(--rule);
+}
+.projected-readings dt {
   color: var(--muted);
+}
+.projected-readings dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 767px) {
+  .projection-metrics {
+    grid-template-columns: 1fr;
+  }
+  .projected-blocks {
+    grid-template-columns: repeat(4, 260px);
+  }
 }
 .activity-block-link {
   display: block;
@@ -2622,22 +2667,6 @@ tbody tr:hover {
   }
   .activity-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .activity-empty-scene {
-    max-width: calc(100% - 40px);
-  }
-}
-
-@container (width < 600px) {
-  .activity-stage-headings {
-    grid-template-columns: 1fr;
-  }
-  .activity-stage-headings h2:last-child {
-    position: absolute;
-    top: 354px;
-  }
-  .activity-canvas {
-    height: 480px;
   }
 }
 

@@ -40,7 +40,7 @@ const de = {
   activity: {
     title: 'Aktivität, während sie passiert.',
     description:
-      'Verfolge Transaktionen vom Mempool deines Nodes in Blöcke oder prüfe die letzten Node-Ereignisse.',
+      'Sieh, was als Nächstes bestätigt werden könnte, beobachte neue Transaktionen und prüfe die letzten Node-Ereignisse.',
     view: 'Aktivitätsansicht',
     live: 'Live',
     timeline: 'Ereignisse',
@@ -59,21 +59,47 @@ const de = {
       'Live-Aktivität ist nicht verfügbar, wenn der Node offline ist, synchronisiert oder eine RPC-Abfrage fehlschlägt.',
     capacity:
       'Der Mempool überschreitet die begrenzte Kapazität der Live-Ansicht. Andere Messwerte bleiben verfügbar.',
-    mempoolCount: 'Beobachteter Mempool',
-    observedCount: 'Transaktions-IDs im letzten Live-Ausgangszustand',
     arrivals: 'Beobachtete Zugänge',
     sinceBaseline: 'Seit Beginn dieser Live-Beobachtung',
     sampleCount: 'Angezeigte Stichprobe',
     sampleLimit: 'Bis zu 500 Transaktionen',
-    waitingTransactions: 'Wartende Transaktionen',
-    latestBlock: 'Zuletzt beobachteter Block',
-    scene: 'Transaktionsstichprobe beim Warten und beim Übergang in einen bestätigten Block',
-    emptyScene: 'Warten auf beobachtete Transaktionen.',
     inspectBlock: 'Block {{height}} ansehen',
     sampleExplanation:
-      'Dies ist eine Stichprobe, nicht der gesamte Mempool. Die Kachelfläche zeigt die virtuelle Größe, falls bekannt; neutrale Platzhalter haben keine Größenbedeutung. Die Farbe zeigt die Gebührenrate. Nur bestätigte Block-Aufnahmen bewegen sich in einen Block. Polling kann Transaktionen zwischen Beobachtungen verpassen.',
+      'Neue Zugänge sind eine Stichprobe von bis zu 500 Transaktionen, getrennt von den Prognosen des gesamten Mempools oben. Beginnt mit bis zu 50 bestehenden Einträgen. Polling kann Transaktionen zwischen Beobachtungen verpassen.',
+    projectedBlocks: 'Prognose der nächsten Blöcke',
+    emptyMempool:
+      'Der Mempool deines Nodes ist leer. Es gibt keinen Transaktionsrückstau für eine Prognose.',
+    projectionHeld: 'Snapshot beibehalten',
+    projectionExplanation:
+      'Aus dem gesamten Mempool deines Nodes geschätzt. Pakete mit unbestätigten Vorgängern werden nach effektiver Gebührenrate priorisiert. Jede Kachel bündelt Transaktionen mit ähnlichen Gebühren; die Fläche zeigt ihre gemeinsame virtuelle Größe. Freie Fläche ist verfügbare virtuelle Kapazität. Miner-Regeln und neue Transaktionen können das Ergebnis verändern.',
+    backlog: 'Mempool-Rückstau',
+    backlogSize: '{{size}} virtuelle Transaktionsdaten',
+    blockEquivalent: 'Blockäquivalente',
+    capacityExplanation: 'Virtuelle Größe ÷ 999.000 vB; Kapazitätsschätzung, keine Wartezeit',
+    mempoolFeeRange: 'Gebührenspanne im Mempool',
+    fullSnapshot: 'Einzelne modifizierte Gebührenraten im gesamten Snapshot',
+    projectionUpdated: 'Snapshot: {{time}} · Aktualisierung alle 10 Sekunden',
+    projectionLoading: 'Gesamter Mempool für die Blockprognose wird geladen …',
+    projectionError:
+      'Prognose nicht verfügbar. Node-Abfrage oder begrenzte Berechnung fehlgeschlagen; wird automatisch erneut versucht.',
+    projectionStale:
+      'Letzte erfolgreiche Prognose. Aktualisierung fehlgeschlagen; wird automatisch erneut versucht.',
+    nextBlock: 'Nächster Block',
+    projectedPosition: 'Prognoseblock {{position}}',
+    medianPackageRate: 'Median der effektiven Paket-Gebührenrate',
+    projectionMosaic:
+      'Prognoseblock {{position}}: {{total}} Transaktionen, {{size}} virtuelle Größe. Kacheln bündeln Transaktionen nach effektiver Gebührenrate.',
+    feeGroup: '{{total}} Transaktionen · {{min}}–{{max}} sat/vB effektive Paket-Gebührenrate',
+    effectiveRange: 'Effektive Gebührenspanne',
+    transactions: 'Transaktionen',
+    emptyProjection:
+      'Keine Transaktionen passen in die Prognoseblöcke. Ein leerer Mempool hat keinen Rückstau; Einträge über der reservierten Blockkapazität bleiben im Rückstau.',
+    remainingBacklog:
+      '{{total}} Transaktionen ({{size}} virtuelle Größe) liegen hinter diesen Prognosen oder passen nicht in die reservierte Kapazität.',
     sampleDetails: 'Details der Transaktionsstichprobe',
     amount: 'Betrag',
+    metadataWaiting:
+      '{{total}} Transaktionen der Stichprobe warten auf Metadaten. Zeilen erscheinen, sobald Betrag, Größe und Gebührenrate verfügbar sind.',
     amountNote:
       'Beträge sind die Summe aller Ausgänge, einschließlich Wechselgeld und ohne Gebühren.',
     transaction: 'Transaktion',
