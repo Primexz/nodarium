@@ -198,8 +198,16 @@ Implementation details are grounded in the repository's README and source.
 - Resolve peer and node IP locations locally using a city MMDB database. Do not
   send these addresses to a geolocation service. Keep peers with unavailable
   locations visible without invented coordinates. Map lines indicate connections,
-  not physical network routes. Pair localized country names with locally bundled
-  SVG flags from flag-icons; retain a neutral globe for unknown or unavailable
+  not physical network routes. Hovering a located peer marker shows its address,
+  location, and direction in an enterable tooltip box beside the marker, confined
+  to the map canvas and available for reading or copying. Peer and node tooltips
+  show a decorative locally bundled country flag beside retained location text
+  when a supported asset exists; missing codes/assets keep text without an
+  invented flag or external request. Hovering preserves the existing aside
+  selection; click, tap, or the accessible dropdown selects a peer
+  there. Direction changes clear selection, and filtered or removed peers cannot
+  remain selected. In country distribution, pair localized names with locally
+  bundled SVG flags from flag-icons; retain a neutral globe for unknown or unavailable
   icons and make no external flag requests.
 - Retain up to 365 days of monitoring history at progressively coarser
   resolutions. Missing readings, counter resets, and failed persistence leave

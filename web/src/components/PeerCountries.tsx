@@ -5,18 +5,11 @@ import type { PeerMapData, Section } from '../types';
 import { countryDistribution, countryName } from '../map';
 import { decimal, number } from '../format';
 import { message } from '../i18n';
+import { countryFlagSource } from '../countryFlags';
 import { Empty, Notice, SectionHeading } from './ui';
 
-const flags = import.meta.glob<string>('../../node_modules/flag-icons/flags/4x3/*.svg', {
-  eager: true,
-  query: '?url&no-inline',
-  import: 'default',
-});
-
 function CountryFlag({ code }: { code: string | null }) {
-  const source = code
-    ? flags[`../../node_modules/flag-icons/flags/4x3/${code.toLowerCase()}.svg`]
-    : undefined;
+  const source = countryFlagSource(code);
 
   return (
     <span className="country-flag" aria-hidden="true">

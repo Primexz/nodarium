@@ -450,7 +450,7 @@ const en = {
     inspect: 'Inspect located peer',
     inspectPlaceholder: 'Inspect a peer…',
     selected: 'SELECTED PEER',
-    hint: 'Select a peer marker to see its location. Drag to pan and scroll to zoom.',
+    hint: 'Hover over a peer marker for details. Click or choose a peer to select it. Drag to pan and scroll to zoom.',
     approximate:
       'GeoIP locations are approximate. Lines represent connections, not physical routes.',
     attribution: 'GeoIP by',

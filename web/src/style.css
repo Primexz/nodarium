@@ -764,6 +764,32 @@ nav a.active {
   height: 350px;
 }
 
+.peer-map-tooltip {
+  max-width: min(320px, calc(100vw - 64px));
+  overflow-wrap: anywhere;
+}
+
+.peer-map-tooltip code,
+.peer-map-tooltip span {
+  display: block;
+}
+
+.peer-map-tooltip span {
+  margin-top: 5px;
+}
+
+.peer-map-tooltip-location {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+.peer-map-tooltip-location > span {
+  min-width: 0;
+  margin-top: 0;
+}
+
 .map-controls {
   position: absolute;
   top: 14px;

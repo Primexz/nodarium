@@ -1,12 +1,14 @@
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { registerMap } from 'echarts/core';
+import { registerMap, format } from 'echarts/core';
+import type { TooltipComponentFormatterCallbackParams } from 'echarts';
 import { Minus, Plus, RotateCcw, MapPin } from 'lucide-react';
 import world from '../assets/world.json';
 import type { PeerMapData, Section } from '../types';
 import { locationName, unlocatedReason } from '../map';
 import { message } from '../i18n';
 import { dateTime } from '../format';
+import { countryFlagSource } from '../countryFlags';
 import { useTheme } from '../theme';
 import { chartPalette, useChart } from './useChart';
 import { Notice, SectionHeading } from './ui';
@@ -40,16 +42,41 @@ function PeerMap({ section }: { section: Section<PeerMapData> }) {
   const selected = located.find((p) => p.id === selectedID);
 
   const onClick = useCallback((id: number | null) => setSelectedID(id), []);
+
   const { element, instance } = useChart(
     (width, height) => ({
       animation: false,
       tooltip: {
         trigger: 'item',
-        renderMode: 'richText',
-        formatter: '{b}',
+        renderMode: 'html',
+        className: 'peer-map-tooltip',
+        enterable: true,
+        hideDelay: 100,
+        formatter: (params: TooltipComponentFormatterCallbackParams) => {
+          const point = Array.isArray(params) ? params[0] : params;
+          const lines = (point?.name ?? '').split('\n').map(format.encodeHTML);
+          const source = (point?.data as { flagSource?: string } | undefined)?.flagSource;
+          const flag = source
+            ? `<span class="country-flag" aria-hidden="true"><img src="${format.encodeHTML(source)}" alt="" width="24" height="18" /></span>`
+            : '';
+
+          const locationIndex = point?.seriesId === 'node' ? 2 : 1;
+
+          return `<code>${lines[0] ?? ''}</code>${lines
+            .slice(1)
+            .map((line, index) =>
+              index + 1 === locationIndex
+                ? `<div class="peer-map-tooltip-location">${flag}<span>${line}</span></div>`
+                : `<span>${line}</span>`,
+            )
+            .join('')}`;
+        },
         backgroundColor: palette.panel,
         borderColor: palette.rule,
-        textStyle: { color: palette.ink, fontSize: 12 },
+        borderRadius: 4,
+        padding: 12,
+        extraCssText: 'box-shadow: none; white-space: normal;',
+        textStyle: { color: palette.ink, fontSize: 12, fontFamily: 'inherit' },
         confine: true,
       },
       geo: {
@@ -96,6 +123,7 @@ function PeerMap({ section }: { section: Section<PeerMapData> }) {
         {
           id: 'peers',
           type: 'scatter',
+          tooltip: { show: true },
           coordinateSystem: 'geo',
           zlevel: 2,
           symbolSize: 8,
@@ -107,6 +135,7 @@ function PeerMap({ section }: { section: Section<PeerMapData> }) {
           data: located.map((p) => ({
             name: `${p.address}\n${locationName(p.location!)}\n${t(p.inbound ? 'common.inbound' : 'common.outbound')}`,
             peerID: p.id,
+            flagSource: countryFlagSource(p.location!.country_code),
             value: [p.location!.longitude, p.location!.latitude],
             itemStyle: { color: palette.series[p.inbound ? 1 : 0] },
           })),
@@ -114,6 +143,7 @@ function PeerMap({ section }: { section: Section<PeerMapData> }) {
         {
           id: 'node',
           type: 'scatter',
+          tooltip: { show: true },
           coordinateSystem: 'geo',
           zlevel: 3,
           symbol: 'diamond',
@@ -131,6 +161,7 @@ function PeerMap({ section }: { section: Section<PeerMapData> }) {
             ? [
                 {
                   name: `${nodeLabel}\n${node.ip}\n${locationName(node)}`,
+                  flagSource: countryFlagSource(node.country_code),
                   value: [node.longitude, node.latitude],
                 },
               ]

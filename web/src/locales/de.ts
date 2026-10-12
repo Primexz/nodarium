@@ -464,7 +464,7 @@ const de = {
     inspect: 'Lokalisierten Peer auswählen',
     inspectPlaceholder: 'Peer auswählen …',
     selected: 'AUSGEWÄHLTER PEER',
-    hint: 'Wähle eine Peer-Markierung, um den Standort zu sehen. Ziehen zum Verschieben, Scrollen zum Zoomen.',
+    hint: 'Zeige auf eine Peer-Markierung für Details. Klicke oder wähle einen Peer aus, um ihn auszuwählen. Ziehen verschiebt, Scrollen zoomt.',
     approximate:
       'GeoIP-Standorte sind Näherungswerte. Linien zeigen Verbindungen, keine tatsächlichen Übertragungswege.',
     attribution: 'GeoIP von',
