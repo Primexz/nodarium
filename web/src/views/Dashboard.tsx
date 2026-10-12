@@ -249,6 +249,7 @@ export default function Dashboard({
           />
         </dl>
       )}
+      {page === 'peers' && <PeerMap section={node.peerMap} />}
       {page === 'mining' && (
         <>
           <DifficultyPeriod section={node.overview?.overview} />
@@ -374,7 +375,6 @@ export default function Dashboard({
           />
         </div>
       )}
-      {page === 'peers' && <PeerMap section={node.peerMap} />}
       {page === 'peers' && <PeerCountries section={node.peerMap} />}
       {page === 'peers' && (
         <section className="panel network-panel">

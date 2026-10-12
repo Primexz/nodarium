@@ -90,7 +90,12 @@ test('exploration leads four destinations and every feature has a focused view',
     .locator('.peer-map-panel')
     .evaluate((node) => node.getBoundingClientRect().top);
 
-  expect(tableTop).toBeLessThan(mapTop);
+  const metricsTop = await page
+    .locator('#content > .metrics-grid')
+    .evaluate((node) => node.getBoundingClientRect().top);
+
+  expect(metricsTop).toBeLessThan(mapTop);
+  expect(mapTop).toBeLessThan(tableTop);
   await navigate(page, 'Traffic');
   await expect(page.locator('.chart-panel')).toHaveCount(1);
   const download = page

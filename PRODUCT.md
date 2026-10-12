@@ -75,8 +75,11 @@ node readings or fee estimates. Mobile fee readings retain per-target times,
 stale states, and errors in compact stacked rows.
 
 Explorer retains its mounted browser while Analytics is visible, preserving the
-selection and browser scroll between those views. My node Peers places the
-searchable table before history, map, countries, and transport counts. Traffic
+selection and browser scroll between those views. My node Peers opens with
+summary metrics for connected peers, inbound/outbound connections, and network
+types after its heading, navigation, and existing notices, followed by the
+connection map, searchable table, history range/charts, countries, and transport
+counts. Traffic
 uses one combined download/upload history chart with independently toggleable
 series, followed by the upload budget and cumulative Core counters. Events keeps
 the existing observation log, coverage limits, category filtering, and block
