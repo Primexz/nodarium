@@ -1,6 +1,13 @@
 import type { Translations } from './schema';
 
 const de = {
+  fiat: {
+    currency: 'Fiatwährung',
+    unavailable: 'Fiatkurse nicht verfügbar. BTC-Beträge bleiben verfügbar.',
+    stale: 'veralteter Kurs',
+    rateTime: 'Kurs vom {{time}}',
+    currentRate: 'Aktueller Kurs, auch für historische Beträge.',
+  },
   nav: {
     activity: 'Aktivit\u00e4t',
     overview: 'Übersicht',

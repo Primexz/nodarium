@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Block, PoolAttribution } from '../types';
-import { number, dateTime, bitcoinAmount, bytes, decimal } from '../format';
+import { number, dateTime, bytes, decimal } from '../format';
+import { BitcoinValue } from '../fiat';
 import BlockGoggles from './BlockGoggles';
 import { BlockPool } from './MiningPools';
 
@@ -52,7 +53,9 @@ export function BlockDetails({
         <div>
           <dt>{t('blocks.totalFees')}</dt>
           <dd>
-            <span>{bitcoinAmount(block.total_fees_sats, 8)}</span>
+            <span>
+              <BitcoinValue satoshis={block.total_fees_sats} />
+            </span>
             <small>{t('blocks.feesDescription')}</small>
           </dd>
         </div>

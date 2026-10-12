@@ -15,6 +15,7 @@ import (
 	"github.com/Primexz/nodarium/internal/blockindex"
 	"github.com/Primexz/nodarium/internal/collector"
 	"github.com/Primexz/nodarium/internal/explorer"
+	"github.com/Primexz/nodarium/internal/fiat"
 	"github.com/Primexz/nodarium/internal/geoip"
 	"github.com/Primexz/nodarium/internal/logging"
 	"github.com/Primexz/nodarium/internal/miningpool"
@@ -80,6 +81,7 @@ func newServer(a *auth.Manager, c Snapshots, db HistoryStore, assets fs.FS, mapp
 	})))
 
 	api := http.NewServeMux()
+	registerFiat(api, fiat.New(fiat.DefaultURL))
 	if events != nil {
 		registerActivity(api, a, events)
 	}

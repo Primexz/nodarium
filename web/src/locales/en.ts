@@ -1,4 +1,11 @@
 const en = {
+  fiat: {
+    currency: 'Fiat currency',
+    unavailable: 'Fiat rates unavailable. BTC amounts remain available.',
+    stale: 'stale rate',
+    rateTime: 'Rate as of {{time}}',
+    currentRate: 'Current rate, including for historical amounts.',
+  },
   nav: {
     activity: 'Activity',
     overview: 'Overview',

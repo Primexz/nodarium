@@ -10,6 +10,7 @@ import { Empty, Metric, Notice, SectionHeading } from '../components/ui';
 import { PoolCoverage, PoolRange, PoolTrendChart } from '../components/PoolHistory';
 import PoolLogo from '../components/PoolLogo';
 import { BlockStrip } from '../components/BlockTable';
+import { BitcoinValue } from '../fiat';
 
 export default function PoolDetailPage() {
   const { t } = useTranslation();
@@ -110,11 +111,7 @@ export default function PoolDetailPage() {
                 />
                 <Metric
                   label={t('poolHistory.fees')}
-                  value={
-                    metrics?.average_fees_btc == null
-                      ? '—'
-                      : `${decimal(metrics.average_fees_btc, 8)} BTC`
-                  }
+                  value={<BitcoinValue btc={metrics?.average_fees_btc ?? null} />}
                   detail={sample(metrics?.fee_blocks)}
                 />
               </dl>

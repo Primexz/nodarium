@@ -9,7 +9,8 @@ import {
   type ActivityPage,
   type ActivityTransaction,
 } from '../activity';
-import { number, decimal, dateTime, shortHash, bitcoinAmount } from '../format';
+import { number, decimal, dateTime, shortHash } from '../format';
+import { BitcoinValue } from '../fiat';
 import { Notice, Empty, Metric } from '../components/ui';
 import VirtualTable from '../components/VirtualTable';
 import ProjectedBlocks from '../components/ProjectedBlocks';
@@ -181,7 +182,7 @@ export default function Activity({ view }: { view: 'live' | 'timeline' }) {
                     className="activity-amount"
                     title={tx.output_sats == null ? t('activity.pending') : undefined}
                   >
-                    {bitcoinAmount(tx.output_sats, 8)}
+                    <BitcoinValue satoshis={tx.output_sats} />
                   </td>
                   <td className="mono activity-txid" title={tx.txid}>
                     {tx.txid}

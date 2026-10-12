@@ -31,6 +31,8 @@ My node Overview consolidates health, synchronization, storage, and inspectable 
 
 Monitoring ranges are remembered separately for Mempool Trends, Peers, Traffic, and Mining Network in optional session storage. Block economics has its own remembered range; pool history also has its URL query. Storage failure falls back to usable controls. Peer lists, history readings, and transaction tables keep contained virtual scrolling, native table semantics, sticky headers, row totals, keyboard access, refresh scroll retention, and inspection focus. English/German, local geography, source distinctions, freshness, missing coverage, and data gaps retain their established meaning.
 
+The shell’s BTC/EUR/USD selector sits beside language and theme and remembers its choice in optional local storage. BTC is the default with fiat off. Selected EUR/USD adds an approximate secondary line below primary BTC amounts for mainnet transaction fees/inputs/outputs and sampled amounts, block fees and subsidy/reward economics tables/tooltips, pool fee averages, and mempool total fees. Sat/vB and BTC chart axes retain their meaning. Integer-satoshi amounts convert to integer cents before localized display, with below-cent text for positive amounts rounding to zero cents and no fabricated amount for missing data. The header contains the currency selector; native hover metadata on displayed fiat amounts identifies the quote source, snapshot time, and current-rate basis also used for historical BTC amounts. Unknown networks wait; testnet/regtest receive no fiat valuations or browser rate requests. Only selected fiat on mainnet enables one-minute polling through Nodarium’s authenticated API. Failed refreshes retain stale quotes, snapshots older than two hours are stale, and an absent quote leaves BTC intact with fiat unavailable. Both themes and EN/DE retain the incumbent typography, controls, semantic colors, and contained overflow.
+
 FORM: Protocol publication, grounded candidate 7, concept seed 517a1123; user selected it explicitly. Signature: the user-requested mempool-inspired block tiles share geometry between existing block-strip uses and Explorer’s historical browser, using geometric top and side faces within the incumbent paper/ink palette and open exact block details by hash. The selected block's static transaction mosaic sizes tiles by virtual bytes and colors them by fee-rate bands, with separate coinbase and unavailable-fee states. The persistent summary index stores headers, raw Core block statistics, and compact coinbase/pool evidence; its resumable whole-chain worker also serves mining distributions. Complete transactions and mosaic records are not archived. A wrapping pool-attribution row above the mosaic names the inferred miner or its availability state and matching method. Locally bundled official pool logos accompany names in this row and the mining donut legend, with light-theme variants where available and neutral fallbacks for unknown or missing logos; names and chart swatches retain their meaning without images. Tile selection and the initially collapsed, virtual-scrolling keyboard data table open inline transaction details with exact amounts and wrapping identifiers. No category filters. Familiar product navigation and controls outrank publication metaphor. Functional 180ms block-selection feedback; no decorative entrances.
 
 Country distribution pairs each readable country name with a locally bundled SVG flag from flag-icons. Flags are small factual geography cues, not replacements for names or counts; unknown or unsupported country codes use a quiet globe. No external flag requests, changes to geography resolution, or chart-color changes.
@@ -63,6 +65,19 @@ cycle independently of Core health, preserving the last successful value on
 errors. `internal/server/server.go` exposes the independent overview `database`
 section; `web/src/views/Dashboard.tsx`, `web/src/style.css`, and EN/DE locales
 supply the six-metric responsive grid, byte formatting, and state explanations.
+
+Fiat source evidence is `web/src/fiat.tsx` for optional remembered currency,
+mainnet gating, integer-cent conversion, quote states, and primary/secondary
+amount hierarchy, with source/time/current-rate metadata in native amount titles.
+`web/src/App.tsx`, `web/src/App.module.css`, and `web/src/style.css` place the
+header selector and style secondary amounts using incumbent tokens. `BlockEconomics.tsx`,
+`BlockTable.tsx`, `BlockGoggles.tsx`, `Activity.tsx`, `Dashboard.tsx`, and
+`PoolDetail.tsx` integrate amount displays while preserving fee rates and axes.
+`internal/fiat/prices.go` fetches periodic `mempool.space/api/v1/prices` snapshots
+on demand with a one-minute cache, five-second timeout, stale retention, and
+two-hour freshness limit; `internal/server/fiat.go` and `server.go` expose
+`GET /api/1.0/fiat-rates` behind existing session authentication. The browser calls
+Nodarium only, and price requests contain no node, transaction, or peer details.
 
 This pass reconciles source documentation; it did not independently certify
 rendered output or run the complete regression suite. `DESIGN.md` token

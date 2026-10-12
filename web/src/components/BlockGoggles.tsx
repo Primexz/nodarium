@@ -5,7 +5,8 @@ import { X } from 'lucide-react';
 import type { ECElementEvent } from 'echarts/core';
 import { api, APIError } from '../api';
 import type { BlockTransactions, BlockTransaction, TransactionDetails } from '../types';
-import { bitcoinAmount, bytes, decimal, number, shortHash } from '../format';
+import { bytes, decimal, number, shortHash } from '../format';
+import { BitcoinValue } from '../fiat';
 import { useTheme } from '../theme';
 import { Notice, Empty } from './ui';
 import { useChart, chartPalette } from './useChart';
@@ -96,15 +97,15 @@ function TransactionPanel({
               [t('goggles.weight'), t('blocks.weightValue', { value: number(tx.weight) })],
               [
                 t('goggles.fee'),
-                tx.coinbase ? t('goggles.coinbase') : bitcoinAmount(tx.fee_sats, 8),
+                tx.coinbase ? t('goggles.coinbase') : <BitcoinValue satoshis={tx.fee_sats} />,
               ],
               [t('goggles.feeRate'), rate(tx, t('goggles.coinbase'))],
-              [t('goggles.totalOutput'), bitcoinAmount(tx.output_sats, 8)],
+              [t('goggles.totalOutput'), <BitcoinValue satoshis={tx.output_sats} />],
               [t('blocks.confirmations'), number(tx.confirmations)],
               [t('goggles.version'), number(tx.version)],
               [t('goggles.locktime'), number(tx.locktime)],
             ].map(([label, value]) => (
-              <div key={label}>
+              <div key={String(label)}>
                 <dt>{label}</dt>
                 <dd>{value}</dd>
               </div>
@@ -124,9 +125,11 @@ function TransactionPanel({
                 {tx.inputs.slice(0, inputCount).map((input, i) => (
                   <li key={i}>
                     <strong>
-                      {input.coinbase
-                        ? t('goggles.coinbaseInput')
-                        : bitcoinAmount(input.value_sats, 8)}
+                      {input.coinbase ? (
+                        t('goggles.coinbaseInput')
+                      ) : (
+                        <BitcoinValue satoshis={input.value_sats} />
+                      )}
                     </strong>
                     {!input.coinbase && (
                       <>
@@ -155,7 +158,9 @@ function TransactionPanel({
               <ol className="io-list">
                 {tx.outputs.slice(0, outputCount).map((output) => (
                   <li key={output.index}>
-                    <strong>{bitcoinAmount(output.value_sats, 8)}</strong>
+                    <strong>
+                      <BitcoinValue satoshis={output.value_sats} />
+                    </strong>
                     <span className="mono">
                       {output.address ||
                         t(
@@ -388,7 +393,9 @@ export default function BlockGoggles({
                     </td>
                     <td>{number(tx.vsize)} vB</td>
                     <td>{rate(tx, t('goggles.coinbase'))}</td>
-                    <td>{bitcoinAmount(tx.output_sats, 8)}</td>
+                    <td>
+                      <BitcoinValue satoshis={tx.output_sats} />
+                    </td>
                   </>
                 )}
               />

@@ -154,6 +154,7 @@
 }
 
 .tools {
+  flex-wrap: wrap;
   gap: 12px;
 }
 

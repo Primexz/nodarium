@@ -21,6 +21,7 @@ import BlockEconomics from '../components/BlockEconomics';
 import PeerTable from '../components/PeerTable';
 import BlockHistory from '../components/BlockHistory';
 import { ShieldCheck } from 'lucide-react';
+import { BitcoinValue } from '../fiat';
 
 const views = {
   mempool: ['live', 'trends'],
@@ -215,7 +216,11 @@ export default function Dashboard({
             <Metric
               label={t('mempool.minimumFee')}
               value={fee(mempool?.mempoolminfee)}
-              detail={t('mempool.totalFees', { fee: decimal(mempool?.total_fee, 8) })}
+              detail={
+                <BitcoinValue btc={mempool?.total_fee ?? null}>
+                  {t('mempool.totalFees', { fee: decimal(mempool?.total_fee, 8) })}
+                </BitcoinValue>
+              }
             />
           </dl>
         </details>

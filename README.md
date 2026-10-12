@@ -36,6 +36,10 @@ Views have separate URLs. Retired and unknown page URLs show a localized page-no
 
 “Pause live tracking” holds the current projection and sampled arrivals; independently polled fee estimates and node readings continue. Mempool details and policy readings remain available in Live’s final disclosure. Traffic totals are Core’s cumulative counters, distinct from the collected rate history.
 
+The header’s remembered BTC/EUR/USD selector optionally adds approximate fiat values below BTC amounts on mainnet. BTC is the default and keeps conversions off; fee rates stay in sat/vB and chart axes stay in BTC. Native hover metadata on displayed fiat amounts gives the quote’s source, as-of time, and current-rate basis. Current quotes also convert historical BTC amounts, so these are not historical exchange valuations.
+
+Prices are periodic provider snapshots, requested through Nodarium’s authenticated `/api/1.0/fiat-rates` endpoint only while a fiat currency is selected on mainnet. Browser polling and the server cache use one-minute intervals; upstream requests time out after five seconds. No node, transaction, or peer details are sent to the price service. Failed refreshes retain the last quote marked stale; quotes older than two hours are also stale. Without a quote, BTC remains available and fiat shows unavailable. Testnet and regtest have no fiat valuations or rate requests.
+
 ## Quick start
 
 Requires Docker Compose and Bitcoin Core 28+ with RPC enabled.

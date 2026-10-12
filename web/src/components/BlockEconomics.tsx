@@ -1,5 +1,5 @@
 import { useRememberedRange } from '../useRememberedRange';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../api';
 import { useTranslation } from 'react-i18next';
@@ -13,7 +13,8 @@ import {
 } from '../types';
 import VirtualTable from './VirtualTable';
 import { availableReward, chartBitcoin, feeShare, rewardComplete } from '../blockEconomics';
-import { bitcoinAmount, dateTime, decimal, number } from '../format';
+import { dateTime, decimal, number } from '../format';
+import { BitcoinValue, bitcoinToSatoshis, useFiatFormat } from '../fiat';
 import { useTheme } from '../theme';
 import { chartPalette, useChart } from './useChart';
 import { Empty, Notice, SectionHeading } from './ui';
@@ -21,7 +22,7 @@ import { Empty, Notice, SectionHeading } from './ui';
 type Series = {
   label: string;
   value: (block: Block) => number | null;
-  text: (block: Block) => string;
+  text: (block: Block) => ReactNode;
   dashed?: boolean;
   historyValue?: (point: EconomicsPoint) => number | null;
 };
@@ -49,6 +50,7 @@ function EconomicsPlot({
   const { effective } = useTheme();
   const palette = chartPalette(effective === 'dark');
   const [showData, setShowData] = useState(false);
+  const formatFiat = useFiatFormat();
   const values = (item: Series) =>
     history
       ? history.points.map((point) => item.historyValue?.(point) ?? null)
@@ -73,8 +75,13 @@ function EconomicsPlot({
       backgroundColor: palette.panel,
       borderColor: palette.rule,
       textStyle: { color: palette.ink },
-      valueFormatter: (value: unknown) =>
-        value == null ? t('history.noReading') : format(Number(value), true),
+      valueFormatter: (value: unknown) => {
+        if (value == null) return t('history.noReading');
+
+        const fiat = unit === 'btc' ? formatFiat(bitcoinToSatoshis(Number(value))) : null;
+
+        return `${format(Number(value), true)}${fiat ? ` · ≈ ${fiat}` : ''}`;
+      },
     },
     xAxis: {
       type: 'category',
@@ -167,7 +174,13 @@ function EconomicsPlot({
 
                   return (
                     <td key={item.label}>
-                      {value == null ? t('history.noReading') : format(value, true)}
+                      {value == null ? (
+                        t('history.noReading')
+                      ) : unit === 'btc' ? (
+                        <BitcoinValue btc={value} />
+                      ) : (
+                        format(value, true)
+                      )}
                     </td>
                   );
                 })}
@@ -196,7 +209,11 @@ function EconomicsPlot({
                     {series.map((item) => (
                       <td key={item.label}>{item.text(block)}</td>
                     ))}
-                    {stacked && <td>{bitcoinAmount(availableReward(block), 8)}</td>}
+                    {stacked && (
+                      <td>
+                        <BitcoinValue satoshis={availableReward(block)} />
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -343,14 +360,14 @@ export default function BlockEconomics({
                 label: t('blockEconomics.subsidy'),
                 historyValue: (point) => point.subsidy_btc,
                 value: (block) => (rewardComplete(block) ? chartBitcoin(block.subsidy_sats) : null),
-                text: (block) => bitcoinAmount(block.subsidy_sats, 8),
+                text: (block) => <BitcoinValue satoshis={block.subsidy_sats} />,
               },
               {
                 label: t('blocks.totalFees'),
                 historyValue: (point) => point.fees_btc,
                 value: (block) =>
                   rewardComplete(block) ? chartBitcoin(block.total_fees_sats) : null,
-                text: (block) => bitcoinAmount(block.total_fees_sats, 8),
+                text: (block) => <BitcoinValue satoshis={block.total_fees_sats} />,
               },
             ]}
           />

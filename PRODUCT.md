@@ -206,6 +206,27 @@ Implementation details are grounded in the repository's README and source.
 - Block output amounts include change and exclude coinbase rewards; they do not
   measure net economic transfer. Fees exclude the block subsidy. Preserve exact
   satoshi values and the option to inspect all eight BTC decimal places.
+- Offer a remembered BTC/EUR/USD header selector, defaulting to BTC with fiat
+  display off. On mainnet, selected EUR/USD adds approximate secondary amounts
+  to transaction fees, inputs, outputs, sampled amounts, block fees and
+  subsidy/reward economics tables/tooltips, pool fee averages, and mempool total
+  fees. Preserve primary BTC amounts, exact satoshis, sat/vB fee rates, and BTC
+  chart axes. Convert integer satoshis to integer cents before localized display;
+  tiny positive amounts rounding to zero cents use a below-cent label and missing
+  amounts remain unavailable. Current quotes also convert historical BTC amounts,
+  explicitly without historical exchange valuation.
+- Fetch periodic mempool.space price snapshots through the authenticated Nodarium
+  fiat-rates API only on demand, independently of node polling. While fiat is
+  selected on mainnet, the browser polls every minute; the server caches for one
+  minute and uses a five-second HTTP timeout. Wait for an unknown network and
+  avoid fiat valuations or browser rate requests on testnet/regtest. Browsers call
+  only Nodarium; send no node, transaction, or peer details to the price provider.
+  Keep the currency selector in the header; displayed fiat amounts carry native
+  hover metadata with quote source, as-of time, and the current-rate basis used
+  for historical amounts. Retain a failed-refresh quote marked stale; quotes
+  older than two hours are stale too. Without a quote,
+  preserve BTC and show fiat unavailable. Remembering currency in local storage
+  is optional; the selector remains usable when storage is unavailable.
 - Preserve English and German interfaces, locale-aware formatting, and remembered
   language selection. User-configured names and original Core diagnostics remain
   unchanged.

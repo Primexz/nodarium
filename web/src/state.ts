@@ -90,6 +90,7 @@ export type Readings = ReturnType<typeof useReadings>;
 
 export async function refresh() {
   await Promise.all([
+    queryClient.invalidateQueries({ queryKey: ['fiat-rates'], refetchType: 'active' }),
     queryClient.invalidateQueries({ queryKey: ['node'] }),
     queryClient.invalidateQueries({ queryKey: ['explorer'], refetchType: 'active' }),
     queryClient.invalidateQueries({ queryKey: ['history'], refetchType: 'active' }),

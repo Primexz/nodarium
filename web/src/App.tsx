@@ -23,6 +23,7 @@ import { message } from './i18n';
 import { duration } from './format';
 import { Brand, LanguagePicker, ThemePicker, Notice, ErrorBoundary } from './components/ui';
 import BlockIndexProgress from './components/BlockIndexProgress';
+import { CurrencyPicker, FiatProvider } from './fiat';
 
 const Dashboard = lazy(() => import('./views/Dashboard'));
 const PoolDetail = lazy(() => import('./views/PoolDetail'));
@@ -235,143 +236,146 @@ function Workspace() {
   }
 
   return (
-    <div className={`${styles.shell} ${sidebarCollapsed ? styles.collapsed : ''}`}>
-      <a href="#content" className="skip-link">
-        {t('common.skip')}
-      </a>
-      <aside id="workspace-sidebar" className={styles.sidebar}>
-        <div className={styles.sidebarHeader}>
-          {brand}
-          <button
-            className={`icon-button ${styles.sidebarToggle}`}
-            aria-label={t(sidebarCollapsed ? 'nav.expandSidebar' : 'nav.collapseSidebar')}
-            title={t(sidebarCollapsed ? 'nav.expandSidebar' : 'nav.collapseSidebar')}
-            aria-expanded={!sidebarCollapsed}
-            aria-controls="workspace-sidebar"
-            onClick={toggleSidebar}
-          >
-            {sidebarCollapsed ? (
-              <PanelLeftOpen size={18} aria-hidden />
-            ) : (
-              <PanelLeftClose size={18} aria-hidden />
-            )}
-          </button>
-        </div>
-        {navigation}
-      </aside>
-      <div className={styles.main}>
-        <header className={`${styles.topbar} topbar`}>
-          <div className={styles.context}>
-            <Dialog.Root open={menu} onOpenChange={changeMenu}>
-              <Dialog.Trigger asChild>
-                <button className={`icon-button ${styles.mobileMenu}`} aria-label={t('nav.open')}>
-                  <Menu size={20} />
-                </button>
-              </Dialog.Trigger>
-              <Dialog.Portal>
-                <Dialog.Overlay ref={drawerOverlay} className="drawer-overlay" />
-                <Dialog.Content ref={drawer} className="navigation-drawer">
-                  <Dialog.Title className="sr-only">{t('nav.workspace')}</Dialog.Title>
-                  <Dialog.Description className="sr-only">{t('login.hosted')}</Dialog.Description>
-                  <Dialog.Close asChild>
-                    <button className="icon-button drawer-close" aria-label={t('nav.close')}>
-                      <X size={20} />
-                    </button>
-                  </Dialog.Close>
-                  {brand}
-                  {navigation}
-                </Dialog.Content>
-              </Dialog.Portal>
-            </Dialog.Root>
-            <span className={styles.pageTitle}>{title}</span>
-            <Link
-              to="/node"
-              className={`connection-badge ${status}`}
-              title={t('workspace.nodeStatus')}
-            >
-              <span className="status-dot" />
-              {t(
-                `status.${status === 'connected' || status === 'partial' || status === 'disconnected' ? status : 'connecting'}`,
-              )}
-            </Link>
-          </div>
-          <div className={styles.tools}>
-            <LanguagePicker />
-            <ThemePicker />
-            <span className="updated">
-              {node.overview?.checked_at
-                ? t('dashboard.updated', {
-                    time: duration((node.now - Date.parse(node.overview.checked_at)) / 1000),
-                  })
-                : t('dashboard.waiting')}
-            </span>
+    <FiatProvider chain={node.overview?.overview.data?.blockchain.chain}>
+      <div className={`${styles.shell} ${sidebarCollapsed ? styles.collapsed : ''}`}>
+        <a href="#content" className="skip-link">
+          {t('common.skip')}
+        </a>
+        <aside id="workspace-sidebar" className={styles.sidebar}>
+          <div className={styles.sidebarHeader}>
+            {brand}
             <button
-              className={`icon-button ${refreshing ? 'spinning' : ''}`}
-              disabled={refreshing}
-              aria-label={t('dashboard.refresh')}
-              onClick={() => void manualRefresh()}
+              className={`icon-button ${styles.sidebarToggle}`}
+              aria-label={t(sidebarCollapsed ? 'nav.expandSidebar' : 'nav.collapseSidebar')}
+              title={t(sidebarCollapsed ? 'nav.expandSidebar' : 'nav.collapseSidebar')}
+              aria-expanded={!sidebarCollapsed}
+              aria-controls="workspace-sidebar"
+              onClick={toggleSidebar}
             >
-              <RefreshCw size={16} />
+              {sidebarCollapsed ? (
+                <PanelLeftOpen size={18} aria-hidden />
+              ) : (
+                <PanelLeftClose size={18} aria-hidden />
+              )}
             </button>
           </div>
-          <BlockIndexProgress />
-        </header>
-        {auth.error && <Notice error>{message(auth.error)}</Notice>}
-        <ErrorBoundary key={page} label={t('app.interfaceError')} retry={t('common.retry')}>
-          <Suspense fallback={<Notice>{t('app.opening')}</Notice>}>
-            <Routes>
-              <Route path="/" element={<Navigate to="/mempool" replace />} />
-              {links.map(({ path }) => (
+          {navigation}
+        </aside>
+        <div className={styles.main}>
+          <header className={`${styles.topbar} topbar`}>
+            <div className={styles.context}>
+              <Dialog.Root open={menu} onOpenChange={changeMenu}>
+                <Dialog.Trigger asChild>
+                  <button className={`icon-button ${styles.mobileMenu}`} aria-label={t('nav.open')}>
+                    <Menu size={20} />
+                  </button>
+                </Dialog.Trigger>
+                <Dialog.Portal>
+                  <Dialog.Overlay ref={drawerOverlay} className="drawer-overlay" />
+                  <Dialog.Content ref={drawer} className="navigation-drawer">
+                    <Dialog.Title className="sr-only">{t('nav.workspace')}</Dialog.Title>
+                    <Dialog.Description className="sr-only">{t('login.hosted')}</Dialog.Description>
+                    <Dialog.Close asChild>
+                      <button className="icon-button drawer-close" aria-label={t('nav.close')}>
+                        <X size={20} />
+                      </button>
+                    </Dialog.Close>
+                    {brand}
+                    {navigation}
+                  </Dialog.Content>
+                </Dialog.Portal>
+              </Dialog.Root>
+              <span className={styles.pageTitle}>{title}</span>
+              <Link
+                to="/node"
+                className={`connection-badge ${status}`}
+                title={t('workspace.nodeStatus')}
+              >
+                <span className="status-dot" />
+                {t(
+                  `status.${status === 'connected' || status === 'partial' || status === 'disconnected' ? status : 'connecting'}`,
+                )}
+              </Link>
+            </div>
+            <div className={styles.tools}>
+              <LanguagePicker />
+              <ThemePicker />
+              <CurrencyPicker />
+              <span className="updated">
+                {node.overview?.checked_at
+                  ? t('dashboard.updated', {
+                      time: duration((node.now - Date.parse(node.overview.checked_at)) / 1000),
+                    })
+                  : t('dashboard.waiting')}
+              </span>
+              <button
+                className={`icon-button ${refreshing ? 'spinning' : ''}`}
+                disabled={refreshing}
+                aria-label={t('dashboard.refresh')}
+                onClick={() => void manualRefresh()}
+              >
+                <RefreshCw size={16} />
+              </button>
+            </div>
+            <BlockIndexProgress />
+          </header>
+          {auth.error && <Notice error>{message(auth.error)}</Notice>}
+          <ErrorBoundary key={page} label={t('app.interfaceError')} retry={t('common.retry')}>
+            <Suspense fallback={<Notice>{t('app.opening')}</Notice>}>
+              <Routes>
+                <Route path="/" element={<Navigate to="/mempool" replace />} />
+                {links.map(({ path }) => (
+                  <Route
+                    key={path}
+                    path={`/${path}`}
+                    element={<Dashboard key={path} page={path} node={node} />}
+                  >
+                    <Route index />
+                    {(path === 'mempool'
+                      ? ['trends']
+                      : path === 'blocks'
+                        ? ['analytics']
+                        : path === 'mining'
+                          ? ['pools']
+                          : ['peers', 'traffic', 'events']
+                    ).map((view) => (
+                      <Route key={view} path={view} />
+                    ))}
+                  </Route>
+                ))}
+                <Route path="/mining/pools/:id" element={<PoolDetail />} />
                 <Route
-                  key={path}
-                  path={`/${path}`}
-                  element={<Dashboard key={path} page={path} node={node} />}
-                >
-                  <Route index />
-                  {(path === 'mempool'
-                    ? ['trends']
-                    : path === 'blocks'
-                      ? ['analytics']
-                      : path === 'mining'
-                        ? ['pools']
-                        : ['peers', 'traffic', 'events']
-                  ).map((view) => (
-                    <Route key={view} path={view} />
-                  ))}
-                </Route>
-              ))}
-              <Route path="/mining/pools/:id" element={<PoolDetail />} />
-              <Route
-                path="*"
-                element={
-                  <main id="content" className="page-content" tabIndex={-1}>
-                    <div className="page-heading">
-                      <h1>{t('workspace.notFound')}</h1>
-                      <p>{t('workspace.notFoundDescription')}</p>
-                    </div>
-                    <Link className="text-link" to="/mempool">
-                      {t('nav.mempool')} <ArrowUpRight size={15} aria-hidden />
-                    </Link>
-                  </main>
-                }
-              />
-            </Routes>
-          </Suspense>
-        </ErrorBoundary>
-        <footer className={styles.footer}>
-          <span>Nodarium @ {new Date(node.now).getFullYear()}</span>
-          <a
-            href="https://github.com/Primexz/nodarium"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="GitHub"
-            title="GitHub"
-          >
-            <span className={styles.githubIcon} aria-hidden="true" />
-          </a>
-          <span>{t('app.version', { version: __APP_VERSION__ })}</span>
-        </footer>
+                  path="*"
+                  element={
+                    <main id="content" className="page-content" tabIndex={-1}>
+                      <div className="page-heading">
+                        <h1>{t('workspace.notFound')}</h1>
+                        <p>{t('workspace.notFoundDescription')}</p>
+                      </div>
+                      <Link className="text-link" to="/mempool">
+                        {t('nav.mempool')} <ArrowUpRight size={15} aria-hidden />
+                      </Link>
+                    </main>
+                  }
+                />
+              </Routes>
+            </Suspense>
+          </ErrorBoundary>
+          <footer className={styles.footer}>
+            <span>Nodarium @ {new Date(node.now).getFullYear()}</span>
+            <a
+              href="https://github.com/Primexz/nodarium"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub"
+              title="GitHub"
+            >
+              <span className={styles.githubIcon} aria-hidden="true" />
+            </a>
+            <span>{t('app.version', { version: __APP_VERSION__ })}</span>
+          </footer>
+        </div>
       </div>
-    </div>
+    </FiatProvider>
   );
 }
