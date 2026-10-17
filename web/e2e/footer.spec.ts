@@ -11,7 +11,9 @@ test('footer reaches the viewport bottom on short pages and follows expanded con
   });
 
   await signIn(page);
-  await navigate(page, 'My node');
+  // Keep the short-page case independent of growing node readings and notices.
+  await page.goto('/footer-layout-test');
+  await expect(page.getByRole('heading', { name: 'Page not found', exact: true })).toBeVisible();
   await page.getByLabel('Language', { exact: true }).selectOption('de');
   const footer = page.locator('footer');
 
