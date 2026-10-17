@@ -7,6 +7,7 @@ import { sectionResult } from '../state';
 import type { Fees, Overview, Section, HistoryRange } from '../types';
 import HistoryChart from './HistoryChart';
 import { Metric, Notice, SectionHeading } from './ui';
+import { LoadingSkeleton, MetricsSkeleton } from './Skeleton';
 
 const targets = [2, 3, 6];
 
@@ -22,6 +23,7 @@ export default function FeeEstimates({ overview }: { overview?: Section<Overview
   const section = sectionResult(query.data, query.isError);
   const chain = overview?.data?.blockchain;
   const syncing = chain && (chain.initialblockdownload || chain.blocks < chain.headers);
+  const loading = query.isLoading;
 
   return (
     <section className="fee-estimates" aria-label={t('fees.title')}>
@@ -35,36 +37,42 @@ export default function FeeEstimates({ overview }: { overview?: Section<Overview
               : message(section.error) || t('fees.unavailable')}
         </Notice>
       )}
-      <dl className="fee-readings">
-        {targets.map((blocks) => {
-          const target = section.data?.targets.find((value) => value.target_blocks === blocks);
-          const reading = syncing ? null : target?.data;
-          const stale = section.stale || target?.stale;
-          const time = target?.updated_at ? dateTime(target.updated_at) : null;
-          const detail = syncing
-            ? t('fees.waitingSync')
-            : reading
-              ? [
-                  reading.estimated_blocks !== blocks
-                    ? t('fees.returnedTarget', { blocks: number(reading.estimated_blocks) })
-                    : '',
-                  time ? t(stale ? 'fees.lastKnown' : 'fees.observedAt', { time }) : '',
-                  target?.error ? message(target.error) : '',
-                ]
-                  .filter(Boolean)
-                  .join(' ')
-              : message(target?.error) || t('fees.waiting');
+      {loading ? (
+        <LoadingSkeleton label={t('fees.waiting')}>
+          <MetricsSkeleton className="fee-readings" />
+        </LoadingSkeleton>
+      ) : (
+        <dl className="fee-readings">
+          {targets.map((blocks) => {
+            const target = section.data?.targets.find((value) => value.target_blocks === blocks);
+            const reading = syncing ? null : target?.data;
+            const stale = section.stale || target?.stale;
+            const time = target?.updated_at ? dateTime(target.updated_at) : null;
+            const detail = syncing
+              ? t('fees.waitingSync')
+              : reading
+                ? [
+                    reading.estimated_blocks !== blocks
+                      ? t('fees.returnedTarget', { blocks: number(reading.estimated_blocks) })
+                      : '',
+                    time ? t(stale ? 'fees.lastKnown' : 'fees.observedAt', { time }) : '',
+                    target?.error ? message(target.error) : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')
+                : message(target?.error) || t('fees.waiting');
 
-          return (
-            <Metric
-              key={blocks}
-              label={t('fees.target', { blocks: number(blocks) })}
-              value={reading ? `${decimal(reading.fee_rate)} sat/vB` : '—'}
-              detail={detail}
-            />
-          );
-        })}
-      </dl>
+            return (
+              <Metric
+                key={blocks}
+                label={t('fees.target', { blocks: number(blocks) })}
+                value={reading ? `${decimal(reading.fee_rate)} sat/vB` : '—'}
+                detail={detail}
+              />
+            );
+          })}
+        </dl>
+      )}
       <p className="fees-note">{t('fees.basis')}</p>
     </section>
   );

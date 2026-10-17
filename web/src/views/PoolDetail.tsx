@@ -1,3 +1,4 @@
+import { LoadingSkeleton, MetricsSkeleton, ChartSkeleton } from '../components/Skeleton';
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams, useSearchParams } from 'react-router';
@@ -62,7 +63,12 @@ export default function PoolDetailPage() {
           </a>
         )}
       </div>
-      {query.isPending && validID && <Notice>{t('blockHistory.loading')}</Notice>}
+      {query.isLoading && validID && (
+        <LoadingSkeleton label={t('blockHistory.loading')}>
+          <MetricsSkeleton />
+          <ChartSkeleton />
+        </LoadingSkeleton>
+      )}
       {notFound ? (
         <Empty
           title={t('poolHistory.notFound')}

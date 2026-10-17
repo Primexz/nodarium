@@ -9,6 +9,7 @@ import type { History, HistoryRange } from '../types';
 import { chartPalette, useChart } from './useChart';
 import { Metric, Notice, SectionHeading } from './ui';
 import VirtualTable from './VirtualTable';
+import { ChartSkeleton, LoadingSkeleton } from './Skeleton';
 
 const timestampKey = (at: number) => at;
 
@@ -54,9 +55,9 @@ function HistoryChart({
   });
 
   const series = queries.map((q) => q.data);
-  const loading = queries.some((q) => q.isPending);
   const failed = queries.some((q) => q.isError);
   const hasData = series.some((s) => s?.points.some((p) => p.value !== null));
+  const loading = !hasData && !failed && queries.some((q) => q.isLoading);
 
   const hashReference =
     unit === 'hashrate'
@@ -173,20 +174,21 @@ function HistoryChart({
           ref={element}
           className="chart"
           role="img"
+          aria-hidden={!hasData}
           aria-label={t('history.accessible', { title, range: t(`range.${range}`) })}
         />
-        {(loading || !hasData) && (
-          <div className={`chart-empty ${loading ? 'skeleton' : ''}`} role="status">
+        {loading ? (
+          <LoadingSkeleton label={t('history.loading')}>
+            <ChartSkeleton />
+          </LoadingSkeleton>
+        ) : !hasData ? (
+          <div className="chart-empty" role="status">
             <strong>
-              {loading
-                ? t('history.loading')
-                : failed
-                  ? message('History is temporarily unavailable.')
-                  : t('history.empty')}
+              {failed ? message('History is temporarily unavailable.') : t('history.empty')}
             </strong>
-            {!loading && !failed && <p>{t('history.emptyDescription')}</p>}
+            {!failed && <p>{t('history.emptyDescription')}</p>}
           </div>
-        )}
+        ) : null}
       </div>
       {failed && hasData && (
         <p className="chart-error" role="status">

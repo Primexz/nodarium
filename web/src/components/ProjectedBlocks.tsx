@@ -4,6 +4,7 @@ import { decimal, number, bytes, dateTime } from '../format';
 import { useTheme } from '../theme';
 import { chartPalette } from './useChart';
 import { Metric, Notice } from './ui';
+import { LoadingSkeleton, ProjectionSkeleton } from './Skeleton';
 
 const capacity = 999000;
 
@@ -66,14 +67,17 @@ export default function ProjectedBlocks({
   projection,
   error,
   stopped,
+  loading = !projection && !error,
 }: {
   projection: MempoolProjection | null;
   error: boolean;
   stopped: boolean;
+  loading?: boolean;
 }) {
   const { t } = useTranslation();
   const { effective } = useTheme();
   const palette = chartPalette(effective === 'dark');
+  const pending = !projection && !error && loading;
 
   return (
     <section className="projected-section">
@@ -84,7 +88,12 @@ export default function ProjectedBlocks({
           {t(projection ? 'activity.projectionStale' : 'activity.projectionError')}
         </Notice>
       )}
-      {!projection && !error && <Notice>{t('activity.projectionLoading')}</Notice>}
+      {pending && (
+        <LoadingSkeleton label={t('activity.projectionLoading')}>
+          <ProjectionSkeleton />
+        </LoadingSkeleton>
+      )}
+      {!projection && !error && !loading && <Notice>{t('activity.waiting')}</Notice>}
       {projection && (
         <>
           <dl className="metrics-grid three projection-metrics">

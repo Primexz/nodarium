@@ -114,3 +114,64 @@ it('polls the shared block index once while page observers receive fresh cached 
   view.unmount();
   client.clear();
 });
+
+it('tracks each initial request independently and preserves settled state during refresh', async () => {
+  vi.useFakeTimers();
+  const responses = new Map<string, (response: Response) => void>();
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(
+      (path: string) =>
+        new Promise<Response>((resolve) => {
+          responses.set(path.split('/').at(-1)!, resolve);
+        }),
+    ),
+  );
+
+  let readings: ReturnType<typeof useReadings> | undefined;
+
+  function PendingProbe() {
+    readings = useReadings();
+
+    return null;
+  }
+
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const view = render(
+    <QueryClientProvider client={client}>
+      <PendingProbe />
+    </QueryClientProvider>,
+  );
+
+  expect(readings?.pending.overview).toBe(true);
+  expect(readings?.pending.peers).toBe(true);
+  await act(async () => {
+    responses.get('overview')!(
+      new Response(
+        JSON.stringify({ overview: { data: null, stale: false }, status: 'connecting' }),
+      ),
+    );
+
+    await vi.advanceTimersByTimeAsync(1);
+  });
+
+  expect(readings?.pending.overview).toBe(false);
+  expect(readings?.pending.peers).toBe(true);
+  await act(async () => {
+    responses.get('peers')!(
+      new Response(JSON.stringify({ data: [], stale: false, updated_at: null })),
+    );
+
+    await vi.advanceTimersByTimeAsync(1);
+  });
+
+  expect(readings?.pending.peers).toBe(false);
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(10000);
+  });
+
+  expect(readings?.pending.peers).toBe(false);
+  expect(readings?.peers.data).toEqual([]);
+  view.unmount();
+  client.clear();
+});

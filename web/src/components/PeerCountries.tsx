@@ -1,3 +1,4 @@
+import { LoadingSkeleton, TableSkeleton } from './Skeleton';
 import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Globe } from 'lucide-react';
@@ -22,7 +23,13 @@ function CountryFlag({ code }: { code: string | null }) {
   );
 }
 
-function PeerCountries({ section }: { section: Section<PeerMapData> }) {
+function PeerCountries({
+  section,
+  loading = false,
+}: {
+  section: Section<PeerMapData>;
+  loading?: boolean;
+}) {
   const [expanded, setExpanded] = useState(false);
   const { t } = useTranslation();
   const groups = countryDistribution(section.data?.peers ?? []);
@@ -46,8 +53,12 @@ function PeerCountries({ section }: { section: Section<PeerMapData> }) {
         <Notice error>{message(section.error) || t('map.stale')}</Notice>
       )}
       {section.data?.message && <Notice>{message(section.data.message)}</Notice>}
-      {!section.data ? (
-        <Empty title={t(section.error ? 'map.unavailable' : 'map.loading')} />
+      {loading && !section.data ? (
+        <LoadingSkeleton label={t('map.loading')}>
+          <TableSkeleton />
+        </LoadingSkeleton>
+      ) : !section.data ? (
+        <Empty title={t('map.unavailable')} />
       ) : total === 0 ? (
         <Empty title={t('countries.empty')} />
       ) : (

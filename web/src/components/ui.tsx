@@ -1,6 +1,7 @@
 import { Component, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Languages, SunMoon, ArrowUpRight } from 'lucide-react';
+import { Skeleton } from './Skeleton';
 import { setLanguage } from '../i18n';
 import { useTheme, type Theme } from '../theme';
 
@@ -64,17 +65,35 @@ export function Metric({
   label,
   value,
   detail,
+  loading = false,
 }: {
   label: string;
   value: ReactNode;
   detail?: ReactNode;
+  loading?: boolean;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="metric">
       <dt>{label}</dt>
       <dd>
-        <span>{value}</span>
-        {detail && <small>{detail}</small>}
+        {loading ? (
+          <>
+            <span className="sr-only" role="status">
+              {t('dashboard.collecting')}
+            </span>
+            <span aria-busy="true">
+              <Skeleton className="skeleton-value" />
+              <Skeleton className="skeleton-detail" />
+            </span>
+          </>
+        ) : (
+          <>
+            <span>{value}</span>
+            {detail && <small>{detail}</small>}
+          </>
+        )}
       </dd>
     </div>
   );

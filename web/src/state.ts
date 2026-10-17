@@ -79,6 +79,15 @@ export function useReadings() {
     blocks: sectionResult(blocks.data, blocks.isError),
     mining: sectionResult(mining.data, mining.isError),
     loading: overview.isPending && overview.isFetching,
+    pending: {
+      overview: overview.isLoading,
+      peers: peers.isLoading,
+      peerMap: peerMap.isLoading,
+      traffic: traffic.isLoading,
+      mempool: mempool.isLoading,
+      blocks: blocks.isLoading,
+      mining: mining.isLoading,
+    },
     error: [overview, peers, traffic, mempool, blocks, mining].some((q) => q.isError)
       ? 'Could not refresh all readings. Showing the last available data.'
       : '',

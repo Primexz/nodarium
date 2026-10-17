@@ -1,3 +1,4 @@
+import { LoadingSkeleton, MetricsSkeleton, TableSkeleton, ChartSkeleton } from './Skeleton';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -75,7 +76,12 @@ function TransactionPanel({
         </button>
       </div>
       <p className="mono transaction-id">{txid}</p>
-      {query.isPending && <Notice>{t('goggles.loadingTransaction')}</Notice>}
+      {query.isLoading && (
+        <LoadingSkeleton label={t('goggles.loadingTransaction')}>
+          <MetricsSkeleton count={6} />
+          <TableSkeleton />
+        </LoadingSkeleton>
+      )}
       {query.isError && (
         <Notice error>
           {t(
@@ -325,7 +331,11 @@ export default function BlockGoggles({
         <span>{data ? t('goggles.count', { total: number(transactions.length) }) : ''}</span>
       </div>
       <p className="goggles-description">{t('goggles.description')}</p>
-      {query.isPending && <Notice>{t('goggles.loading')}</Notice>}
+      {query.isLoading && (
+        <LoadingSkeleton label={t('goggles.loading')}>
+          <ChartSkeleton />
+        </LoadingSkeleton>
+      )}
       {query.isError && (
         <Notice error>
           {t(inactive ? 'goggles.inactive' : data ? 'goggles.stale' : 'goggles.error')}

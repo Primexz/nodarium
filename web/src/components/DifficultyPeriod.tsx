@@ -1,3 +1,4 @@
+import { LoadingSkeleton, MetricsSkeleton } from './Skeleton';
 import { useTranslation } from 'react-i18next';
 import type { Overview, Section } from '../types';
 import { difficultyAdjustmentTime, difficultyPeriod } from '../difficulty';
@@ -5,7 +6,13 @@ import { decimal, number } from '../format';
 import { intlLocale, message } from '../i18n';
 import { Empty, Metric, Notice, SectionHeading } from './ui';
 
-export default function DifficultyPeriod({ section }: { section?: Section<Overview> }) {
+export default function DifficultyPeriod({
+  section,
+  loading = false,
+}: {
+  section?: Section<Overview>;
+  loading?: boolean;
+}) {
   const { t } = useTranslation();
   const chain = section?.data?.blockchain;
   const period = chain ? difficultyPeriod(chain.chain, chain.blocks) : null;
@@ -27,7 +34,11 @@ export default function DifficultyPeriod({ section }: { section?: Section<Overvi
           {t(chain ? 'difficultyPeriod.stale' : 'difficultyPeriod.unavailable')}
         </Notice>
       )}
-      {!chain ? (
+      {loading && !chain ? (
+        <LoadingSkeleton label={t('difficultyPeriod.loading')}>
+          <MetricsSkeleton />
+        </LoadingSkeleton>
+      ) : !chain ? (
         <Empty
           title={t(section?.error ? 'difficultyPeriod.unavailable' : 'difficultyPeriod.loading')}
         />

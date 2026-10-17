@@ -1,3 +1,4 @@
+import { LoadingSkeleton, ChartSkeleton } from './Skeleton';
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -115,7 +116,11 @@ export default function MiningPools() {
           ))}
         </div>
       </SectionHeading>
-      {query.isPending && <Notice>{t('pools.loading')}</Notice>}
+      {query.isLoading && (
+        <LoadingSkeleton label={t('pools.loading')}>
+          <ChartSkeleton />
+        </LoadingSkeleton>
+      )}
       {query.isError && (
         <Notice error>
           {t('pools.requestFailed')}{' '}

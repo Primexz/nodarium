@@ -1,3 +1,4 @@
+import { LoadingSkeleton, ChartSkeleton } from './Skeleton';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { registerMap, format } from 'echarts/core';
@@ -16,7 +17,13 @@ import { Notice, SectionHeading } from './ui';
 registerMap('peer-world', world as Parameters<typeof registerMap>[1]);
 const home = { center: [0, 20], zoom: 1 };
 
-function PeerMap({ section }: { section: Section<PeerMapData> }) {
+function PeerMap({
+  section,
+  loading = false,
+}: {
+  section: Section<PeerMapData>;
+  loading?: boolean;
+}) {
   const { t } = useTranslation();
   const { effective } = useTheme();
 
@@ -269,9 +276,16 @@ function PeerMap({ section }: { section: Section<PeerMapData> }) {
               {t('map.yourNode')}
             </span>
           </div>
-          {!data && (
+          {loading && !data && (
+            <div className="map-loading">
+              <LoadingSkeleton label={t('map.loading')}>
+                <ChartSkeleton />
+              </LoadingSkeleton>
+            </div>
+          )}
+          {!loading && !data && (
             <div className="map-loading" role="status">
-              {section.error ? t('map.unavailable') : t('map.loading')}
+              {t('map.unavailable')}
             </div>
           )}
           {data?.status === 'ready' && !data.peers.length && (

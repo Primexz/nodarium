@@ -1,3 +1,4 @@
+import { LoadingSkeleton, MetricsSkeleton, TableSkeleton, ChartSkeleton } from './Skeleton';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -229,7 +230,11 @@ export default function BlockHistory({
             {t('blockHistory.newBlocks', { total: number((tipHeight ?? 0) - anchorHeight) })}
           </button>
         )}
-        {history.isPending && <Notice>{t('blockHistory.loading')}</Notice>}
+        {history.isLoading && !blocks.length && (
+          <LoadingSkeleton label={t('blockHistory.loading')}>
+            <TableSkeleton />
+          </LoadingSkeleton>
+        )}
         {history.isError && !pending && (
           <Notice error>
             {t(cursorExpired ? 'blockHistory.reorg' : 'blockHistory.error')}
@@ -287,7 +292,12 @@ export default function BlockHistory({
               <X size={18} />
             </button>
           </div>
-          {selected.isPending && <Notice>{t('blockHistory.loadingDetails')}</Notice>}
+          {selected.isLoading && (
+            <LoadingSkeleton label={t('blockHistory.loadingDetails')}>
+              <MetricsSkeleton />
+              <ChartSkeleton />
+            </LoadingSkeleton>
+          )}
           {inactive && <Notice error>{t('goggles.inactive')}</Notice>}
           {selected.isError && !inactive && !selected.data && (
             <Notice error>

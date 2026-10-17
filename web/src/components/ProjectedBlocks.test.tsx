@@ -65,8 +65,24 @@ it('shows full backlog and retains unused virtual capacity in bounded fee-group 
 it('distinguishes loading, failed refresh, and an empty full snapshot', () => {
   const view = render(<ProjectedBlocks projection={null} error={false} stopped={false} />);
   expect(screen.getByText('activity.projectionLoading')).toBeTruthy();
+  expect(
+    view.container.querySelector('.loading-skeleton [aria-busy]')?.getAttribute('aria-busy'),
+  ).toBe('true');
+
+  expect(
+    view.container.querySelector('.loading-skeleton [aria-busy]')?.getAttribute('aria-busy'),
+  ).toBe('true');
+
+  expect(view.container.querySelectorAll('.projection-skeleton .metric')).toHaveLength(3);
+  expect(view.container.querySelectorAll('.skeleton-mosaic')).toHaveLength(4);
+  expect(view.container.querySelectorAll('.projected-mosaic')).toHaveLength(0);
   view.rerender(<ProjectedBlocks projection={projection} error stopped={false} />);
   expect(screen.getByText('activity.projectionStale')).toBeTruthy();
+  expect(view.container.querySelector('.loading-skeleton')).toBeNull();
+  expect(
+    view.container.querySelector('.loading-skeleton [aria-busy]')?.getAttribute('aria-busy'),
+  ).toBeUndefined();
+
   expect(view.container.querySelector('svg')).not.toBeNull();
   view.rerender(
     <ProjectedBlocks
@@ -78,4 +94,30 @@ it('distinguishes loading, failed refresh, and an empty full snapshot', () => {
 
   expect(screen.getByText('activity.emptyMempool')).toBeTruthy();
   expect(view.container.querySelector('svg')).toBeNull();
+});
+
+it('suppresses loading shapes on an initial error', () => {
+  const view = render(<ProjectedBlocks projection={null} error stopped={false} loading />);
+
+  expect(screen.getByText('activity.projectionError')).toBeTruthy();
+  expect(screen.queryByText('activity.projectionLoading')).toBeNull();
+  expect(view.container.querySelector('.loading-skeleton')).toBeNull();
+  expect(view.container.querySelector('[aria-busy="true"]')).toBeNull();
+});
+
+it('uses a notice for settled null projections and resumes skeletons only when pending', () => {
+  const view = render(<ProjectedBlocks projection={null} error={false} stopped loading={false} />);
+
+  expect(screen.getByText('activity.waiting')).toBeTruthy();
+  expect(view.container.querySelector('.loading-skeleton')).toBeNull();
+  expect(view.container.querySelector('[aria-busy="true"]')).toBeNull();
+
+  view.rerender(<ProjectedBlocks projection={null} error={false} stopped={false} loading />);
+  expect(view.container.querySelector('.projection-skeleton')).not.toBeNull();
+
+  view.rerender(<ProjectedBlocks projection={projection} error={false} stopped={false} loading />);
+  expect(screen.getByText('1,000')).toBeTruthy();
+  expect(view.container.querySelector('svg')).not.toBeNull();
+  expect(view.container.querySelector('.loading-skeleton')).toBeNull();
+  expect(view.container.querySelector('[aria-busy="true"]')).toBeNull();
 });

@@ -74,6 +74,7 @@ export interface ActivityPage {
 export function useActivity(view: 'live' | 'timeline', paused: boolean) {
   const [live, setLive] = useState<ActivityLive | null>(null);
   const [connected, setConnected] = useState(false);
+  const [connecting, setConnecting] = useState(true);
   const [updates, setUpdates] = useState(0);
   const [visible, setVisible] = useState(!document.hidden);
 
@@ -90,20 +91,27 @@ export function useActivity(view: 'live' | 'timeline', paused: boolean) {
     let alive = true;
     let lastCheck = 0;
     const seen = new Set<string>();
+    setConnecting(true);
     const stream = new EventSource(`/api/1.0/activity/stream?view=${view}`);
     const reading = (event: MessageEvent<string>) => {
       try {
         const value: ActivityLive = JSON.parse(event.data);
 
-        if (alive && value.source) setLive(value);
+        if (alive && value.source) {
+          setLive(value);
+          setConnecting(false);
+        }
       } catch {
         setConnected(false);
+        setConnecting(false);
       }
     };
 
     stream.onopen = () => setConnected(true);
+
     stream.onerror = () => {
       setConnected(false);
+      setConnecting(false);
 
       if (Date.now() - lastCheck > 10000) {
         lastCheck = Date.now();
@@ -131,6 +139,7 @@ export function useActivity(view: 'live' | 'timeline', paused: boolean) {
         }
       } catch {
         setConnected(false);
+        setConnecting(false);
       }
     });
 
@@ -147,5 +156,5 @@ export function useActivity(view: 'live' | 'timeline', paused: boolean) {
     };
   }, [view, paused, visible]);
 
-  return { live, connected, updates, visible };
+  return { live, connected, connecting: connecting && visible && !paused, updates, visible };
 }

@@ -1,3 +1,4 @@
+import { LoadingSkeleton, ChartSkeleton } from './Skeleton';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -260,7 +261,11 @@ export default function PoolHistory() {
       <SectionHeading title={t('poolHistory.title')} subtitle={t('poolHistory.description')}>
         <PoolRange range={range} onChange={setRange} />
       </SectionHeading>
-      {query.isPending && <Notice>{t('blockHistory.loading')}</Notice>}
+      {query.isLoading && (
+        <LoadingSkeleton label={t('blockHistory.loading')}>
+          <ChartSkeleton />
+        </LoadingSkeleton>
+      )}
       {query.isError && (
         <Notice error>
           {t('pools.requestFailed')}{' '}

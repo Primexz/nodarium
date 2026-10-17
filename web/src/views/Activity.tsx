@@ -1,3 +1,4 @@
+import { LoadingSkeleton, TableSkeleton, MetricsSkeleton } from '../components/Skeleton';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -27,7 +28,7 @@ export default function Activity({ view }: { view: 'live' | 'timeline' }) {
   const detailPanel = useRef<HTMLElement>(null);
   const [acknowledged, setAcknowledged] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
-  const { live, connected, updates, visible } = useActivity(view, paused);
+  const { live, connected, connecting, updates, visible } = useActivity(view, paused);
   const readyTransactions = useMemo(
     () =>
       live?.transactions.filter(
@@ -130,25 +131,38 @@ export default function Activity({ view }: { view: 'live' | 'timeline' }) {
       {view === 'live' ? (
         <>
           {live && live.status !== 'ready' && <Notice>{t(`activity.${live.status}`)}</Notice>}
-          {!live && <Notice>{t('activity.waiting')}</Notice>}
+          {!live && !connecting && <Notice>{t('activity.waiting')}</Notice>}
           <ProjectedBlocks
             projection={live?.projection ?? null}
+            loading={
+              visible &&
+              !paused &&
+              (connecting || connected) &&
+              (!live || ['waiting', 'resynchronizing', 'ready'].includes(live.status))
+            }
             error={live?.projection_error ?? false}
             stopped={paused || !visible || !connected}
           />
           {trackingControls}
-          <dl className="activity-metrics metrics-grid two">
-            <Metric
-              label={t('activity.arrivals')}
-              value={live ? number(live.arrivals) : '—'}
-              detail={t('activity.sinceBaseline')}
-            />
-            <Metric
-              label={t('activity.sampleCount')}
-              value={live ? number(live.transactions.length) : '—'}
-              detail={t('activity.sampleLimit')}
-            />
-          </dl>
+          {!live && connecting ? (
+            <LoadingSkeleton label={t('activity.waiting')}>
+              <MetricsSkeleton count={2} />
+            </LoadingSkeleton>
+          ) : (
+            <dl className="activity-metrics metrics-grid two">
+              <Metric
+                label={t('activity.arrivals')}
+                value={live ? number(live.arrivals) : '—'}
+                detail={t('activity.sinceBaseline')}
+              />
+              <Metric
+                label={t('activity.sampleCount')}
+                value={live ? number(live.transactions.length) : '—'}
+                detail={t('activity.sampleLimit')}
+              />
+            </dl>
+          )}
+
           <p className="form-note">{t('activity.sampleExplanation')}</p>
           <section>
             <h2>{t('activity.sampleDetails')}</h2>
@@ -159,39 +173,45 @@ export default function Activity({ view }: { view: 'live' | 'timeline' }) {
                 total: number(pendingTransactions),
               })}
             </p>
-            <VirtualTable
-              rows={readyTransactions}
-              liveRows
-              animateRows={!paused && visible && connected}
-              resetKey={String(live?.generation ?? 0)}
-              rowKey={transactionKey}
-              columns={4}
-              label={t('activity.sampleDetails')}
-              className="activity-transactions-table"
-              header={
-                <>
-                  <th>{t('activity.amount')}</th>
-                  <th>{t('activity.transaction')}</th>
-                  <th>{t('activity.vsize')}</th>
-                  <th>{t('activity.feeRate')}</th>
-                </>
-              }
-              renderRow={(tx) => (
-                <>
-                  <td
-                    className="activity-amount"
-                    title={tx.output_sats == null ? t('activity.pending') : undefined}
-                  >
-                    <BitcoinValue satoshis={tx.output_sats} />
-                  </td>
-                  <td className="mono activity-txid" title={tx.txid}>
-                    {tx.txid}
-                  </td>
-                  <td>{tx.vsize == null ? t('activity.pending') : `${number(tx.vsize)} vB`}</td>
-                  <td>{tx.fee_rate == null ? '—' : `${decimal(tx.fee_rate)} sat/vB`}</td>
-                </>
-              )}
-            />
+            {!live && connecting ? (
+              <LoadingSkeleton label={t('activity.waiting')}>
+                <TableSkeleton />
+              </LoadingSkeleton>
+            ) : (
+              <VirtualTable
+                rows={readyTransactions}
+                liveRows
+                animateRows={!paused && visible && connected}
+                resetKey={String(live?.generation ?? 0)}
+                rowKey={transactionKey}
+                columns={4}
+                label={t('activity.sampleDetails')}
+                className="activity-transactions-table"
+                header={
+                  <>
+                    <th>{t('activity.amount')}</th>
+                    <th>{t('activity.transaction')}</th>
+                    <th>{t('activity.vsize')}</th>
+                    <th>{t('activity.feeRate')}</th>
+                  </>
+                }
+                renderRow={(tx) => (
+                  <>
+                    <td
+                      className="activity-amount"
+                      title={tx.output_sats == null ? t('activity.pending') : undefined}
+                    >
+                      <BitcoinValue satoshis={tx.output_sats} />
+                    </td>
+                    <td className="mono activity-txid" title={tx.txid}>
+                      {tx.txid}
+                    </td>
+                    <td>{tx.vsize == null ? t('activity.pending') : `${number(tx.vsize)} vB`}</td>
+                    <td>{tx.fee_rate == null ? '—' : `${decimal(tx.fee_rate)} sat/vB`}</td>
+                  </>
+                )}
+              />
+            )}
           </section>
         </>
       ) : (
@@ -224,7 +244,11 @@ export default function Activity({ view }: { view: 'live' | 'timeline' }) {
             )}
           </div>
           <p className="form-note">{t('activity.retention')}</p>
-          {history.isPending && <Notice>{t('activity.loading')}</Notice>}
+          {history.isLoading && (
+            <LoadingSkeleton label={t('activity.loading')}>
+              <TableSkeleton />
+            </LoadingSkeleton>
+          )}
           {history.isError && !history.isFetchNextPageError && (
             <Notice error>
               {t('activity.historyError')}{' '}

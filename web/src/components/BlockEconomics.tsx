@@ -1,3 +1,4 @@
+import { LoadingSkeleton, ChartSkeleton } from './Skeleton';
 import { useRememberedRange } from '../useRememberedRange';
 import { useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -228,9 +229,11 @@ function EconomicsPlot({
 export default function BlockEconomics({
   section,
   syncing,
+  loading = false,
 }: {
   section: Section<Block[]>;
   syncing?: boolean;
+  loading?: boolean;
 }) {
   const { t } = useTranslation();
   const [range, setRange] = useRememberedRange('block-economics', economicsRanges, 'recent');
@@ -279,7 +282,16 @@ export default function BlockEconomics({
           </select>
         </label>
       </SectionHeading>
-      {range !== 'recent' && query.isPending && <Notice>{t('blockHistory.loading')}</Notice>}
+      {((range === 'recent' && loading && !section.data) ||
+        (range !== 'recent' && query.isLoading)) && (
+        <LoadingSkeleton label={t('blockHistory.loading')}>
+          <div className="chart-grid">
+            {[0, 1, 2, 3].map((i) => (
+              <ChartSkeleton key={i} />
+            ))}
+          </div>
+        </LoadingSkeleton>
+      )}
       {range !== 'recent' && query.isError && (
         <Notice error>
           {t('blockHistory.error')}
@@ -300,7 +312,8 @@ export default function BlockEconomics({
       )}
       {syncing && <Notice>{t('blockEconomics.syncing')}</Notice>}
       {range === 'recent' && partial && <Notice>{t('blockEconomics.partial')}</Notice>}
-      {range !== 'recent' && !history ? null : !blocks.length && !history ? (
+      {(range === 'recent' && loading && !section.data) ||
+      (range !== 'recent' && !history) ? null : !blocks.length && !history ? (
         <Empty title={t('blocks.empty')} description={t('blocks.emptyDescription')} />
       ) : (
         <div className="chart-grid">

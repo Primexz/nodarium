@@ -1,3 +1,4 @@
+import { LoadingSkeleton, MetricsSkeleton } from './Skeleton';
 import { useTranslation } from 'react-i18next';
 import type { Overview, Section } from '../types';
 import { halvingSchedule, halvingTime } from '../halving';
@@ -7,7 +8,13 @@ import { BitcoinValue } from '../fiat';
 import { Empty, Metric, Notice, SectionHeading } from './ui';
 import styles from './HalvingPanel.module.css';
 
-export default function HalvingPanel({ section }: { section?: Section<Overview> }) {
+export default function HalvingPanel({
+  section,
+  loading = false,
+}: {
+  section?: Section<Overview>;
+  loading?: boolean;
+}) {
   const { t } = useTranslation();
   const chain = section?.data?.blockchain;
   const schedule = chain ? halvingSchedule(chain.chain, chain.blocks) : null;
@@ -24,7 +31,11 @@ export default function HalvingPanel({ section }: { section?: Section<Overview> 
           {t(schedule ? 'halving.stale' : 'halving.unavailable')}
         </Notice>
       )}
-      {!chain ? (
+      {loading && !chain ? (
+        <LoadingSkeleton label={t('halving.loading')}>
+          <MetricsSkeleton />
+        </LoadingSkeleton>
+      ) : !chain ? (
         <Empty title={t(section?.error ? 'halving.unavailable' : 'halving.loading')} />
       ) : !schedule ? (
         <Empty title={t('halving.unavailable')} description={t('halving.unsupported')} />

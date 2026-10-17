@@ -1,3 +1,4 @@
+import { LoadingSkeleton, MetricsSkeleton, TableSkeleton } from '../components/Skeleton';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, useLocation } from 'react-router';
@@ -123,7 +124,6 @@ export default function Dashboard({
           </NavLink>
         ))}
       </nav>
-      {node.loading && <Notice>{t('dashboard.collecting')}</Notice>}
       {node.error && <Notice error>{message(node.error)}</Notice>}
       {(node.overview?.status === 'disconnected' || section?.stale || section?.error) && (
         <Notice error>
@@ -154,43 +154,55 @@ export default function Dashboard({
       ))}
       {page === 'node' && (
         <>
-          <section className="health-summary">
-            <div className="health-title">
-              <ShieldCheck size={22} />
-              <h2>{t(!chain ? 'sync.awaiting' : synced ? 'sync.synced' : 'sync.syncing')}</h2>
-              <span>{chain ? `${decimal(progress)}%` : '—'}</span>
-            </div>
-            <div className="health-meta">
-              <span>
-                {chain?.chain || t('sync.unknown')} /{' '}
-                {chain ? t(chain.pruned ? 'sync.pruned' : 'sync.full') : '—'}
-              </span>
-              <span>
-                {latest
-                  ? t('sync.lastBlock', { time: duration(node.now / 1000 - latest.time) })
-                  : t('sync.awaitingBlock')}
-              </span>
-            </div>
-            {chain && !synced && (
-              <progress aria-label={t('sync.heading')} max={100} value={progress} />
-            )}
-          </section>
+          {node.pending.overview ? (
+            <LoadingSkeleton label={t('dashboard.collecting')}>
+              <MetricsSkeleton count={2} />
+            </LoadingSkeleton>
+          ) : (
+            <section className="health-summary">
+              <div className="health-title">
+                <ShieldCheck size={22} />
+                <h2>{t(!chain ? 'sync.awaiting' : synced ? 'sync.synced' : 'sync.syncing')}</h2>
+                <span>{chain ? `${decimal(progress)}%` : '—'}</span>
+              </div>
+              <div className="health-meta">
+                <span>
+                  {chain?.chain || t('sync.unknown')} /{' '}
+                  {chain ? t(chain.pruned ? 'sync.pruned' : 'sync.full') : '—'}
+                </span>
+                <span>
+                  {latest
+                    ? t('sync.lastBlock', { time: duration(node.now / 1000 - latest.time) })
+                    : t('sync.awaitingBlock')}
+                </span>
+              </div>
+              {chain && !synced && (
+                <progress aria-label={t('sync.heading')} max={100} value={progress} />
+              )}
+            </section>
+          )}
         </>
       )}
       {page === 'traffic' && (
         <>
-          <dl className="metrics-grid two">
-            <Metric
-              label={t('traffic.downloadRate')}
-              value={traffic?.receive_rate == null ? '—' : `${bytes(traffic.receive_rate)}/s`}
-              detail={t('traffic.current')}
-            />
-            <Metric
-              label={t('traffic.uploadRate')}
-              value={traffic?.send_rate == null ? '—' : `${bytes(traffic.send_rate)}/s`}
-              detail={t('traffic.current')}
-            />
-          </dl>
+          {node.pending.traffic ? (
+            <LoadingSkeleton label={t('dashboard.collecting')}>
+              <MetricsSkeleton count={2} />
+            </LoadingSkeleton>
+          ) : (
+            <dl className="metrics-grid two">
+              <Metric
+                label={t('traffic.downloadRate')}
+                value={traffic?.receive_rate == null ? '—' : `${bytes(traffic.receive_rate)}/s`}
+                detail={t('traffic.current')}
+              />
+              <Metric
+                label={t('traffic.uploadRate')}
+                value={traffic?.send_rate == null ? '—' : `${bytes(traffic.send_rate)}/s`}
+                detail={t('traffic.current')}
+              />
+            </dl>
+          )}
         </>
       )}
       {page === 'mempool' && view === 'live' && <FeeEstimates overview={node.overview?.overview} />}
@@ -198,63 +210,73 @@ export default function Dashboard({
       {page === 'mempool' && view === 'live' && (
         <details className="mempool-policy">
           <summary>{t('workspace.mempoolPolicy')}</summary>
-          <dl className="metrics-grid two">
-            <Metric
-              label={t('mempool.pending')}
-              value={number(mempool?.size)}
-              detail={t(mempool?.loaded ? 'mempool.loaded' : 'mempool.waiting')}
-            />
-            <Metric
-              label={t('mempool.virtualSize')}
-              value={bytes(mempool?.bytes)}
-              detail={t('mempool.discounted')}
-            />
-            <Metric
-              label={t('mempool.memoryUsage')}
-              value={bytes(mempool?.usage)}
-              detail={t('mempool.maximum', { size: bytes(mempool?.maxmempool) })}
-            />
-            <Metric
-              label={t('mempool.minimumFee')}
-              value={fee(mempool?.mempoolminfee)}
-              detail={
-                <BitcoinValue btc={mempool?.total_fee ?? null}>
-                  {t('mempool.totalFees', { fee: decimal(mempool?.total_fee, 8) })}
-                </BitcoinValue>
-              }
-            />
-          </dl>
+          {node.pending.mempool ? (
+            <LoadingSkeleton label={t('dashboard.collecting')}>
+              <MetricsSkeleton count={4} />
+            </LoadingSkeleton>
+          ) : (
+            <dl className="metrics-grid two">
+              <Metric
+                label={t('mempool.pending')}
+                value={number(mempool?.size)}
+                detail={t(mempool?.loaded ? 'mempool.loaded' : 'mempool.waiting')}
+              />
+              <Metric
+                label={t('mempool.virtualSize')}
+                value={bytes(mempool?.bytes)}
+                detail={t('mempool.discounted')}
+              />
+              <Metric
+                label={t('mempool.memoryUsage')}
+                value={bytes(mempool?.usage)}
+                detail={t('mempool.maximum', { size: bytes(mempool?.maxmempool) })}
+              />
+              <Metric
+                label={t('mempool.minimumFee')}
+                value={fee(mempool?.mempoolminfee)}
+                detail={
+                  <BitcoinValue btc={mempool?.total_fee ?? null}>
+                    {t('mempool.totalFees', { fee: decimal(mempool?.total_fee, 8) })}
+                  </BitcoinValue>
+                }
+              />
+            </dl>
+          )}
         </details>
       )}
       {page === 'peers' && (
         <dl className="metrics-grid">
           <Metric
+            loading={node.pending.peers}
             label={t('nav.peers')}
             value={number(node.peers.data?.length)}
             detail={t('peers.active')}
           />
           <Metric
+            loading={node.pending.overview}
             label={t('common.inbound')}
             value={number(network?.connections_in)}
             detail={t('peers.inboundDescription')}
           />
           <Metric
+            loading={node.pending.overview}
             label={t('common.outbound')}
             value={number(network?.connections_out)}
             detail={t('peers.outboundDescription')}
           />
           <Metric
+            loading={node.pending.peers}
             label={t('peers.networkTypes')}
             value={node.peers.data ? number(mix.length) : '—'}
             detail={mix.map(([name]) => name).join(' · ') || t('peers.awaiting')}
           />
         </dl>
       )}
-      {page === 'peers' && <PeerMap section={node.peerMap} />}
+      {page === 'peers' && <PeerMap section={node.peerMap} loading={node.pending.peerMap} />}
       {page === 'mining' && (
         <>
-          <DifficultyPeriod section={node.overview?.overview} />
-          <HalvingPanel section={node.overview?.overview} />
+          <DifficultyPeriod section={node.overview?.overview} loading={node.pending.overview} />
+          <HalvingPanel section={node.overview?.overview} loading={node.pending.overview} />
         </>
       )}
       {page === 'pools' && (
@@ -263,7 +285,14 @@ export default function Dashboard({
           <PoolHistory />
         </>
       )}
-      {page === 'peers' && <PeerTable peers={node.peers.data ?? []} now={node.now} />}
+      {page === 'peers' &&
+        (node.pending.peers ? (
+          <LoadingSkeleton label={t('dashboard.collecting')}>
+            <TableSkeleton />
+          </LoadingSkeleton>
+        ) : (
+          <PeerTable peers={node.peers.data ?? []} now={node.now} />
+        ))}
       {(page === 'mining' ||
         page === 'peers' ||
         page === 'traffic' ||
@@ -288,52 +317,66 @@ export default function Dashboard({
       )}
       {page === 'traffic' && (
         <>
-          <section className="upload-panel">
-            <div>
-              <h2>{t('traffic.target')}</h2>
-              <p>
-                {t(
-                  !traffic
-                    ? 'traffic.awaiting'
-                    : traffic.uploadtarget.target === 0
-                      ? 'traffic.noTarget'
-                      : traffic.uploadtarget.target_reached
-                        ? 'traffic.reached'
-                        : 'traffic.available',
-                )}
-              </p>
-            </div>
-            <dl>
+          <>
+            {node.pending.traffic ? (
+              <LoadingSkeleton label={t('dashboard.collecting')}>
+                <MetricsSkeleton count={2} />
+              </LoadingSkeleton>
+            ) : (
+              <section className="upload-panel">
+                <div>
+                  <h2>{t('traffic.target')}</h2>
+                  <p>
+                    {t(
+                      !traffic
+                        ? 'traffic.awaiting'
+                        : traffic.uploadtarget.target === 0
+                          ? 'traffic.noTarget'
+                          : traffic.uploadtarget.target_reached
+                            ? 'traffic.reached'
+                            : 'traffic.available',
+                    )}
+                  </p>
+                </div>
+                <dl>
+                  <Metric
+                    label={t('traffic.remaining')}
+                    value={
+                      traffic?.uploadtarget.target
+                        ? bytes(traffic.uploadtarget.bytes_left_in_cycle)
+                        : '—'
+                    }
+                  />
+                  <Metric
+                    label={t('traffic.reset')}
+                    value={
+                      traffic?.uploadtarget.target
+                        ? duration(traffic.uploadtarget.time_left_in_cycle)
+                        : '—'
+                    }
+                  />
+                </dl>
+              </section>
+            )}
+          </>
+          {node.pending.traffic ? (
+            <LoadingSkeleton label={t('dashboard.collecting')}>
+              <MetricsSkeleton count={2} />
+            </LoadingSkeleton>
+          ) : (
+            <dl className="metrics-grid two">
               <Metric
-                label={t('traffic.remaining')}
-                value={
-                  traffic?.uploadtarget.target
-                    ? bytes(traffic.uploadtarget.bytes_left_in_cycle)
-                    : '—'
-                }
+                label={t('traffic.received')}
+                value={bytes(traffic?.totalbytesrecv)}
+                detail={t('traffic.sinceStart')}
               />
               <Metric
-                label={t('traffic.reset')}
-                value={
-                  traffic?.uploadtarget.target
-                    ? duration(traffic.uploadtarget.time_left_in_cycle)
-                    : '—'
-                }
+                label={t('traffic.sent')}
+                value={bytes(traffic?.totalbytessent)}
+                detail={t('traffic.sinceStart')}
               />
             </dl>
-          </section>
-          <dl className="metrics-grid two">
-            <Metric
-              label={t('traffic.received')}
-              value={bytes(traffic?.totalbytesrecv)}
-              detail={t('traffic.sinceStart')}
-            />
-            <Metric
-              label={t('traffic.sent')}
-              value={bytes(traffic?.totalbytessent)}
-              detail={t('traffic.sinceStart')}
-            />
-          </dl>
+          )}
         </>
       )}
       {page === 'peers' && (
@@ -377,7 +420,7 @@ export default function Dashboard({
           />
         </div>
       )}
-      {page === 'peers' && <PeerCountries section={node.peerMap} />}
+      {page === 'peers' && <PeerCountries section={node.peerMap} loading={node.pending.peerMap} />}
       {page === 'peers' && (
         <section className="panel network-panel">
           <SectionHeading title={t('peers.networks')} subtitle={t('peers.distribution')} />
@@ -392,7 +435,13 @@ export default function Dashboard({
               </div>
             ))}
           </dl>
-          {!mix.length && <Empty title={t('peers.emptyDistribution')} />}
+          {node.pending.peers ? (
+            <LoadingSkeleton label={t('dashboard.collecting')}>
+              <TableSkeleton />
+            </LoadingSkeleton>
+          ) : (
+            !mix.length && <Empty title={t('peers.emptyDistribution')} />
+          )}
         </section>
       )}
       {page === 'node' && (
@@ -400,60 +449,76 @@ export default function Dashboard({
           {(node.mempool.stale || node.mempool.error) && (
             <Notice error>{t('node.relayFeeStale')}</Notice>
           )}
-          <dl className="metrics-grid node-metrics">
-            <Metric
-              label={t('metrics.height')}
-              value={number(chain?.blocks)}
-              detail={t('metrics.headers', { total: number(chain?.headers) })}
-            />
-            <Metric
-              label={t('nav.peers')}
-              value={number(network?.connections)}
-              detail={`${t('metrics.inbound', { total: number(network?.connections_in) })} / ${t('metrics.outbound', { total: number(network?.connections_out) })}`}
-            />
-            <Metric label={t('metrics.uptime')} value={duration(overview?.uptime)} />
-            <Metric label={t('node.disk')} value={bytes(chain?.size_on_disk)} />
-            <Metric
-              label={t('node.database')}
-              value={bytes(database?.data?.size_bytes)}
-              detail={t(
-                !database?.data
-                  ? 'node.databaseUnavailable'
-                  : database.stale || database.error
-                    ? 'node.databaseStale'
-                    : database.data.in_memory
-                      ? 'node.databaseMemory'
-                      : database.data.driver === 'postgres'
-                        ? 'node.databasePostgres'
-                        : 'node.databaseSQLite',
-              )}
-            />
-            <Metric
-              label={t('node.mode')}
-              value={!chain ? '—' : t(chain.pruned ? 'sync.pruned' : 'sync.full')}
-            />
-          </dl>
+          <>
+            {node.pending.overview ? (
+              <LoadingSkeleton label={t('dashboard.collecting')}>
+                <MetricsSkeleton count={6} />
+              </LoadingSkeleton>
+            ) : (
+              <dl className="metrics-grid node-metrics">
+                <Metric
+                  label={t('metrics.height')}
+                  value={number(chain?.blocks)}
+                  detail={t('metrics.headers', { total: number(chain?.headers) })}
+                />
+                <Metric
+                  label={t('nav.peers')}
+                  value={number(network?.connections)}
+                  detail={`${t('metrics.inbound', { total: number(network?.connections_in) })} / ${t('metrics.outbound', { total: number(network?.connections_out) })}`}
+                />
+                <Metric label={t('metrics.uptime')} value={duration(overview?.uptime)} />
+                <Metric label={t('node.disk')} value={bytes(chain?.size_on_disk)} />
+                <Metric
+                  label={t('node.database')}
+                  value={bytes(database?.data?.size_bytes)}
+                  detail={t(
+                    !database?.data
+                      ? 'node.databaseUnavailable'
+                      : database.stale || database.error
+                        ? 'node.databaseStale'
+                        : database.data.in_memory
+                          ? 'node.databaseMemory'
+                          : database.data.driver === 'postgres'
+                            ? 'node.databasePostgres'
+                            : 'node.databaseSQLite',
+                  )}
+                />
+                <Metric
+                  label={t('node.mode')}
+                  value={!chain ? '—' : t(chain.pruned ? 'sync.pruned' : 'sync.full')}
+                />
+              </dl>
+            )}
+          </>
           <section className="panel">
             <SectionHeading title={t('node.essentials')} />
-            <dl className="node-details">
-              {[
-                [t('node.network'), chain?.chain ?? '—'],
-                [t('node.coreVersion'), network?.subversion?.replaceAll('/', '') || '—'],
-                [t('node.protocolVersion'), number(network?.protocolversion)],
-                [t('node.relayFee'), fee(mempool?.minrelaytxfee)],
-                [
-                  t('node.networkActivity'),
-                  !network ? '—' : t(network.networkactive ? 'node.enabled' : 'node.disabled'),
-                ],
-                [t('node.services'), network?.localservicesnames?.join(' · ') || '—'],
-                [t('node.bestBlock'), chain?.bestblockhash ?? '—'],
-              ].map(([label, value]) => (
-                <div key={label}>
-                  <dt>{label}</dt>
-                  <dd>{value}</dd>
-                </div>
-              ))}
-            </dl>
+            <>
+              {node.pending.overview ? (
+                <LoadingSkeleton label={t('dashboard.collecting')}>
+                  <TableSkeleton />
+                </LoadingSkeleton>
+              ) : (
+                <dl className="node-details">
+                  {[
+                    [t('node.network'), chain?.chain ?? '—'],
+                    [t('node.coreVersion'), network?.subversion?.replaceAll('/', '') || '—'],
+                    [t('node.protocolVersion'), number(network?.protocolversion)],
+                    [t('node.relayFee'), fee(mempool?.minrelaytxfee)],
+                    [
+                      t('node.networkActivity'),
+                      !network ? '—' : t(network.networkactive ? 'node.enabled' : 'node.disabled'),
+                    ],
+                    [t('node.services'), network?.localservicesnames?.join(' · ') || '—'],
+                    [t('node.bestBlock'), chain?.bestblockhash ?? '—'],
+                  ].map(([label, value]) => (
+                    <div key={label}>
+                      <dt>{label}</dt>
+                      <dd>{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+            </>
           </section>
         </>
       )}
@@ -461,24 +526,32 @@ export default function Dashboard({
       {page === 'blocks' && (
         <>
           {view === 'explorer' && (
-            <dl className="chain-context">
-              <div>
-                <dt>{t('blocks.height')}</dt>
-                <dd>{number(chain?.blocks)}</dd>
-              </div>
-              <div>
-                <dt>{t('blocks.latest')}</dt>
-                <dd>
-                  {latest
-                    ? t('blocks.ago', { time: duration(node.now / 1000 - latest.time) })
-                    : '—'}
-                </dd>
-              </div>
-              <div>
-                <dt>{t('blocks.status')}</dt>
-                <dd>{!chain ? '—' : synced ? t('blocks.synced') : t('blocks.syncing')}</dd>
-              </div>
-            </dl>
+            <>
+              {node.pending.overview ? (
+                <LoadingSkeleton label={t('dashboard.collecting')}>
+                  <MetricsSkeleton />
+                </LoadingSkeleton>
+              ) : (
+                <dl className="chain-context">
+                  <div>
+                    <dt>{t('blocks.height')}</dt>
+                    <dd>{number(chain?.blocks)}</dd>
+                  </div>
+                  <div>
+                    <dt>{t('blocks.latest')}</dt>
+                    <dd>
+                      {latest
+                        ? t('blocks.ago', { time: duration(node.now / 1000 - latest.time) })
+                        : '—'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t('blocks.status')}</dt>
+                    <dd>{!chain ? '—' : synced ? t('blocks.synced') : t('blocks.syncing')}</dd>
+                  </div>
+                </dl>
+              )}
+            </>
           )}
           <div hidden={view !== 'explorer'}>
             <BlockHistory
@@ -490,7 +563,11 @@ export default function Dashboard({
             />
           </div>
           {view === 'analytics' && (
-            <BlockEconomics section={node.blocks} syncing={chain != null && !synced} />
+            <BlockEconomics
+              section={node.blocks}
+              syncing={chain != null && !synced}
+              loading={node.pending.blocks}
+            />
           )}
         </>
       )}
