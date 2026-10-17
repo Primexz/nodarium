@@ -115,6 +115,19 @@ Implementation details are grounded in the repository's README and source.
   including when Core is unavailable. Retain a successful reading marked stale
   after a size error; show a dash and unavailable explanation without a reading.
   Use locale-aware byte formatting and English/German detail text.
+- Show a halving and issuance panel in Mining Network after the difficulty period.
+  Calculate current/next block subsidies, epoch progress, blocks to the next
+  halving, and scheduled issuance through the validated height using integer
+  satoshis, including the genesis subsidy. Distinguish the permitted subsidy
+  schedule from actual claimed rewards, circulating supply, and transaction
+  fees. Retain exact eight-decimal BTC amounts and a collapsed table of the 33
+  nonzero subsidy epochs. Mainnet and public test networks halve every 210,000
+  blocks; regtest uses 150 and has no date estimate. Label test coins explicitly.
+  Estimate dates in the viewer's local time zone from the last node observation
+  and ten minutes per remaining block. Hide dates while syncing, preserve stale
+  readings and their original date anchor, explain missing/unsupported data,
+  and handle the end of issuance without inventing another halving. Use existing
+  node readings without additional RPC calls, indexes, or external services.
 - Show locally sourced network hashrate estimates over up to 144 and 1,008 blocks,
   with persisted hashrate and difficulty charts. Pause network mining history
   during synchronization and preserve gaps for failed estimates.

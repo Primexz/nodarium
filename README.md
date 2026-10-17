@@ -16,7 +16,7 @@
 
 - **Mempool:** Live opens with local fee estimates for 2, 3, and 6-block targets, projected next blocks, and sampled transaction arrivals. Trends collects fee, backlog, memory, and acceptance-floor history.
 - **Blocks:** Explorer provides height search, virtual-scrolling block history, and transaction inspection. Analytics compares utilization, fee rates, subsidy and fees, and fee share.
-- **Mining:** Network shows difficulty-period progress, estimated adjustment time, hashrate, and difficulty history. Pools shows recent observed shares, historical trends, and pool detail pages.
+- **Mining:** Network shows difficulty-period progress, estimated adjustment time, halving and scheduled issuance, hashrate, and difficulty history. Pools shows recent observed shares, historical trends, and pool detail pages.
 - **My node:** Overview shows health, synchronization, blockchain and Nodarium database size, uptime, and Core details. Peers combines searchable connections and geography; Traffic combines download/upload history and budget readings; Events retains the 30-day observation timeline.
 
 Nodarium monitors one node per instance; PostgreSQL is optional. Monitoring history begins when collection starts and is retained for up to a year. Block summaries are backfilled from Core and retained across restarts. Mempool Live and My node Events use optional ZMQ with RPC fallback and SSE updates. See [Live tracking and Events setup and coverage](docs/activity.md). No wallet features, peer controls, or host-resource monitoring.
@@ -97,6 +97,19 @@ IP geolocation runs locally. Peer and node addresses are never sent to a geoloca
 Pool names are inferred locally from coinbase tags or payout addresses using the official [mempool mining-pool definitions](https://github.com/mempool/mining-pools). Unknown matches stay Unknown. Pool shares count observed mainnet blocks, not measured hash power. Refresh the bundled definitions with `make update-mining-pools`, then rebuild and restart.
 
 Pool logos come from a bundled snapshot of [mempool/mining-pool-logos](https://github.com/mempool/mining-pool-logos). Refresh them with `make update-mining-pool-logos`, then rebuild and restart. Browsers load logos locally; missing artwork uses a neutral icon.
+
+Mining Network's halving and issuance panel calculates the subsidy schedule from
+your node's validated block height, using exact integer satoshis. It shows the
+current and next subsidies, blocks remaining, epoch progress, all 33 nonzero
+subsidy epochs, and scheduled issuance through that height, including genesis.
+Scheduled issuance is the sum of permitted subsidies, not circulating supply:
+unclaimed rewards and unspendable coins are not deducted, and transaction fees
+are excluded. The total schedule is 20,999,999.97690000 BTC on mainnet and public
+test networks. Regtest uses its 150-block halving interval and labels test coins.
+Dates assume ten minutes per remaining block, are anchored to the last node
+observation, and display in your local time zone. Syncing nodes and regtest show
+no date estimate; failed refreshes retain explicitly stale figures. No additional
+RPC calls, indexes, or external data are required.
 
 Block and transaction details come from your node without requiring `txindex`. A background indexer starts after synchronization, reads recent blocks first, and works backwards to genesis with resumable progress. Economics charts compare subsidy, fees, fee rates, and fullness over recent blocks or long-term ranges. Block summaries persist indefinitely; transaction mosaics and details load on demand from Core. Pruned blocks or unavailable undo data can limit historical statistics and goggles. Missing readings and partial samples are labeled instead of filled with invented values. See the [block history and API details](docs/block-history.md).
 

@@ -25,7 +25,7 @@ Mempool Live opens with conservative Core fee estimates for 2, 3, and 6-block ta
 
 Blocks Explorer uses compact chain context before its cursor-backed browser and height search. Its horizontal scrolling, touch/arrow controls, 50-block cursor pages, ten-page bound, visible-block anchoring, keyboard traversal, return-to-latest, pruning/reorganization notices, and separately focused selected-block panel remain. Actual transaction goggles and details retain their Core availability limits. The browser stays mounted but hidden during Analytics so selection and browser scroll survive a return to Explorer. Analytics owns block economics, ordered utilization, fee rates, subsidy/fees, then fee share; its two-column ruled plots stack on mobile. Its native range select and exact recent-block versus historical-average semantics remain.
 
-Mining Network begins with difficulty-period progress and estimated adjustment time, then its own remembered network-history range and hashrate/difficulty charts. Pools owns recent observed distribution and historical shares, each with its existing sample or period control. Historical pool range is remembered within the browser tab and reflected in the URL query; detail links carry it. Existing pool details stay at `/mining/pools/:id` and return to Pools with their selected range.
+Mining Network begins with difficulty-period progress and estimated adjustment time, followed by a flat halving and issuance panel before its remembered network-history range and hashrate/difficulty charts. Remaining blocks and the next height lead current/next subsidies and a native epoch-progress bar. Current/next subsidies retain primary BTC with optional secondary fiat through the existing currency display; scheduled and remaining issuance retain exact eight-decimal BTC. The date uses the last node observation plus ten minutes per remaining block, displayed in the viewer's local time zone; syncing and regtest hide it, while stale readings retain their figures and original date anchor with a notice. Quiet copy distinguishes permitted subsidies through the validated height, including genesis, from actual claimed rewards, circulating supply, and transaction fees. Public networks use 210,000-block intervals; regtest uses 150, and test coins are labeled. A collapsed native disclosure contains all 33 nonzero subsidy epochs in a bounded, horizontally contained table with sticky headings and a text-labeled orange current row. Mobile gives remaining blocks the full first row, pairs the subsidies below, and stacks issuance readings. Missing, unsupported, and completed schedules retain explicit states. Pools owns recent observed distribution and historical shares, each with its existing sample or period control. Historical pool range is remembered within the browser tab and reflected in the URL query; detail links carry it. Existing pool details stay at `/mining/pools/:id` and return to Pools with their selected range.
 
 My node Overview consolidates health, synchronization, storage, and inspectable Core information. Its six metrics are height, peers, uptime, blockchain disk usage, Nodarium database size, and node mode, in three columns/two rows on desktop and two columns/three rows on mobile. The database reading reuses localized byte formatting and quiet EN/DE detail; it retains its last value marked stale after refresh errors and shows a dash with unavailable copy before a reading exists. Peers puts connected-peer, inbound/outbound, and network-type summary metrics first after its heading, secondary navigation, and existing health/freshness notices, followed by the connection map, searchable connection table, its range/history charts, countries, and transport breakdown. Traffic puts current rates and its remembered range before one combined full-width download/upload chart with independently toggleable series; upload budget and cumulative Core totals follow. Events contains the former Activity Timeline, preserving observations, category filters, coverage limits, explicit new-event refresh, and inline block inspection.
 
@@ -89,6 +89,21 @@ on demand with a one-minute cache, five-second timeout, stale retention, and
 two-hour freshness limit; `internal/server/fiat.go` and `server.go` expose
 `GET /api/1.0/fiat-rates` behind existing session authentication. The browser calls
 Nodarium only, and price requests contain no node, transaction, or peer details.
+
+Halving source evidence is `web/src/halving.ts` for integer-satoshi subsidy
+shifts, the 33 nonzero epochs, genesis-inclusive scheduled issuance, public and
+regtest intervals, completed/unsupported schedules, and observation-anchored
+estimates. `web/src/components/HalvingPanel.tsx` reuses `Metric`, `Notice`,
+`Empty`, `SectionHeading`, the existing progress style, and `BitcoinValue` for
+current/next subsidies; issuance counters use exact BTC formatting instead.
+`HalvingPanel.module.css` retains incumbent theme tokens, flat rules, compact
+type, the mobile breakpoint, and a contained 260px table viewport with sticky
+headings. `web/src/views/Dashboard.tsx` places it immediately after
+`DifficultyPeriod` and before history controls, using the existing overview
+reading. Typed EN/DE locales explain subsidy scope, test coins, synchronization,
+staleness, missing readings, and completion. The halving descriptions in
+`README.md` and `PRODUCT.md` match these source behaviors; this extension adds
+no RPC calls, indexes, external data source, visual world, tokens, or raster.
 
 This pass reconciles source documentation; it did not independently certify
 rendered output or run the complete regression suite. `DESIGN.md` token

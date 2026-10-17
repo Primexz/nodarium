@@ -590,6 +590,48 @@ const de = {
     unsupported:
       'Für dieses Netzwerk oder diese Blockhöhe kann keine planmäßige Anpassung berechnet werden.',
   },
+  halving: {
+    title: 'Halving und Ausgabe',
+    subtitle: 'Der Subventionsplan bei der validierten Blockhöhe deines Nodes.',
+    remainingBlocks: 'Blöcke bis zum nächsten Halving',
+    nextHeight: 'Bei Block {{height}}',
+    currentSubsidy: 'Aktuelle Blocksubvention',
+    nextSubsidy: 'Subvention nach dem Halving',
+    excludesFees: 'Ohne Transaktionsgebühren',
+    epoch: 'Subventionsepoche {{epoch}}',
+    progress: '{{elapsed}} von {{interval}} Blöcken in dieser Epoche',
+    epochProgress: 'Fortschritt der Subventionsepoche',
+    estimatedDate: 'Nächstes Halving (geschätzt)',
+    timeBasis:
+      'Schätzung bei 10 Minuten pro Block in deiner lokalen Zeitzone. Der tatsächliche Zeitpunkt kann abweichen.',
+    timeUnavailable: 'Warten auf einen gültigen Messwert des Nodes.',
+    issued: 'Bisherige planmäßige Ausgabe',
+    issuedPercent: '{{percent}} % des Subventionsplans',
+    remainingIssuance: 'Verbleibende planmäßige Ausgabe',
+    limit: 'Gesamte planmäßige Ausgabe: {{amount}}.',
+    issuanceBasis:
+      'Summe der erlaubten Blocksubventionen bis zu dieser Höhe, einschließlich Genesis. Dies ist nicht die Umlaufmenge: Nicht beanspruchte Belohnungen und nicht ausgebbare Coins werden nicht abgezogen. Transaktionsgebühren sind keine neue Ausgabe.',
+    basis: 'Basierend auf der validierten Blockhöhe deines Nodes: {{height}}.',
+    syncing:
+      'Dein Node synchronisiert sich. Die Werte basieren auf seiner validierten Blockhöhe ({{height}}), die hinter dem Netzwerk liegen kann. Die Datumsschätzung bleibt bis zum Abschluss ausgeblendet.',
+    stale:
+      'Die letzten bekannten Halving- und Ausgabewerte werden angezeigt. Aktualisiere die Daten, um es erneut zu versuchen.',
+    loading: 'Warten auf die Blockhöhe',
+    unavailable: 'Halving und Ausgabe nicht verfügbar',
+    unsupported:
+      'Für dieses Netzwerk oder diese Blockhöhe kann kein Subventionsplan berechnet werden.',
+    testNetwork: 'Testnetzwerk: Diese Werte beziehen sich auf Test-Coins.',
+    regtest:
+      'Regtest halbiert seine Subvention alle {{interval}} Blöcke. Blöcke werden bei Bedarf erzeugt, daher gibt es keine Datumsschätzung. Diese Werte beziehen sich auf Test-Coins.',
+    complete: 'Abgeschlossen',
+    ended: 'Alle planmäßigen Subventionssenkungen sind erfolgt.',
+    noSubsidy: 'Nur Transaktionsgebühren verbleiben',
+    schedule: 'Subventionsepochen',
+    epochColumn: 'Epoche',
+    firstBlock: 'Erster Block',
+    subsidyColumn: 'Subvention pro Block',
+    current: 'Aktuell',
+  },
   mining: {
     title: 'Netzwerk-Mining',
     hashrate: 'Geschätzte Netzwerk-Hashrate',

@@ -1,0 +1,139 @@
+.content {
+  padding: 0 24px 20px;
+}
+
+.readings,
+.issuance {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px 0;
+}
+
+.readings :global(.metric dd),
+.issuance :global(.metric dd) {
+  font-size: 22px;
+}
+
+.progressLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin: 20px 0 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.note,
+.networkNote {
+  margin-top: 12px;
+  font-size: 12px;
+  max-width: 75ch;
+}
+
+.networkNote {
+  margin: 0 0 20px;
+}
+
+.estimate,
+.issuance {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--rule);
+}
+
+.estimate :global(.metric dd) {
+  font-size: 18px;
+}
+
+.issuance {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.schedule {
+  margin-top: 20px;
+  border-top: 1px solid var(--rule);
+}
+
+.schedule summary {
+  padding-top: 16px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.table {
+  max-height: 260px;
+  overflow: auto;
+  margin-top: 16px;
+}
+
+.table th,
+.table td {
+  padding: 10px 12px;
+  white-space: nowrap;
+}
+
+.table thead {
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+}
+
+.table tbody th {
+  background: transparent;
+  color: inherit;
+  font-size: 13px;
+}
+
+.table th small {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 11px;
+  font-weight: 400;
+  color: inherit;
+}
+
+.current {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+@media (max-width: 767px) {
+  .content {
+    padding: 0 20px 20px;
+  }
+
+  .readings {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .readings :global(.metric:first-child) {
+    grid-column: 1 / -1;
+  }
+
+  .readings :global(.metric:nth-child(2)) {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .readings :global(.metric:last-child) {
+    padding: 0 0 0 16px;
+  }
+
+  .readings :global(.metric dd) {
+    font-size: 18px;
+  }
+
+  .issuance {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .issuance :global(.metric + .metric) {
+    border-left: 0;
+    padding-left: 0;
+  }
+
+  .issuance :global(.metric dd) {
+    font-size: 20px;
+  }
+}

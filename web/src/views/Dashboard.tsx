@@ -13,6 +13,7 @@ import HistoryChart from '../components/HistoryChart';
 import PeerMap from '../components/PeerMap';
 import PeerCountries from '../components/PeerCountries';
 import DifficultyPeriod from '../components/DifficultyPeriod';
+import HalvingPanel from '../components/HalvingPanel';
 import MiningCharts from '../components/MiningCharts';
 import MiningPools from '../components/MiningPools';
 import PoolHistory from '../components/PoolHistory';
@@ -253,6 +254,7 @@ export default function Dashboard({
       {page === 'mining' && (
         <>
           <DifficultyPeriod section={node.overview?.overview} />
+          <HalvingPanel section={node.overview?.overview} />
         </>
       )}
       {page === 'pools' && (
